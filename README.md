@@ -1,15 +1,16 @@
-# Bonfire:Quantify
+# Bonfire:Tag
 
 An extension for [Bonfire](https://bonfire.cafe/) that handles:
 
-- Units
-- Measures
+- Tagging posts or other things (i.e. with a Category from Bonfire:Classify or a location from Bonfire:Geolocate)
+- @ mentions (WIP)
+- Hashtags (WIP)
 
 ## Handy commands
 
 ## Copyright and License
 
-Copyright (c) 2020 Bonfire, VoxPublica, and CommonsPub Contributors
+Copyright (c) 2020 Bonfire, Haha Academy, and CommonsPub Contributors
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
