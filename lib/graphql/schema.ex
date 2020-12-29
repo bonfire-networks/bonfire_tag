@@ -56,7 +56,7 @@ defmodule Bonfire.Tag.GraphQL.TagSchema do
     end
 
     @desc "Things that were tagged with this tag"
-    field(:things, list_of(:any_context)) do
+    field(:tagged, list_of(:any_context)) do
       resolve(&TagResolver.tagged_things_edges/3)
     end
   end

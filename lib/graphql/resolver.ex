@@ -38,11 +38,11 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
   @doc """
   Things associated with a Tag
   """
-  def tagged_things_edges(%Tag{things: _things} = tag, %{} = page_opts, info) do
-    tag = repo().preload(tag, :things)
-    # pointers = for %{id: tid} <- tag.things, do: tid
+  def tagged_things_edges(%Tag{tagged: _things} = tag, %{} = page_opts, info) do
+    tag = repo().preload(tag, :tagged)
+    # pointers = for %{id: tid} <- tag.tagged, do: tid
     pointers =
-      tag.things
+      tag.tagged
       |> Enum.map(fn a -> a.id end)
 
     # |> Map.new()

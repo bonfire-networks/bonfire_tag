@@ -34,7 +34,7 @@ defmodule Bonfire.Tag do
     ## allows it to be follow-able and federate activities
     has_one(:character, CommonsPub.Characters.Character, references: :id, foreign_key: :id)
 
-    many_to_many(:things, Pointers.Pointer,
+    many_to_many(:tagged, Pointers.Pointer,
       join_through: "bonfire_tagged",
       unique: true,
       join_keys: [tag_id: :id, pointer_id: :id],
@@ -72,10 +72,10 @@ defmodule Bonfire.Tag do
         things
       ) do
     tag
-    |> repo().preload(:things)
+    |> repo().preload(:tagged)
     |> Changeset.change()
     # Set the association
-    |> Ecto.Changeset.put_assoc(:things, things)
+    |> Ecto.Changeset.put_assoc(:tagged, things)
     |> common_changeset()
   end
 
