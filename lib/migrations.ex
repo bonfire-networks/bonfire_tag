@@ -6,12 +6,14 @@ defmodule Bonfire.Tag.Migrations do
 
   def up() do
 
-    create_mixin_table(Tag) do
+    create_mixin_table(Bonfire.Tag) do
       add(:prefix, :string)
       add(:facet, :string)
     end
 
-    flush()
+  end
+
+  def tagged_up() do
 
     create_if_not_exists table(:bonfire_tagged, primary_key: false) do
       add(:pointer_id, strong_pointer(), null: false)
@@ -24,6 +26,9 @@ defmodule Bonfire.Tag.Migrations do
 
   def down() do
     drop_mixin_table(Tag)
+  end
+
+  def tagged_down() do
     drop_table(:bonfire_tagged)
   end
 end
