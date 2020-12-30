@@ -6,7 +6,7 @@ defmodule Bonfire.Tag.Migrations do
 
   def up() do
 
-    create_mixin_table(Bonfire.Tag) do
+    create_mixin_table("bonfire_tag") do
       add(:prefix, :string)
       add(:facet, :string)
     end
