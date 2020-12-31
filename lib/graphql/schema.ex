@@ -34,28 +34,41 @@ defmodule Bonfire.Tag.GraphQL.TagSchema do
 
   @desc "A tag could be a category or hashtag or user or community or etc"
   object :tag do
-    @desc "The numeric primary key of the tag"
+    @desc "The primary key of the tag"
     field(:id, :string)
 
+    @desc "What character is used to trigger this tag (eg. @, #, +)"
     field(:prefix, :string)
-    field(:facet, :string)
 
-    # field(:name, :string)
-    field(:name, :string) do
-      resolve(&TagResolver.name/3)
-    end
-
-    # field(:summary, :string)
-    field(:summary, :string) do
-      resolve(&TagResolver.summary/3)
-    end
-
-    @desc "The tag object, like a category or community"
+    @desc "The object used as a tag (eg. Category, Geolocation, Hashtag, User...)"
     field :context, :any_context do
       resolve(&Bonfire.GraphQL.CommonResolver.context_edge/3)
     end
 
-    @desc "Things that were tagged with this tag"
+    @desc "Type of tag (i.e. context)"
+    field(:facet, :string)
+
+    @desc "Name of the tag (derived from its context)"
+    field(:name, :string) do
+      resolve(&TagResolver.name/3)
+    end
+
+    @desc "Description of the tag (derived from its context)"
+    field(:summary, :string) do
+      resolve(&TagResolver.summary/3)
+    end
+
+    @desc "Unique URL (on original instance)"
+    field(:canonicalUrl, :string) do
+      resolve(&TagResolver.canonical_url/3)
+    end
+
+    @desc "Unique URL (on original instance)"
+    field(:displayUsername, :string) do
+      resolve(&TagResolver.display_username/3)
+    end
+
+    @desc "Objects that were tagged with this tag"
     field(:tagged, list_of(:any_context)) do
       resolve(&TagResolver.tagged_things_edges/3)
     end

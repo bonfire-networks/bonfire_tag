@@ -16,7 +16,7 @@ defmodule Bonfire.Tag.Tags do
   def one(filters), do: repo().single(Queries.query(Tag, filters))
 
   def get(id) do
-    if CommonsPub.Common.is_ulid(id) do
+    if Bonfire.Common.Utils.is_ulid(id) do
       one(id: id)
     else
       one(username: id)
@@ -52,7 +52,7 @@ defmodule Bonfire.Tag.Tags do
   end
 
   def maybe_make_tag(user, pointer_id, attrs) when is_binary(pointer_id) do
-    if CommonsPub.Utils.Web.CommonHelper.is_numeric(pointer_id) do
+    if Bonfire.Common.Utils.is_numeric(pointer_id) do
       maybe_make_tag(user, String.to_integer(pointer_id), attrs)
     else
       with {:ok, tag} <- get(pointer_id) do
@@ -173,7 +173,7 @@ defmodule Bonfire.Tag.Tags do
   """
   def tag_something(user, %{__struct__: _}=thing, tags) do
     with {:ok, _tag} <- do_tag_thing(user, thing, tags) do
-      {:ok, Bonfire.repo().maybe_preload(thing, :tags)}
+      {:ok, Bonfire.Repo.maybe_preload(thing, :tags)}
     end
   end
 
