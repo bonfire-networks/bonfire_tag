@@ -30,7 +30,7 @@ defmodule Bonfire.Tag.ConnCase do
       alias Bonfire.Tag.Web.Router.Helpers, as: Routes
 
       # The default endpoint for testing
-      @endpoint Bonfire.Tag.Web.Endpoint
+      @endpoint Bonfire.Common.Config.get!(:endpoint_module)
     end
   end
 
