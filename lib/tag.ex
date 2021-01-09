@@ -16,21 +16,20 @@ defmodule Bonfire.Tag do
   @required ~w(id prefix facet)a
 
   mixin_schema do
-    # pointable_schema do
-
-    # field(:id, Pointers.ULID, autogenerate: true)
 
     # eg. @ or + or #
     field(:prefix, :string)
 
     field(:facet, :string)
 
-    # Optionally, a profile and character (if not using context) - TODO: set these in config using Flexto instead
+    # Optionally, a profile and character (if not using context) - TODO should be set these in config using Flexto instead (after (ArgumentError) field/association :character is already set on schema issue is sorted)
     has_one(:category, Bonfire.Classify.Category, references: :id, foreign_key: :id)
-    ## stores common fields like name/description
+    # stores common fields like name/description
     has_one(:profile, Bonfire.Data.Social.Profile, references: :id, foreign_key: :id)
-    ## allows it to be follow-able and federate activities
+    # allows it to be follow-able and federate activities
     has_one(:character, Bonfire.Data.Identity.Character, references: :id, foreign_key: :id)
+    # location used as tag
+    has_one(:geolocation, Bonfire.Geolocate.Geolocation, references: :id, foreign_key: :id)
 
     many_to_many(:tagged, Pointers.Pointer,
       join_through: "bonfire_tagged",
