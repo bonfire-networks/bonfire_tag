@@ -13,7 +13,22 @@ defmodule Bonfire.Tag.Tags do
   def cursor(), do: &[&1.id]
   def test_cursor(), do: &[&1["id"]]
 
+  @doc """
+  Retrieves a single tag by arbitrary filters.
+  Used by:
+  * GraphQL Item queries
+  * ActivityPub integration
+  * Various parts of the codebase that need to query for tags (inc. tests)
+  """
   def one(filters), do: repo().single(Queries.query(Tag, filters))
+
+  @doc """
+  Retrieves a list of tags by arbitrary filters.
+  Used by:
+  * Various parts of the codebase that need to query for tags (inc. tests)
+  """
+  def many(filters \\ []), do: {:ok, repo().all(Queries.query(Tag, filters))}
+
 
   def get(id) do
     if Bonfire.Common.Utils.is_ulid(id) do

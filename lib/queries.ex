@@ -6,9 +6,9 @@ defmodule Bonfire.Tag.Queries do
 
   def query(Tag) do
     from(t in Tag,
-      as: :tag,
-      left_join: c in assoc(t, :character),
-      as: :character
+      as: :tag
+      # left_join: c in assoc(t, :character),
+      # as: :character
     )
   end
 
@@ -31,6 +31,14 @@ defmodule Bonfire.Tag.Queries do
 
   def join_to(q, tables, jq) when is_list(tables) do
     Enum.reduce(tables, q, &join_to(&2, &1, jq))
+  end
+
+  def join_to(q, :profile, jq) do
+    join(q, jq, [tag: c], t in assoc(c, :profile), as: :profile)
+  end
+
+  def join_to(q, :character, jq) do
+    join(q, jq, [tag: c], t in assoc(c, :character), as: :character)
   end
 
   @doc "Filter the query according to arbitrary criteria"
@@ -62,11 +70,24 @@ defmodule Bonfire.Tag.Queries do
   def filter(q, {:id, ids}) when is_list(ids), do: where(q, [tag: c], c.id in ^ids)
 
   def filter(q, {:username, username}) when is_binary(username) do
-    where(q, [character: a], a.preferred_username == ^username)
+    q
+    |> join_to(:character)
+    |> preload(:character)
+    |> where([character: a], a.preferred_username == ^username)
   end
 
   def filter(q, {:username, usernames}) when is_list(usernames) do
-    where(q, [character: a], a.preferred_username in ^usernames)
+    q
+    |> join_to(:character)
+    |> preload(:character)
+    |> where([character: a], a.preferred_username in ^usernames)
+  end
+
+  def filter(q, {:name_contains, text}) when is_binary(text) do
+    q
+    |> join_to(:profile)
+    |> preload(:profile)
+    |> where([profile: p], ilike(p.name, ^"#{text}%") or ilike(p.name, ^"% #{text}%"))
   end
 
   def filter(q, {:user, _user}), do: q
