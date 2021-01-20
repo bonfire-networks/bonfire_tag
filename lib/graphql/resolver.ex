@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
+if Code.ensure_loaded?(Bonfire.GraphQL) do
 defmodule Bonfire.Tag.GraphQL.TagResolver do
   @moduledoc "GraphQL tag/category queries"
   import Bonfire.Common.Config, only: [repo: 0]
@@ -190,4 +191,5 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
   #     GraphQL.not_permitted("delete")
   #   end
   # end
+end
 end
