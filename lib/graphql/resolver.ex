@@ -19,6 +19,7 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
   alias Bonfire.Tag
   alias Bonfire.Tag.Tags
 
+  require Logger
 
   def tag(%{id: id}, info) do
     ResolveField.run(%ResolveField{
@@ -63,7 +64,7 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
   end
 
   def tags_edges(_, _, _) do
-
+    Logger.warn("no tags")
     {:ok, nil}
   end
 
