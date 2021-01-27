@@ -32,7 +32,7 @@ defmodule Bonfire.Tag do
     has_one(:geolocation, Bonfire.Geolocate.Geolocation, references: :id, foreign_key: :id)
 
     many_to_many(:tagged, Pointers.Pointer,
-      join_through: "bonfire_tagged",
+      join_through: Bonfire.Tag.Tagged,
       unique: true,
       join_keys: [tag_id: :id, pointer_id: :id],
       on_replace: :delete

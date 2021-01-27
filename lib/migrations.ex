@@ -24,6 +24,20 @@ defmodule Bonfire.Tag.Migrations do
     create(unique_index(:bonfire_tagged, [:pointer_id, :tag_id]))
   end
 
+  def tagged_timestamps_up() do
+    alter table(:bonfire_tagged) do
+      add :inserted_at, :naive_datetime, default: fragment("now()")
+      add :updated_at, :naive_datetime
+    end
+  end
+
+  def tagged_timestamps_down() do
+    alter table(:bonfire_tagged) do
+      remove :inserted_at
+      remove :updated_at
+    end
+  end
+
   def down() do
     drop_mixin_table(Tag)
   end
