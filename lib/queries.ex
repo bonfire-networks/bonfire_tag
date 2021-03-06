@@ -73,14 +73,14 @@ defmodule Bonfire.Tag.Queries do
     q
     |> join_to(:character)
     |> preload(:character)
-    |> where([character: a], a.preferred_username == ^username)
+    |> where([character: a], a.username == ^username)
   end
 
   def filter(q, {:username, usernames}) when is_list(usernames) do
     q
     |> join_to(:character)
     |> preload(:character)
-    |> where([character: a], a.preferred_username in ^usernames)
+    |> where([character: a], a.username in ^usernames)
   end
 
   def filter(q, {:name_contains, text}) when is_binary(text) do

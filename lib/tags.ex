@@ -3,6 +3,7 @@ Bonfire.Common.Config.require_extension_config!(:bonfire_tag)
 defmodule Bonfire.Tag.Tags do
 
   import Bonfire.Common.Config, only: [repo: 0]
+  alias Bonfire.Common.Utils
 
   # alias CommonsPub.Users.User
   alias Bonfire.Tag
@@ -52,11 +53,31 @@ defmodule Bonfire.Tag.Tags do
     "+"
   end
 
-  ## mutations
+  def maybe_find_tag(user, taggable, attrs) when is_binary(taggable) do
+    with {:ok, tag} <- get(taggable) do
+      {:ok, tag}
+    else _e ->
+        with {:ok, pointer} <- Bonfire.Common.Pointers.one(taggable) do
+          pointer
+        else _e ->
+            if Utils.module_enabled?(Bonfire.Me.Identity.Users) do
+              with {:ok, user} <- Bonfire.Me.Identity.Users.by_username(taggable) do
+                user
+              end
+            end
+        end
+    end
+  end
+
+### Functions for creating tags ###
 
   @doc """
-  Create a Tag that makes an existing object (eg. Bonfire.Geolocate.Geolocation) tag
+  Create a Tag from an existing object (eg. Bonfire.Geolocate.Geolocation)
   """
+  def maybe_make_tag(user, context) do
+    maybe_make_tag(user, context, %{})
+  end
+
   def maybe_make_tag(user, id, _) when is_number(id) do
     with {:ok, t} <- maybe_taxonomy_tag(user, id) do
       {:ok, t}
@@ -74,8 +95,12 @@ defmodule Bonfire.Tag.Tags do
         {:ok, tag}
       else
         _e ->
-          with {:ok, pointer} <- Bonfire.Common.Pointers.one(id: pointer_id) do
+          with {:ok, pointer} <- Bonfire.Common.Pointers.one(pointer_id) do
             maybe_make_tag(user, pointer, attrs)
+            # _e ->
+            #   with {:ok, pointer} <- Bonfire.Common.Pointers.one(pointer_id) do
+            #     maybe_make_tag(user, pointer, attrs)
+            #   end
           end
       end
     end
@@ -87,20 +112,16 @@ defmodule Bonfire.Tag.Tags do
     end
   end
 
-  def maybe_make_tag(user, %{} = context, attrs) do
-    with {:ok, tag} <- one(id: context.id) do
+  def maybe_make_tag(user, %{id: id} = context, attrs) do
+    with {:ok, tag} <- get(id) do
       {:ok, tag}
     else
       _e -> make_tag(user, context, attrs)
     end
   end
 
-  def maybe_make_tag(user, context) do
-    maybe_make_tag(user, context, %{})
-  end
-
   @doc """
-  Create a tag mixin for an existing poitable object (please use maybe_make_tag instead)
+  Create a tag mixin for an existing poitable object (you usually want to use maybe_make_tag instead)
   """
   def make_tag(_creator, %{} = pointable_obj, attrs) when is_map(attrs) do
     repo().transact_with(fn ->
@@ -157,38 +178,52 @@ defmodule Bonfire.Tag.Tags do
 ### Functions for tagging things ###
 
   @doc """
-  tag IDs from a `tags` field
+  Maybe tag something
   """
-  def maybe_tag(user, thing, %{tags: tag_ids}) when is_binary(tag_ids) do
-    tag_ids = Bonfire.Web.Component.TagAutocomplete.tags_split(tag_ids)
-    tag_something(user, thing, tag_ids)
+  def maybe_tag(user, thing, tags \\ nil)
+
+  def maybe_tag(user, thing, %{tags: tag_string}) when is_binary(tag_string) do
+    tag_strings = Bonfire.Tag.Autocomplete.tags_split(tag_string)
+    tag_something(user, thing, tag_strings)
   end
 
-  def maybe_tag(user, thing, %{tags: tag_ids})
-      when is_list(tag_ids) and length(tag_ids) > 0 do
-    tag_something(user, thing, tag_ids)
-  end
+  def maybe_tag(user, thing, %{tags: tags}) when is_list(tags) and length(tags) > 0, do: tag_something(user, thing, tags)
 
+  def maybe_tag(user, thing, tags) when is_list(tags) and length(tags) > 0, do: tag_something(user, thing, tags)
+
+  def maybe_tag(user, thing, text) when bit_size(text) > 1 do
+    with %{tag_results: tag} <- Bonfire.Tag.Autocomplete.try_prefixes(text) do
+      # IO.inspect(tag_results: tag)
+
+      maybe_tag(user, thing, tag)
+
+      else _e ->
+        # IO.inspect("no results")
+        {:ok, thing}
+    end
+  end
 
   @doc """
   otherwise maybe we have tagnames inline in the note?
   """
-  def maybe_tag(_user, thing, %{note: text}) when bit_size(text) > 1 do
-    # Bonfire.Web.Component.TagAutocomplete.try_prefixes(text)
-    # TODO - use tags in the note
+  def maybe_tag(user, %{post_content: p}, _), do: maybe_tag(user, p, nil)
+  def maybe_tag(user, %{html_body: text} = thing, _) when bit_size(text) > 1, do: maybe_tag(user, thing, text)
+  def maybe_tag(user, %{summary: text} = thing, _) when bit_size(text) > 1, do: maybe_tag(user, thing, text)
+  def maybe_tag(user, %{note: text} = thing, _) when bit_size(text) > 1, do: maybe_tag(user, thing, text)
+  def maybe_tag(user, %{name: text} = thing, _) when bit_size(text) > 1, do: maybe_tag(user, thing, text)
+
+  def maybe_tag(_user, thing, maybe_tags) do
+    # IO.inspect(maybe_tags: maybe_tags)
     {:ok, thing}
   end
 
-  def maybe_tag(_user, thing, _) do
-    {:ok, thing}
-  end
 
   @doc """
-  tag existing thing with one or multiple Tags, Pointers, or anything that can be made tag
+  tag existing thing with one or multiple Tags, Pointers, or anything that can be made into a tag
   """
   def tag_something(user, %{__struct__: _}=thing, tags) do
-    with {:ok, _tag} <- do_tag_thing(user, thing, tags) do
-      {:ok, Bonfire.Repo.maybe_preload(thing, :tags)}
+    with {:ok, tagged} <- do_tag_thing(user, thing, tags) do
+      {:ok, Map.merge(thing, tagged)}
     end
   end
 
@@ -201,9 +236,11 @@ defmodule Bonfire.Tag.Tags do
   """
   defp do_tag_thing(user, thing, tags) when is_list(tags) do
     thing = thing_to_pointer(thing)
+    # IO.inspect(tags: tags)
     tags = Enum.map(tags, &tag_preprocess(user, &1))
     # {:ok, thing |> Map.merge(%{tags: tag_something})}
     thing_tags_save(thing, tags)
+    # Bonfire.Repo.maybe_preload(thing, :tags)
   end
 
   defp do_tag_thing(user, thing, tag) do

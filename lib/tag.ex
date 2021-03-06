@@ -20,7 +20,9 @@ defmodule Bonfire.Tag do
     # eg. @ or + or #
     field(:prefix, :string)
 
-    field(:facet, :string)
+    field(:facet, :string) # FIXME: make enum or ref to other table?
+
+    # field(:tagged_count, :integer) # TODO
 
     # Optionally, a profile and character (if not using context) - TODO should be set these in config using Flexto instead (after (ArgumentError) field/association :character is already set on schema issue is sorted)
     has_one(:category, Bonfire.Classify.Category, references: :id, foreign_key: :id)
