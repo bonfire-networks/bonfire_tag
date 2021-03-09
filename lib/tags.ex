@@ -192,12 +192,19 @@ defmodule Bonfire.Tag.Tags do
   def maybe_tag(user, thing, tags) when is_list(tags) and length(tags) > 0, do: tag_something(user, thing, tags)
 
   def maybe_tag(user, thing, text) when bit_size(text) > 1 do
-    with %{tag_results: tag} <- Bonfire.Tag.Autocomplete.try_prefixes(text) do
-      # IO.inspect(tag_results: tag)
 
-      maybe_tag(user, thing, tag)
+    tag_or_tags = Bonfire.Tag.Autocomplete.find_all_tags(text)
 
-      else _e ->
+    case tag_or_tags do
+      %{} = tag ->
+
+        maybe_tag(user, thing, tag)
+
+      tags when is_list(tags) and length(tags)>0 ->
+
+        maybe_tag(user, thing, tags)
+
+      _ ->
         # IO.inspect("no results")
         {:ok, thing}
     end

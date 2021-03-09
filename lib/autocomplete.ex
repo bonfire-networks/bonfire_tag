@@ -9,6 +9,7 @@ defmodule Bonfire.Tag.Autocomplete do
   @taxonomy_prefix "+"
   @taxonomy_index "public"
   @search_index "public"
+  @max_length 50
 
   def tag_lookup(tag_search, "+" = prefix, consumer) do
     tag_lookup_public(tag_search, prefix, consumer, ["Collection", "Category", "Tag"])
@@ -80,17 +81,51 @@ defmodule Bonfire.Tag.Autocomplete do
   #   end
   # end
 
-## moved from tag_autocomplete_live.ex ##
+  def find_all_tags(content) do
+    # IO.inspect(prefixes: @prefixes)
+    # FIXME?
+    words = tags_split(content)
+    # IO.inspect(tags_split: words)
+
+    if words do
+      tries =
+      @prefixes
+      |> Enum.map(&try_tag_search(&1, words))
+      |> Enum.map(&filter_results(&1))
+      |> Enum.reject(&Enum.empty?/1)
+      |> List.flatten()
+
+      # IO.inspect(find_all_tags: tries)
+
+    end
+  end
+
+  def filter_results(res) when is_list(res) do
+    res
+    |> Enum.map(&filter_results(&1))
+    |> Enum.filter(& &1)
+  end
+  def filter_results(%{tag_results: tag_results}) when is_list(tag_results) and length(tag_results)>0 do
+    tag_results
+  end
+  def filter_results(_) do
+    nil
+  end
+
+  ## moved from tag_autocomplete_live.ex ##
 
   def try_prefixes(content) do
+    # IO.inspect(prefixes: @prefixes)
     # FIXME?
-    tries = Enum.map(@prefixes,
-        &try_tag_search(&1, content)
-      )
+    tries = Enum.map(@prefixes, &try_tag_search(&1, content))
       |> Enum.filter(& &1)
-    # IO.inspect(tries: tries)
+    # IO.inspect(try_prefixes: tries)
 
     List.first(tries)
+  end
+
+  def try_tag_search(tag_prefix, words) when is_list(words) do
+    Enum.map(words, &try_tag_search(tag_prefix, &1))
   end
 
   def try_tag_search(tag_prefix, content) do
@@ -121,12 +156,13 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def tag_search_from_text(text, prefix) do
-    parts = String.split(text, prefix)
+    parts = String.split(text, prefix, parts: 2)
 
     if length(parts) > 1 do
+      # IO.inspect(parts: parts)
       typed = List.last(parts)
 
-      if String.length(typed) > 0 and String.length(typed) < 20 and !(typed =~ @tag_terminator) do
+      if String.length(typed) > 0 and String.length(typed) < @max_length and !(typed =~ @tag_terminator) do
         typed
       end
     end
