@@ -60,8 +60,8 @@ defmodule Bonfire.Tag.Tags do
         with {:ok, pointer} <- Bonfire.Common.Pointers.one(taggable) do
           pointer
         else _e ->
-            if Utils.module_enabled?(Bonfire.Me.Identity.Users) do
-              with {:ok, user} <- Bonfire.Me.Identity.Users.by_username(taggable) do
+            if Utils.module_enabled?(Bonfire.Me.Users) do
+              with {:ok, user} <- Bonfire.Me.Users.by_username(taggable) do
                 user
               end
             end
