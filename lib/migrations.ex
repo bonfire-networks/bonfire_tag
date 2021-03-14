@@ -43,6 +43,6 @@ defmodule Bonfire.Tag.Migrations do
   end
 
   def tagged_down() do
-    drop_table(:bonfire_tagged)
+    drop_table("bonfire_tagged")
   end
 end
