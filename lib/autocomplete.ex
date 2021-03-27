@@ -25,21 +25,21 @@ defmodule Bonfire.Tag.Autocomplete do
 
   def tag_lookup_public(tag_search, prefix, consumer, index_type) do
     search = Bonfire.Search.search(tag_search, nil, false, %{"index_type" => index_type})
-    # IO.inspect(search)
+    #IO.inspect(search)
     tag_lookup_process(tag_search, search, prefix, consumer)
   end
 
   def tag_lookup_process(tag_search, search, prefix, consumer) do
     if(Map.has_key?(search, "hits") and length(search["hits"])) do
-      # IO.inspect(search["hits"])
+      #IO.inspect(search["hits"])
       hits = Enum.map(search["hits"], &tag_hit_prepare(&1, tag_search, prefix, consumer))
       Enum.filter(hits, & &1)
     end
   end
 
   def tag_hit_prepare(hit, _tag_search, prefix, consumer) do
-    # IO.inspect(consumer)
-    # IO.inspect(Map.new(consumer: "test"))
+    #IO.inspect(consumer)
+    #IO.inspect(Map.new(consumer: "test"))
 
     # FIXME: do this by filtering Meili instead?
     if strlen(hit["username"]) > 0 or (prefix == "+" and strlen(hit["id"]) > 0) do
@@ -82,10 +82,10 @@ defmodule Bonfire.Tag.Autocomplete do
   # end
 
   def find_all_tags(content) do
-    # IO.inspect(prefixes: @prefixes)
+    #IO.inspect(prefixes: @prefixes)
     # FIXME?
     words = tags_split(content)
-    # IO.inspect(tags_split: words)
+    #IO.inspect(tags_split: words)
 
     if words do
       tries =
@@ -95,7 +95,7 @@ defmodule Bonfire.Tag.Autocomplete do
       |> Enum.reject(&Enum.empty?/1)
       |> List.flatten()
 
-      # IO.inspect(find_all_tags: tries)
+      #IO.inspect(find_all_tags: tries)
 
     end
   end
@@ -115,11 +115,11 @@ defmodule Bonfire.Tag.Autocomplete do
   ## moved from tag_autocomplete_live.ex ##
 
   def try_prefixes(content) do
-    # IO.inspect(prefixes: @prefixes)
+    #IO.inspect(prefixes: @prefixes)
     # FIXME?
     tries = Enum.map(@prefixes, &try_tag_search(&1, content))
       |> Enum.filter(& &1)
-    # IO.inspect(try_prefixes: tries)
+    #IO.inspect(try_prefixes: tries)
 
     List.first(tries)
   end
@@ -147,8 +147,8 @@ defmodule Bonfire.Tag.Autocomplete do
   def tag_search(tag_search, tag_prefix) do
     tag_results = search_prefix(tag_search, tag_prefix)
 
-    # IO.inspect(tag_prefix: tag_prefix)
-    # IO.inspect(tag_results: tag_results)
+    #IO.inspect(tag_prefix: tag_prefix)
+    #IO.inspect(tag_results: tag_results)
 
     if tag_results do
       %{tag_search: tag_search, tag_results: tag_results, tag_prefix: tag_prefix}
@@ -159,7 +159,7 @@ defmodule Bonfire.Tag.Autocomplete do
     parts = String.split(text, prefix, parts: 2)
 
     if length(parts) > 1 do
-      # IO.inspect(parts: parts)
+      #IO.inspect(parts: parts)
       typed = List.last(parts)
 
       if String.length(typed) > 0 and String.length(typed) < @max_length and !(typed =~ @tag_terminator) do
@@ -208,12 +208,12 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def search_from_index(tag_search, index, facets \\ nil) do
-    # IO.inspect(searched: tag_search)
-    # IO.inspect(facets: facets)
+    #IO.inspect(searched: tag_search)
+    #IO.inspect(facets: facets)
 
     if module_enabled?(Bonfire.Search) do # use search index if available
       search = Bonfire.Search.search(tag_search, index, false, facets)
-      # IO.inspect(search: search)
+      #IO.inspect(search: search)
 
       if(Map.has_key?(search, "hits") and length(search["hits"])) do
         # search["hits"]
@@ -242,7 +242,7 @@ defmodule Bonfire.Tag.Autocomplete do
 
     if !is_nil(name) and name =~ tag_search do
       split = String.split(name, tag_search, parts: 2, trim: false)
-      # IO.inspect(split)
+      #IO.inspect(split)
       [head | tail] = split
 
       List.to_string([head, "<span>", tag_search, "</span>", tail])

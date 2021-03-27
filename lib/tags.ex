@@ -137,7 +137,7 @@ defmodule Bonfire.Tag.Tags do
   defp attrs_with_tag(%{facet: facet} = attrs, %{} = pointable_obj) when not is_nil(facet) do
     attrs = Map.put(attrs, :prefix, prefix(attrs.facet))
     attrs = Map.put(attrs, :id, pointable_obj.id)
-    # IO.inspect(attrs)
+    #IO.inspect(attrs)
     {:ok, attrs}
   end
 
@@ -153,7 +153,7 @@ defmodule Bonfire.Tag.Tags do
   end
 
   defp insert_tag(attrs) do
-    # IO.inspect(insert_tag: attrs)
+    #IO.inspect(insert_tag: attrs)
     cs = Tag.create_changeset(attrs)
     with {:ok, tag} <- repo().insert(cs), do: {:ok, tag}
   end
@@ -205,7 +205,7 @@ defmodule Bonfire.Tag.Tags do
         maybe_tag(user, thing, tags)
 
       _ ->
-        # IO.inspect("no results")
+        #IO.inspect("no results")
         {:ok, thing}
     end
   end
@@ -220,7 +220,7 @@ defmodule Bonfire.Tag.Tags do
   def maybe_tag(user, %{name: text} = thing, _) when bit_size(text) > 1, do: maybe_tag(user, thing, text)
 
   def maybe_tag(_user, thing, maybe_tags) do
-    # IO.inspect(maybe_tags: maybe_tags)
+    #IO.inspect(maybe_tags: maybe_tags)
     {:ok, thing}
   end
 
@@ -243,7 +243,7 @@ defmodule Bonfire.Tag.Tags do
   """
   defp do_tag_thing(user, thing, tags) when is_list(tags) do
     thing = thing_to_pointer(thing)
-    # IO.inspect(tags: tags)
+    #IO.inspect(tags: tags)
     tags = Enum.map(tags, &tag_preprocess(user, &1))
     # {:ok, thing |> Map.merge(%{tags: tag_something})}
     thing_tags_save(thing, tags)

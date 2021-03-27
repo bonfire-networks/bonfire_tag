@@ -38,7 +38,7 @@ defmodule Bonfire.Web.Component.TagAutocomplete do
     IO.inspect(tag_suggest_tags: tags)
 
     found = try_tag_search(tags)
-    # IO.inspect(found: found)
+    #IO.inspect(found: found)
 
     if(is_map(found) and Map.has_key?(found, :tag_results) and length(found.tag_results) > 0) do
       {:noreply,
