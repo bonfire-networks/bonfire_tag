@@ -26,8 +26,8 @@ defmodule Bonfire.Tag.Migrations do
 
   def tagged_timestamps_up() do
     alter table(:bonfire_tagged) do
-      add :inserted_at, :naive_datetime, default: fragment("now()")
-      add :updated_at, :naive_datetime
+      add_if_not_exists :inserted_at, :naive_datetime, default: fragment("now()")
+      add_if_not_exists :updated_at, :naive_datetime
     end
   end
 
