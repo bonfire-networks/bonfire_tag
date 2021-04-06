@@ -5,11 +5,11 @@ defmodule Bonfire.Tag.Tags do
   import Bonfire.Common.Config, only: [repo: 0]
   alias Bonfire.Common.Utils
 
-  # alias CommonsPub.Users.User
   alias Bonfire.Tag
   alias Bonfire.Tag.Queries
+  alias Bonfire.Tag.TextContent.Process
 
-  # alias CommonsPub.Characters
+  require Logger
 
   def cursor(), do: &[&1.id]
   def test_cursor(), do: &[&1["id"]]
@@ -53,7 +53,7 @@ defmodule Bonfire.Tag.Tags do
     "+"
   end
 
-  def maybe_find_tag(user, taggable, attrs) when is_binary(taggable) do
+  def maybe_find_tag(_user \\ nil, taggable) when is_binary(taggable) do
     with {:ok, tag} <- get(taggable) do
       {:ok, tag}
     else _e ->
@@ -182,18 +182,19 @@ defmodule Bonfire.Tag.Tags do
   """
   def maybe_tag(user, thing, tags \\ nil)
 
-  def maybe_tag(user, thing, %{tags: tag_string}) when is_binary(tag_string) do
-    tag_strings = Bonfire.Tag.Autocomplete.tags_split(tag_string)
-    tag_something(user, thing, tag_strings)
-  end
+  # def maybe_tag(user, thing, %{tags: tag_string}) when is_binary(tag_string) do
+  #   tag_strings = Bonfire.Tag.Autocomplete.tags_split(tag_string)
+  #   tag_something(user, thing, tag_strings)
+  # end
 
-  def maybe_tag(user, thing, %{tags: tags}) when is_list(tags) and length(tags) > 0, do: tag_something(user, thing, tags)
-
+  def maybe_tag(user, thing, %{tags: tags}), do: maybe_tag(user, thing, tags)
+  def maybe_tag(user, thing, %{tag: tag}), do: maybe_tag(user, thing, tag)
   def maybe_tag(user, thing, tags) when is_list(tags) and length(tags) > 0, do: tag_something(user, thing, tags)
+  def maybe_tag(user, thing, %Bonfire.Tag{} = tag), do: tag_something(user, thing, tag)
 
-  def maybe_tag(user, thing, text) when bit_size(text) > 1 do
+  def maybe_tag(user, thing, text) when is_binary(text) do
 
-    tag_or_tags = Bonfire.Tag.Autocomplete.find_all_tags(text)
+    tag_or_tags = Bonfire.Tag.Autocomplete.find_all_tags(text) # TODO, switch to TextContent.Process?
 
     case tag_or_tags do
       %{} = tag ->
@@ -205,21 +206,15 @@ defmodule Bonfire.Tag.Tags do
         maybe_tag(user, thing, tags)
 
       _ ->
-        #IO.inspect("no results")
+        Logger.info("Bonfire.Tag - no matches in '#{text}'")
         {:ok, thing}
     end
   end
 
-  @doc """
-  otherwise maybe we have tagnames inline in the note?
-  """
-  def maybe_tag(user, %{post_content: p}, _), do: maybe_tag(user, p, nil)
-  def maybe_tag(user, %{html_body: text} = thing, _) when bit_size(text) > 1, do: maybe_tag(user, thing, text)
-  def maybe_tag(user, %{summary: text} = thing, _) when bit_size(text) > 1, do: maybe_tag(user, thing, text)
-  def maybe_tag(user, %{note: text} = thing, _) when bit_size(text) > 1, do: maybe_tag(user, thing, text)
-  def maybe_tag(user, %{name: text} = thing, _) when bit_size(text) > 1, do: maybe_tag(user, thing, text)
+  #doc """ otherwise maybe we have tagnames inline in the text in the object? """
+  def maybe_tag(user, obj, _), do: maybe_tag(user, obj, Process.object_text_content(obj))
 
-  def maybe_tag(_user, thing, maybe_tags) do
+  def maybe_tag(_user, thing, _maybe_tags) do
     #IO.inspect(maybe_tags: maybe_tags)
     {:ok, thing}
   end

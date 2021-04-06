@@ -88,12 +88,14 @@ defmodule Bonfire.Tag.Autocomplete do
     #IO.inspect(tags_split: words)
 
     if words do
-      tries =
+      # tries =
       @prefixes
       |> Enum.map(&try_tag_search(&1, words))
+      # |> IO.inspect
       |> Enum.map(&filter_results(&1))
-      |> Enum.reject(&Enum.empty?/1)
       |> List.flatten()
+      |> Enum.filter(& &1)
+      # |> IO.inspect
 
       #IO.inspect(find_all_tags: tries)
 
@@ -103,10 +105,12 @@ defmodule Bonfire.Tag.Autocomplete do
   def filter_results(res) when is_list(res) do
     res
     |> Enum.map(&filter_results(&1))
-    |> Enum.filter(& &1)
   end
-  def filter_results(%{tag_results: tag_results}) when is_list(tag_results) and length(tag_results)>0 do
+  def filter_results(%{tag_results: tag_results}) when (is_list(tag_results) and length(tag_results)>0) do
     tag_results
+  end
+  def filter_results(%{tag_results: tag_results}) when is_map(tag_results) do
+    [tag_results]
   end
   def filter_results(_) do
     nil
@@ -222,8 +226,8 @@ defmodule Bonfire.Tag.Autocomplete do
       end
     else
       # TODO
-      with {:ok, tag} <- Tags.maybe_find_tag(nil, tag_search, facets) do
-        [tag]
+      with {:ok, tag} <- Tags.maybe_find_tag(tag_search) do
+        tag
       end
     end
   end
