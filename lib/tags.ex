@@ -266,6 +266,7 @@ defmodule Bonfire.Tag.Tags do
   end
 
   defp tag_preprocess(user, {_at_mention, tag}) do
+    IO.inspect("wooo")
     tag_preprocess(user, tag)
   end
 
@@ -291,6 +292,17 @@ defmodule Bonfire.Tag.Tags do
         {:error, "Could not find or create such a tag or tag context"}
     end
   end
+
+  def tag_ids(tags) when is_list(tags) do
+    Enum.map(tags, &tag_ids(&1))
+  end
+  def tag_ids({_at_mention, %{id: tag_id}}) do
+    tag_id
+  end
+  def tag_ids(%{id: tag_id}) do
+    tag_id
+  end
+
 
   defp thing_tags_save(%{} = thing, tags) when is_list(tags) and length(tags) > 0 do
     # remove nils
