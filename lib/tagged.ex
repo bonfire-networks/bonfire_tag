@@ -25,6 +25,7 @@ defmodule Bonfire.Tag.Tagged do
   def latest(thing_id) do
       q = from va in Bonfire.Tag.Tagged,
       order_by: [desc: va.inserted_at],
+      where: va.id == ^thing_id,
       limit: 1
 
     tagged = repo().one(q)

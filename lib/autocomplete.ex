@@ -24,9 +24,13 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def tag_lookup_public(tag_search, prefix, consumer, index_type) do
-    search = Bonfire.Search.search(tag_search, nil, false, %{"index_type" => index_type})
-    #IO.inspect(search)
-    tag_lookup_process(tag_search, search, prefix, consumer)
+    if module_enabled?(Bonfire.Search) do
+      search = Bonfire.Search.search(tag_search, nil, false, %{"index_type" => index_type})
+      #IO.inspect(search)
+      tag_lookup_process(tag_search, search, prefix, consumer)
+    else
+      nil # TODO fallback
+    end
   end
 
   def tag_lookup_process(tag_search, search, prefix, consumer) do

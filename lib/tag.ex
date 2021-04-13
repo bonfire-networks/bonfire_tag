@@ -25,23 +25,23 @@ defmodule Bonfire.Tag do
     # field(:tagged_count, :integer) # TODO
 
     # Optionally, a profile and character (if not using context) - TODO should be set these in config using Flexto instead (after (ArgumentError) field/association :character is already set on schema issue is sorted)
-    has_one(:category, Bonfire.Classify.Category, references: :id, foreign_key: :id)
-    # stores common fields like name/description
-    has_one(:profile, Bonfire.Data.Social.Profile, references: :id, foreign_key: :id)
-    # allows it to be follow-able and federate activities
-    has_one(:character, Bonfire.Data.Identity.Character, references: :id, foreign_key: :id)
-    # location used as tag
-    has_one(:geolocation, Bonfire.Geolocate.Geolocation, references: :id, foreign_key: :id)
+    # has_one(:category, Bonfire.Classify.Category, references: :id, foreign_key: :id)
+    # # stores common fields like name/description
+    # has_one(:profile, Bonfire.Data.Social.Profile, references: :id, foreign_key: :id)
+    # # allows it to be follow-able and federate activities
+    # has_one(:character, Bonfire.Data.Identity.Character, references: :id, foreign_key: :id)
+    # # location used as tag
+    # has_one(:geolocation, Bonfire.Geolocate.Geolocation, references: :id, foreign_key: :id)
 
-    many_to_many(:tagged, Pointers.Pointer,
-      join_through: Bonfire.Tag.Tagged,
-      unique: true,
-      join_keys: [tag_id: :id, pointer_id: :id],
-      on_replace: :delete
-    )
+    # many_to_many(:tagged, Pointers.Pointer,
+    #   join_through: Bonfire.Tag.Tagged,
+    #   unique: true,
+    #   join_keys: [tag_id: :id, pointer_id: :id],
+    #   on_replace: :delete
+    # )
 
     # include fields/relations defined in config (using Flexto)
-    flex_schema(:bonfire_tag)
+    # flex_schema(:bonfire_tag)
   end
 
   def create_changeset(attrs) do

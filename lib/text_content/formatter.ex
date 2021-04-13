@@ -84,8 +84,10 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   defp mention_process(_opts, obj, acc, content_type) do
-    url = Bonfire.Me.Characters.character_url(obj)
-    display_name = Bonfire.Me.Characters.display_username(obj)
+
+
+    url = if Bonfire.Common.Config.extension_enabled?(Bonfire.Me.Characters), do: Bonfire.Me.Characters.character_url(obj)
+    display_name = if Bonfire.Common.Config.extension_enabled?(Bonfire.Me.Characters), do: Bonfire.Me.Characters.display_username(obj)
 
     link = tag_link(nil, url, display_name, content_type)
 

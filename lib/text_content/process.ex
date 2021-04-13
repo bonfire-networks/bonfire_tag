@@ -49,11 +49,12 @@ defmodule Bonfire.Tag.TextContent.Process do
     end
   end
 
+  @doc """
+  Formatting text to plain text, HTML, or markdown
+  """
   def format_input(text, format \\ "text/plain", options \\ [])
 
-  @doc """
-  Formatting text to plain text.
-  """
+  #doc """ Formatting text to plain text. """
   def format_input(text, "text/plain" = content_type, options) do
     text
     |> Formatter.html_escape(content_type)
@@ -64,9 +65,7 @@ defmodule Bonfire.Tag.TextContent.Process do
         end).()
   end
 
-  @doc """
-  Formatting text to html.
-  """
+  #doc """ Formatting text to html. """
   def format_input(text, "text/html" = content_type, options) do
     text
     |> Formatter.html_escape(content_type)
@@ -74,10 +73,7 @@ defmodule Bonfire.Tag.TextContent.Process do
     |> Formatter.linkify(options)
   end
 
-  @doc """
-  Formatting text to markdown.
-  FIXME
-  """
+  #doc """ Formatting text to markdown. FIXME """
   def format_input(text, "text/markdown" = content_type, options) do
     text
     # |> Formatter.mentions_escape(options)
@@ -94,13 +90,13 @@ defmodule Bonfire.Tag.TextContent.Process do
 
   # defp maybe_add_nsfw_tag(data, _), do: data
 
-  def object_text_content(text) when is_binary(text), do: text
+  def object_text_content(text) when is_binary(text) and bit_size(text) > 1, do: text
   def object_text_content(%{post_content: p}), do: object_text_content(p)
   def object_text_content(%{profile: p}), do: object_text_content(p)
-  def object_text_content(%{html_body: text} = thing) when bit_size(text) > 1, do: text
-  def object_text_content(%{summary: text} = thing) when bit_size(text) > 1, do: text
-  def object_text_content(%{note: text} = thing) when bit_size(text) > 1, do: text
-  def object_text_content(%{name: text} = thing) when bit_size(text) > 1, do: text
+  def object_text_content(%{html_body: text} = _thing)  when is_binary(text) and bit_size(text) > 1, do: text
+  def object_text_content(%{summary: text} = _thing) when is_binary(text) and bit_size(text) > 1, do: text
+  def object_text_content(%{note: text} = _thing) when is_binary(text) and bit_size(text) > 1, do: text
+  def object_text_content(%{name: text} = _thing) when is_binary(text) and bit_size(text) > 1, do: text
   def object_text_content(_), do: ""
 
 end

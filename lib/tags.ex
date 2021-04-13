@@ -194,7 +194,7 @@ defmodule Bonfire.Tag.Tags do
 
   def maybe_tag(user, thing, text) when is_binary(text) do
 
-    tag_or_tags = Bonfire.Tag.Autocomplete.find_all_tags(text) # TODO, switch to TextContent.Process?
+    tag_or_tags = if text != "", do: Bonfire.Tag.Autocomplete.find_all_tags(text) # TODO, switch to TextContent.Process?
 
     case tag_or_tags do
       %{} = tag ->
@@ -214,10 +214,10 @@ defmodule Bonfire.Tag.Tags do
   #doc """ otherwise maybe we have tagnames inline in the text in the object? """
   def maybe_tag(user, obj, _), do: maybe_tag(user, obj, Process.object_text_content(obj))
 
-  def maybe_tag(_user, thing, _maybe_tags) do
-    #IO.inspect(maybe_tags: maybe_tags)
-    {:ok, thing}
-  end
+  # def maybe_tag(_user, thing, _maybe_tags) do
+  #   #IO.inspect(maybe_tags: maybe_tags)
+  #   {:ok, thing}
+  # end
 
 
   @doc """
@@ -233,9 +233,7 @@ defmodule Bonfire.Tag.Tags do
     do_tag_thing(user, thing, tags)
   end
 
-  @doc """
-  Add tag(s) to a pointable thing. Will replace any existing tags.
-  """
+  #doc """ Add tag(s) to a pointable thing. Will replace any existing tags. """
   defp do_tag_thing(user, thing, tags) when is_list(tags) do
     thing = thing_to_pointer(thing)
     #IO.inspect(tags: tags)
@@ -249,9 +247,7 @@ defmodule Bonfire.Tag.Tags do
     do_tag_thing(user, thing, [tag])
   end
 
-  @doc """
-  Prepare a tag to be used, by loading or even creating it
-  """
+  #doc """ Prepare a tag to be used, by loading or even creating it """
   defp tag_preprocess(_user, %Tag{} = tag) do
     tag
   end
@@ -318,9 +314,7 @@ defmodule Bonfire.Tag.Tags do
     {:ok, thing}
   end
 
-  @doc """
-  Load thing as Pointer
-  """
+  #doc """ Load thing as Pointer """
   defp thing_to_pointer(pointer_id) when is_binary(pointer_id) do
     with {:ok, pointer} <- Bonfire.Common.Pointers.one(id: pointer_id) do
       pointer

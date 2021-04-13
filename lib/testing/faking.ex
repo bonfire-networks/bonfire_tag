@@ -2,7 +2,7 @@
 defmodule Bonfire.Tag.Test.Faking do
   @moduledoc false
 
-  import Bonfire.Tag.Simulate
+  # import Bonfire.Tag.Simulate
 
   # import ExUnit.Assertions
   # import Bonfire.GraphQL.Test.GraphQLAssertions
