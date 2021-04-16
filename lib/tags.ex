@@ -32,7 +32,7 @@ defmodule Bonfire.Tag.Tags do
 
 
   def get(id) do
-    if Bonfire.Common.Utils.is_ulid(id) do
+    if Bonfire.Common.Utils.is_ulid?(id) do
       one(id: id)
     else
       one(username: id)
@@ -57,7 +57,7 @@ defmodule Bonfire.Tag.Tags do
     with {:ok, tag} <- get(taggable) do
       {:ok, tag}
     else _e ->
-        with {:ok, pointer} <- Bonfire.Common.Pointers.one(taggable) do
+        with {:ok, pointer} <- Bonfire.Common.Pointers.get(taggable) do
           pointer
         else _e ->
             if Utils.module_enabled?(Bonfire.Me.Users) do
