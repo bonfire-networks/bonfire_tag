@@ -262,7 +262,7 @@ defmodule Bonfire.Tag.Tags do
   end
 
   defp tag_preprocess(user, {_at_mention, tag}) do
-    IO.inspect("wooo")
+    # IO.inspect("wooo")
     tag_preprocess(user, tag)
   end
 
