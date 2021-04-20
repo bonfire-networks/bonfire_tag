@@ -3,6 +3,7 @@ if Code.ensure_loaded?(Bonfire.GraphQL) do
 defmodule Bonfire.Tag.GraphQL.TagResolver do
   @moduledoc "GraphQL tag/category queries"
   import Bonfire.Common.Config, only: [repo: 0]
+  alias Bonfire.Common.Utils
 
   alias Bonfire.GraphQL
   alias Bonfire.GraphQL.{
@@ -41,10 +42,10 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
   Things associated with a Tag
   """
   def tagged_things_edges(%Tag{tagged: _things} = tag, %{} = page_opts, info) do
-    tag = repo().preload(tag, :tagged)
+    tag = repo().maybe_preload(tag, :tagged)
     # pointers = for %{id: tid} <- tag.tagged, do: tid
     pointers =
-      tag.tagged
+      Utils.e(tag, :tagged, %{})
       |> Enum.map(fn a -> a.id end)
 
     # |> Map.new()

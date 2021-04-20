@@ -33,14 +33,14 @@ defmodule Bonfire.Tag do
     # # location used as tag
     # has_one(:geolocation, Bonfire.Geolocate.Geolocation, references: :id, foreign_key: :id)
 
-    # many_to_many(:tagged, Pointers.Pointer,
-    #   join_through: Bonfire.Tag.Tagged,
-    #   unique: true,
-    #   join_keys: [tag_id: :id, pointer_id: :id],
-    #   on_replace: :delete
-    # )
+    many_to_many(:tagged, Pointers.Pointer,
+      join_through: Bonfire.Tag.Tagged,
+      unique: true,
+      join_keys: [tag_id: :id, pointer_id: :id],
+      on_replace: :delete
+    )
 
-    # include fields/relations defined in config (using Flexto)
+    # include fields/relations defined in config (using Flexto, already done by `mixin_schema`)
     # flex_schema(:bonfire_tag)
   end
 
@@ -74,7 +74,7 @@ defmodule Bonfire.Tag do
         things
       ) do
     tag
-    |> repo().preload(:tagged)
+    |> repo().maybe_preload(:tagged)
     |> Changeset.change()
     # Set the association
     |> Ecto.Changeset.put_assoc(:tagged, things)
