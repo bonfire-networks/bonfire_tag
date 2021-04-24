@@ -57,9 +57,11 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
   Tags associated with a Thing
   """
   def tags_edges(%{tags: _tags} = thing, page_opts, info) do
-    thing = repo().preload(thing, tags: [:category, :profile, :character])
+    # thing = repo().maybe_preload(thing, :tags)
+    thing = repo().maybe_preload(thing, tags: [:category, :profile, :character])
+    # IO.inspect(tags_edges_thing: thing)
 
-    tags = Enum.map(thing.tags, &tag_prepare(&1, page_opts, info))
+    tags = thing |> Map.get(:tags, []) |> Enum.map(&tag_prepare(&1, page_opts, info)) |> IO.inspect()
 
     {:ok, tags}
   end
@@ -69,8 +71,7 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
     {:ok, nil}
   end
 
-  def tag_prepare(%{category: %{id: id} = category} = tag, _page_opts, _info)
-      when not is_nil(id) do
+  def tag_prepare(%{category: %{id: id} = category} = tag, _page_opts, _info) when not is_nil(id) do
     # TODO: do this better
     Map.merge(
       category,
@@ -82,7 +83,7 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
         character: tag.character,
         profile: tag.profile
       }
-    )
+    ) #|> IO.inspect
   end
 
   # def tag_prepare(%{profile: %{name: name}} = tag, page_opts, info)

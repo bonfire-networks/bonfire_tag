@@ -53,15 +53,15 @@ defmodule Bonfire.Tag.Tags do
     "+"
   end
 
-  def maybe_find_tag(_user \\ nil, taggable) when is_binary(taggable) do
-    with {:ok, tag} <- get(taggable) do
+  def maybe_find_tag(_user \\ nil, tag) when is_binary(tag) do
+    with {:ok, tag} <- get(tag) do
       {:ok, tag}
     else _e ->
-        with {:ok, pointer} <- Bonfire.Common.Pointers.get(taggable) do
+        with {:ok, pointer} <- Bonfire.Common.Pointers.get(tag) do
           pointer
         else _e ->
             if Utils.module_enabled?(Bonfire.Me.Users) do
-              with {:ok, user} <- Bonfire.Me.Users.by_username(taggable) do
+              with {:ok, user} <- Bonfire.Me.Users.by_username(tag) do
                 user
               end
             end
@@ -306,7 +306,8 @@ defmodule Bonfire.Tag.Tags do
 
     repo().transact_with(fn ->
       cs = Tag.thing_tags_changeset(thing, tags)
-      with {:ok, thing} <- repo().update(cs, on_conflict: :nothing), do: {:ok, thing}
+      with {:ok, thing} <- repo().update(cs, on_conflict: :nothing), do:
+      {:ok, %{thing | tags: tags}}
     end)
   end
 
@@ -328,5 +329,22 @@ defmodule Bonfire.Tag.Tags do
   defp thing_to_pointer(%{id: id}) do
     thing_to_pointer(id)
   end
+
+  def indexing_object_format(object) do
+    IO.inspect(indexing_object_format: object)
+    %{
+      "id"=> object.id,
+      "name"=> object.profile.name,
+      "summary"=> object.profile.summary,
+      "prefix"=> object.prefix,
+      "facet"=> object.facet
+      # TODO: add url/username
+    }
+  end
+
+  def indexing_object_format_name(object) do
+     object.profile.name
+  end
+
 
 end

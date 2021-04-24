@@ -9,7 +9,7 @@ defmodule Bonfire.Tag.GraphQL.TagSchema do
 
     @desc "Get a tag by ID "
     field :tag, :tag do
-      arg(:id, :string)
+      arg(:id, :id)
       # arg :find, :category_find
       resolve(&TagResolver.tag/2)
     end
@@ -36,7 +36,7 @@ defmodule Bonfire.Tag.GraphQL.TagSchema do
   @desc "A tag could be a category or hashtag or user or community or etc"
   object :tag do
     @desc "The primary key of the tag"
-    field(:id, :string)
+    field(:id, :id)
 
     @desc "What character is used to trigger this tag (eg. @, #, +)"
     field(:prefix, :string)
