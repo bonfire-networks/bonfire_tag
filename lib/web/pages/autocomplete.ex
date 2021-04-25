@@ -1,4 +1,4 @@
-defmodule Bonfire.Tag.Pages.Autocomplete do
+defmodule Bonfire.Tag.Web.Pages.Autocomplete do
   use Bonfire.Web, :controller
 
   import Bonfire.Tag.Autocomplete

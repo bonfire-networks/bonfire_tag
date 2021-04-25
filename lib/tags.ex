@@ -88,7 +88,7 @@ defmodule Bonfire.Tag.Tags do
   end
 
   def maybe_make_tag(user, pointer_id, attrs) when is_binary(pointer_id) do
-    if Bonfire.Common.Utils.is_numeric(pointer_id) do
+    if Bonfire.Common.Utils.is_numeric(pointer_id) do # rembemer is_number != is_numeric
       maybe_make_tag(user, String.to_integer(pointer_id), attrs)
     else
       with {:ok, tag} <- get(pointer_id) do
@@ -112,12 +112,13 @@ defmodule Bonfire.Tag.Tags do
     end
   end
 
+  def maybe_make_tag(user, %{"id"=> id} = context, attrs) do
+    # from search index
+    maybe_make_tag(user, id, attrs)
+  end
+
   def maybe_make_tag(user, %{id: id} = context, attrs) do
-    with {:ok, tag} <- get(id) do
-      {:ok, tag}
-    else
-      _e -> make_tag(user, context, attrs)
-    end
+    maybe_make_tag(user, id, attrs)
   end
 
   @doc """
@@ -281,7 +282,7 @@ defmodule Bonfire.Tag.Tags do
   defp tag_preprocess(user, tag) do
 
     with {:ok, tag} <- maybe_make_tag(user, tag) do
-      # with an object that we have just made tag
+      # with an object that we have just made into a tag
       tag_preprocess(user, tag)
     else
       _e ->

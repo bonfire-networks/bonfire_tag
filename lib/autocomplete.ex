@@ -220,10 +220,10 @@ defmodule Bonfire.Tag.Autocomplete do
     #IO.inspect(facets: facets)
 
     if module_enabled?(Bonfire.Search) do # use search index if available
-      search = Bonfire.Search.search(tag_search, index, false, facets)
-      #IO.inspect(search: search)
+      search = Bonfire.Search.search(tag_search, %{index: index}, false, facets)
+      IO.inspect(search: search)
 
-      if(Map.has_key?(search, "hits") and length(search["hits"])) do
+      if(is_map(search) and Map.has_key?(search, "hits") and length(search["hits"])) do
         # search["hits"]
         hits = Enum.map(search["hits"], &tag_hit_prepare(&1, tag_search))
         Enum.filter(hits, & &1)
