@@ -78,13 +78,8 @@ defmodule Bonfire.Tag.Tags do
     maybe_make_tag(user, context, %{})
   end
 
-  def maybe_make_tag(user, id, _) when is_number(id) do
-    with {:ok, t} <- maybe_taxonomy_tag(user, id) do
-      {:ok, t}
-    else
-      _e ->
-        {:error, "Please provide a pointer"}
-    end
+  def maybe_make_tag(user, %Bonfire.Tag{} = tag, attrs) do
+    {:ok, tag}
   end
 
   def maybe_make_tag(user, pointer_id, attrs) when is_binary(pointer_id) do
@@ -95,31 +90,43 @@ defmodule Bonfire.Tag.Tags do
         {:ok, tag}
       else
         _e ->
-          with {:ok, pointer} <- Bonfire.Common.Pointers.one(pointer_id) do
+          with {:ok, pointer} <- Bonfire.Common.Pointers.get(pointer_id) do
             maybe_make_tag(user, pointer, attrs)
-            # _e ->
-            #   with {:ok, pointer} <- Bonfire.Common.Pointers.one(pointer_id) do
-            #     maybe_make_tag(user, pointer, attrs)
-            #   end
           end
       end
     end
   end
 
-  def maybe_make_tag(user, %Pointers.Pointer{} = pointer, attrs) do
-    with context = Bonfire.Common.Pointers.follow!(pointer) do
-      maybe_make_tag(user, context, attrs)
+  def maybe_make_tag(user, id, _) when is_number(id) do # for the old taxonomy with int IDs
+    with {:ok, t} <- maybe_taxonomy_tag(user, id) do
+      {:ok, t}
+    else
+      _e ->
+        {:error, "Please provide a pointer"}
     end
   end
 
-  def maybe_make_tag(user, %{"id"=> id} = context, attrs) do
+  def maybe_make_tag(user, %Pointers.Pointer{} = pointer, attrs) do
+    with {:ok, obj} <- Bonfire.Common.Pointers.get(pointer) do
+      IO.inspect(maybe_make_tag: obj)
+      if obj != pointer  do
+        maybe_make_tag(user, obj, attrs)
+      end
+    end
+  end
+
+  def maybe_make_tag(user, %{"id"=> id} = _context, attrs) do
     # from search index
     maybe_make_tag(user, id, attrs)
   end
 
-  def maybe_make_tag(user, %{id: id} = context, attrs) do
-    maybe_make_tag(user, id, attrs)
+  def maybe_make_tag(user, %{id: id} = obj, attrs) do
+    make_tag(user, obj, attrs)
   end
+
+  # def maybe_make_tag(user, %{} = obj, attrs) do
+  #   make_tag(user, obj, attrs)
+  # end
 
   @doc """
   Create a tag mixin for an existing poitable object (you usually want to use maybe_make_tag instead)

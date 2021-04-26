@@ -89,7 +89,7 @@ defmodule Bonfire.Tag do
         tags
       ) do
     thing
-    |> repo().preload(:tags)
+    |> repo().maybe_preload(:tags)
     |> Changeset.change()
     # Set the association
     |> Ecto.Changeset.put_assoc(:tags, tags)

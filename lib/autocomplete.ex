@@ -12,6 +12,7 @@ defmodule Bonfire.Tag.Autocomplete do
   @max_length 50
 
   def tag_lookup(tag_search, "+" = prefix, consumer) do
+    # FIXME based on index_types we use
     tag_lookup_public(tag_search, prefix, consumer, ["Collection", "Category", "Tag"])
   end
 
@@ -24,21 +25,52 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def tag_lookup_public(tag_search, prefix, consumer, index_type) do
-    if module_enabled?(Bonfire.Search) do
-      search = Bonfire.Search.search(tag_search, nil, false, %{"index_type" => index_type})
+    hits = maybe_search(tag_search, %{"index_type" => index_type})
+    if hits do
       #IO.inspect(search)
-      tag_lookup_process(tag_search, search, prefix, consumer)
+      tag_lookup_process(tag_search, hits, prefix, consumer)
     else
-      nil # TODO fallback
+      with {:ok, tag} <- Tags.maybe_find_tag(tag_search) do
+        tag
+      end
     end
   end
 
-  def tag_lookup_process(tag_search, search, prefix, consumer) do
-    if(Map.has_key?(search, "hits") and length(search["hits"])) do
-      #IO.inspect(search["hits"])
-      hits = Enum.map(search["hits"], &tag_hit_prepare(&1, tag_search, prefix, consumer))
-      Enum.filter(hits, & &1)
+  def search_or_lookup(tag_search, index, facets \\ nil) do
+    #IO.inspect(searched: tag_search)
+    #IO.inspect(facets: facets)
+
+    hits = maybe_search(tag_search, %{index: index}, facets)
+    if hits do # use search index if available
+      hits
+    else
+      with {:ok, tag} <- Tags.maybe_find_tag(tag_search) do
+        tag
+      end
     end
+  end
+
+  def maybe_search(tag_search, opts \\ nil, facets \\ nil) do
+    #IO.inspect(searched: tag_search)
+    #IO.inspect(facets: facets)
+
+    if module_enabled?(Bonfire.Search) do # use search index if available
+      search = Bonfire.Search.search(tag_search, opts, false, facets)
+      IO.inspect(searched: search)
+
+      if(is_map(search) and Map.has_key?(search, "hits") and length(search["hits"])) do
+        # search["hits"]
+        Enum.map(search["hits"], &tag_hit_prepare(&1, tag_search))
+        |> Enum.filter(& &1)
+      end
+    end
+  end
+
+  def tag_lookup_process(tag_search, hits, prefix, consumer) do
+    #IO.inspect(search["hits"])
+    hits
+    |> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer))
+    |> Enum.filter(& &1)
   end
 
   def tag_hit_prepare(hit, _tag_search, prefix, consumer) do
@@ -197,43 +229,22 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def search_prefix(tag_search, "+") do
-    # search_from_index(tag_search, @taxonomy_index, %{"index_type" => ["Category", "Collection"]})
-    search_from_index(tag_search, @taxonomy_index, %{"index_type" => "Category"})
+    # search_or_lookup(tag_search, @taxonomy_index, %{"index_type" => ["Category", "Collection"]})
+    search_or_lookup(tag_search, @taxonomy_index, %{"index_type" => "Category"})
   end
 
   def search_prefix(tag_search, "@") do
-    search_from_index(tag_search, @taxonomy_index, %{"index_type" => "User"})
+    search_or_lookup(tag_search, @taxonomy_index, %{"index_type" => "User"})
   end
 
   def search_prefix(tag_search, "&") do
-    search_from_index(tag_search, @taxonomy_index, %{"index_type" => "Community"})
+    search_or_lookup(tag_search, @taxonomy_index, %{"index_type" => "Community"})
   end
 
   def search_prefix(tag_search, _) do
-    search_from_index(tag_search, @search_index, %{
+    search_or_lookup(tag_search, @search_index, %{
       "index_type" => ["User", "Community", "Category", "Collection"]
     })
-  end
-
-  def search_from_index(tag_search, index, facets \\ nil) do
-    #IO.inspect(searched: tag_search)
-    #IO.inspect(facets: facets)
-
-    if module_enabled?(Bonfire.Search) do # use search index if available
-      search = Bonfire.Search.search(tag_search, %{index: index}, false, facets)
-      IO.inspect(search: search)
-
-      if(is_map(search) and Map.has_key?(search, "hits") and length(search["hits"])) do
-        # search["hits"]
-        hits = Enum.map(search["hits"], &tag_hit_prepare(&1, tag_search))
-        Enum.filter(hits, & &1)
-      end
-    else
-      # TODO
-      with {:ok, tag} <- Tags.maybe_find_tag(tag_search) do
-        tag
-      end
-    end
   end
 
   def tag_hit_prepare(hit, tag_search) do
