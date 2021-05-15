@@ -3,8 +3,6 @@ defmodule Bonfire.Tag.Web.Routes do
 
     quote do
 
-      alias Bonfire.Tag.Web.Routes.Helpers, as: TagRoutes
-
       # pages anyone can view
       scope "/", Bonfire.Tag.Web do
         pipe_through :browser
