@@ -83,7 +83,7 @@ defmodule Bonfire.Tag.Queries do
     |> where([character: a], a.username in ^usernames)
   end
 
-  def filter(q, {:name_contains, text}) when is_binary(text) do
+  def filter(q, {:autocomplete, text}) when is_binary(text) do
     q
     |> join_to(:profile)
     |> preload(:profile)
