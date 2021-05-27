@@ -178,7 +178,7 @@ defmodule Bonfire.Tag.Tags do
 
 
   def maybe_taxonomy_tag(user, id) do
-    if Bonfire.Common.Config.extension_enabled?(Bonfire.TaxonomySeeder.TaxonomyTags) do
+    if Bonfire.Common.Extend.extension_enabled?(Bonfire.TaxonomySeeder.TaxonomyTags) do
       Bonfire.TaxonomySeeder.TaxonomyTags.maybe_make_category(user, id)
     end
   end
