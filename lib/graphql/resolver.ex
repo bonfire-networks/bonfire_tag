@@ -61,7 +61,7 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
     thing = repo().maybe_preload(thing, tags: [:category, :profile, :character])
     # IO.inspect(tags_edges_thing: thing)
 
-    tags = thing |> Map.get(:tags, []) |> Enum.map(&tag_prepare(&1, page_opts, info)) |> IO.inspect()
+    tags = thing |> Map.get(:tags, []) |> Enum.map(&tag_prepare(&1, page_opts, info)) #|> IO.inspect()
 
     {:ok, tags}
   end

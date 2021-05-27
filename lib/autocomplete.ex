@@ -56,7 +56,7 @@ defmodule Bonfire.Tag.Autocomplete do
 
     if module_enabled?(Bonfire.Search) do # use search index if available
       search = Bonfire.Search.search(tag_search, opts, false, facets)
-      IO.inspect(searched: search)
+      # IO.inspect(searched: search)
 
       if(is_map(search) and Map.has_key?(search, "hits") and length(search["hits"])) do
         # search["hits"]
