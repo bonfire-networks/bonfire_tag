@@ -11,18 +11,33 @@ defmodule Bonfire.Tag.Autocomplete do
   @search_index "public"
   @max_length 50
 
-  def tag_lookup(tag_search, "+" = prefix, consumer) do
-    # FIXME based on index_types we use
-    tag_lookup_public(tag_search, prefix, consumer, ["Collection", "Category", "Tag"])
+
+  def prefix_index("+" = prefix) do
+    ["Bonfire.Classify.Category", "Bonfire.Tag"]
   end
 
-  def tag_lookup(tag_search, "@" = prefix, consumer) do
-    tag_lookup_public(tag_search, prefix, consumer, "User")
+  def prefix_index("@" = prefix) do
+    "Bonfire.Data.Identity.User"
   end
 
-  def tag_lookup(tag_search, "&" = prefix, consumer) do
-    tag_lookup_public(tag_search, prefix, consumer, "Community")
+  # def prefix_index(tag_search, "&" = prefix, consumer) do
+  #   "Community"
+  # end
+
+  def prefix_index(_) do
+    ["Bonfire.Data.Identity.User", "Bonfire.Classify.Category", "Bonfire.Tag"]
   end
+
+  # FIXME combine the following functions
+
+  def tag_lookup(tag_search, prefix, consumer) do
+    tag_lookup_public(tag_search, prefix, consumer, prefix_index(prefix))
+  end
+
+  def search_prefix(tag_search, prefix) do
+    search_or_lookup(tag_search, @taxonomy_index, %{"index_type" => prefix_index(prefix)})
+  end
+
 
   def tag_lookup_public(tag_search, prefix, consumer, index_type) do
     hits = maybe_search(tag_search, %{"index_type" => index_type})
@@ -37,8 +52,8 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def search_or_lookup(tag_search, index, facets \\ nil) do
-    #IO.inspect(searched: tag_search)
-    #IO.inspect(facets: facets)
+    # IO.inspect(searching: tag_search)
+    # IO.inspect(facets: facets)
 
     hits = maybe_search(tag_search, %{index: index}, facets)
     if hits do # use search index if available
@@ -62,6 +77,8 @@ defmodule Bonfire.Tag.Autocomplete do
         # search["hits"]
         Enum.map(search["hits"], &tag_hit_prepare(&1, tag_search))
         |> Enum.filter(& &1)
+        |> input_to_atoms()
+        # |> IO.inspect(label: "maybe_search results")
       end
     end
   end
@@ -169,10 +186,10 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def try_tag_search(tag_prefix, content) do
-    tag_search = tag_search_from_text(content, tag_prefix)
 
-    if strlen(tag_search) > 0 do
-      tag_search(tag_search, tag_prefix)
+    case tag_search_from_text(content, tag_prefix) do
+      search when is_binary(search) and byte_size(search) > 0 -> tag_search(search, tag_prefix)
+      _ -> nil
     end
   end
 
@@ -199,7 +216,7 @@ defmodule Bonfire.Tag.Autocomplete do
     parts = String.split(text, prefix, parts: 2)
 
     if length(parts) > 1 do
-      #IO.inspect(parts: parts)
+      # IO.inspect(tag_search_from_text: parts)
       typed = List.last(parts)
 
       if String.length(typed) > 0 and String.length(typed) < @max_length and !(typed =~ @tag_terminator) do
@@ -228,24 +245,6 @@ defmodule Bonfire.Tag.Autocomplete do
     end
   end
 
-  def search_prefix(tag_search, "+") do
-    # search_or_lookup(tag_search, @taxonomy_index, %{"index_type" => ["Category", "Collection"]})
-    search_or_lookup(tag_search, @taxonomy_index, %{"index_type" => "Category"})
-  end
-
-  def search_prefix(tag_search, "@") do
-    search_or_lookup(tag_search, @taxonomy_index, %{"index_type" => "User"})
-  end
-
-  def search_prefix(tag_search, "&") do
-    search_or_lookup(tag_search, @taxonomy_index, %{"index_type" => "Community"})
-  end
-
-  def search_prefix(tag_search, _) do
-    search_or_lookup(tag_search, @search_index, %{
-      "index_type" => ["User", "Community", "Category", "Collection"]
-    })
-  end
 
   def tag_hit_prepare(hit, tag_search) do
     # FIXME: do this by filtering Meili instead?

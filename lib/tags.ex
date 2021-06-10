@@ -86,15 +86,33 @@ defmodule Bonfire.Tag.Tags do
     if Bonfire.Common.Utils.is_numeric(pointer_id) do # rembemer is_number != is_numeric
       maybe_make_tag(user, String.to_integer(pointer_id), attrs)
     else
-      with {:ok, tag} <- get(pointer_id) do
+      with {:ok, tag} <- get(pointer_id) do # check if tag exists
         {:ok, tag}
       else
         _e ->
           with {:ok, pointer} <- Bonfire.Common.Pointers.get(pointer_id) do
-            maybe_make_tag(user, pointer, attrs)
+            make_tag(user, pointer, attrs)
           end
       end
     end
+  end
+
+  def maybe_make_tag(user, %Pointers.Pointer{} = pointer, attrs) do
+    with {:ok, obj} <- Bonfire.Common.Pointers.get(pointer) do
+      # IO.inspect(maybe_make_tag: obj)
+      if obj != pointer do
+        maybe_make_tag(user, obj, attrs)
+      end
+    end
+  end
+
+  def maybe_make_tag(user, obj, attrs) when is_struct(obj) do # some other obj
+    make_tag(user, obj, attrs)
+  end
+
+  def maybe_make_tag(user, %{id: id} = _context, attrs) do
+    # from search index
+    maybe_make_tag(user, id, attrs)
   end
 
   def maybe_make_tag(user, id, _) when is_number(id) do # for the old taxonomy with int IDs
@@ -104,24 +122,6 @@ defmodule Bonfire.Tag.Tags do
       _e ->
         {:error, "Please provide a pointer"}
     end
-  end
-
-  def maybe_make_tag(user, %Pointers.Pointer{} = pointer, attrs) do
-    with {:ok, obj} <- Bonfire.Common.Pointers.get(pointer) do
-      IO.inspect(maybe_make_tag: obj)
-      if obj != pointer  do
-        maybe_make_tag(user, obj, attrs)
-      end
-    end
-  end
-
-  def maybe_make_tag(user, %{"id"=> id} = _context, attrs) do
-    # from search index
-    maybe_make_tag(user, id, attrs)
-  end
-
-  def maybe_make_tag(user, %{id: id} = obj, attrs) do
-    make_tag(user, obj, attrs)
   end
 
   # def maybe_make_tag(user, %{} = obj, attrs) do
@@ -154,7 +154,7 @@ defmodule Bonfire.Tag.Tags do
       Map.put(
         attrs,
         :facet,
-        pointable_obj.__struct__ |> to_string() |> String.split(".") |> List.last()
+        Bonfire.Common.Types.object_type(pointable_obj) |> to_string() |> String.split(".") |> List.last()
       ),
       pointable_obj
     )
@@ -197,7 +197,7 @@ defmodule Bonfire.Tag.Tags do
 
   def maybe_tag(user, thing, %{tags: tags}), do: maybe_tag(user, thing, tags)
   def maybe_tag(user, thing, %{tag: tag}), do: maybe_tag(user, thing, tag)
-  def maybe_tag(user, thing, tags) when is_list(tags) and length(tags) > 0, do: tag_something(user, thing, tags)
+  def maybe_tag(user, thing, tags) when is_list(tags), do: tag_something(user, thing, tags)
   def maybe_tag(user, thing, %Bonfire.Tag{} = tag), do: tag_something(user, thing, tag)
 
   def maybe_tag(user, thing, text) when is_binary(text) do
@@ -219,7 +219,7 @@ defmodule Bonfire.Tag.Tags do
     end
   end
 
-  #doc """ otherwise maybe we have tagnames inline in the text in the object? """
+  #doc """ otherwise maybe we have tagnames inline in the text of the object? """
   def maybe_tag(user, obj, _), do: maybe_tag(user, obj, Process.object_text_content(obj))
 
   # def maybe_tag(_user, thing, _maybe_tags) do
@@ -339,7 +339,7 @@ defmodule Bonfire.Tag.Tags do
   end
 
   def indexing_object_format(object) do
-    IO.inspect(indexing_object_format: object)
+    # IO.inspect(indexing_object_format: object)
     %{
       "id"=> object.id,
       "name"=> object.profile.name,

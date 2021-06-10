@@ -53,18 +53,19 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
   def tag_handler("@" <> nickname, buffer, opts, acc) do
     case Autocomplete.search_prefix(nickname, "@") do
-      %{id: _id} = user ->
-        mention_process(opts, user, acc, Map.get(opts, :content_type))
+      u when is_map(u) or is_list(u) and length(u)>0 ->
+        mention_process(opts, only_or_first(u), acc, Map.get(opts, :content_type))
 
-      _ ->
+      no ->
+        IO.inspect(tag_handler: no)
         {buffer, acc}
     end
   end
 
   def tag_handler("&" <> nickname, buffer, opts, acc) do
     case Autocomplete.search_prefix(nickname, "&")  do
-      %{id: _id} = character ->
-        mention_process(opts, character, acc, Map.get(opts, :content_type))
+      u when is_map(u) or is_list(u) and length(u)>0 ->
+        mention_process(opts, only_or_first(u), acc, Map.get(opts, :content_type))
 
       _ ->
         {buffer, acc}
@@ -72,15 +73,18 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   def tag_handler("+" <> nickname, buffer, opts, acc) do
-    content_type = Map.get(opts, :content_type)
 
     case Autocomplete.search_prefix(nickname, "+") do
-      %{id: _id} = character ->
-        mention_process(opts, character, acc, content_type)
+      u when is_map(u) or is_list(u) and length(u)>0 ->
+        mention_process(opts, only_or_first(u), acc, Map.get(opts, :content_type))
 
       _ ->
         {buffer, acc}
     end
+  end
+
+  defp only_or_first(u) do
+    if is_list(u), do: List.first(u), else: u
   end
 
   defp mention_process(_opts, obj, acc, content_type) do

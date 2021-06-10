@@ -26,6 +26,7 @@ defmodule Bonfire.Tag.TextContent.Process do
     content_type = get_content_type(content_type)
 
     text
+    |> IO.inspect
     |> object_text_content()
     |> format_input(content_type, options)
     # |> maybe_add_attachments(attachments, attachment_links)
@@ -92,6 +93,7 @@ defmodule Bonfire.Tag.TextContent.Process do
 
   def object_text_content(text) when is_binary(text) and bit_size(text) > 1, do: text
   def object_text_content(%{post_content: p}), do: object_text_content(p)
+  def object_text_content(%{post: p}), do: object_text_content(p)
   def object_text_content(%{profile: p}), do: object_text_content(p)
   def object_text_content(%{html_body: text} = _thing)  when is_binary(text) and bit_size(text) > 1, do: text
   def object_text_content(%{summary: text} = _thing) when is_binary(text) and bit_size(text) > 1, do: text
