@@ -231,11 +231,11 @@ defmodule Bonfire.Tag.Tags do
   @doc """
   tag existing thing with one or multiple Tags, Pointers, or anything that can be made into a tag
   """
-  def tag_something(user, %{__struct__: _}=thing, tags) do
-    with {:ok, tagged} <- do_tag_thing(user, thing, tags) do
-      {:ok, Map.merge(thing, tagged)}
-    end
-  end
+  # def tag_something(user, thing, tags) when is_struct(thing) do
+  #   with {:ok, tagged} <- do_tag_thing(user, thing, tags) do
+  #     {:ok, Map.put(thing, :tags, Map.get(tagged, :tags, []))}
+  #   end
+  # end
 
   def tag_something(user, thing, tags) do
     do_tag_thing(user, thing, tags)
@@ -243,11 +243,12 @@ defmodule Bonfire.Tag.Tags do
 
   #doc """ Add tag(s) to a pointable thing. Will replace any existing tags. """
   defp do_tag_thing(user, thing, tags) when is_list(tags) do
-    thing = thing_to_pointer(thing)
-    #IO.inspect(tags: tags)
+    pointer = thing_to_pointer(thing)
     tags = Enum.map(tags, &tag_preprocess(user, &1))
-    # {:ok, thing |> Map.merge(%{tags: tag_something})}
-    thing_tags_save(thing, tags)
+    #IO.inspect(tags: tags)
+    with {:ok, tagged} <- thing_tags_save(pointer, tags) do
+       {:ok, thing |> Map.merge(%{tags: tags})}
+    end
     # Bonfire.Repo.maybe_preload(thing, :tags)
   end
 
@@ -314,8 +315,8 @@ defmodule Bonfire.Tag.Tags do
 
     repo().transact_with(fn ->
       cs = Tag.thing_tags_changeset(thing, tags)
-      with {:ok, thing} <- repo().update(cs, on_conflict: :nothing), do:
-      {:ok, %{thing | tags: tags}}
+      with {:ok, tagged} <- repo().update(cs, on_conflict: :nothing), do:
+        {:ok, tagged}
     end)
   end
 
