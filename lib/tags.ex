@@ -35,6 +35,7 @@ defmodule Bonfire.Tag.Tags do
     if Bonfire.Common.Utils.is_ulid?(id) do
       one(id: id)
     else
+      # TODO: lookup Peered with canonical_uri if id is a URL
       one(username: id)
     end
   end
@@ -86,7 +87,7 @@ defmodule Bonfire.Tag.Tags do
     if Bonfire.Common.Utils.is_numeric(pointer_id) do # rembemer is_number != is_numeric
       maybe_make_tag(user, String.to_integer(pointer_id), attrs)
     else
-      with {:ok, tag} <- get(pointer_id) do # check if tag exists
+      with {:ok, tag} <- get(pointer_id) do # check if tag already exists
         {:ok, tag}
       else
         _e ->
@@ -106,13 +107,23 @@ defmodule Bonfire.Tag.Tags do
     end
   end
 
-  def maybe_make_tag(user, obj, attrs) when is_struct(obj) do # some other obj
+  def maybe_make_tag(user, %{id: id} = _context, attrs) do
+    # from search index
+    maybe_make_tag(user, id, attrs)
+  end
+
+  def maybe_make_tag(user, %{id: _} = obj, attrs) when is_struct(obj) do # some other obj
     make_tag(user, obj, attrs)
   end
 
   def maybe_make_tag(user, %{id: id} = _context, attrs) do
     # from search index
     maybe_make_tag(user, id, attrs)
+  end
+
+  def maybe_make_tag(user, %{value: value} = _context, attrs) do
+    # FIXME?
+    maybe_make_tag(user, value, attrs)
   end
 
   def maybe_make_tag(user, id, _) when is_number(id) do # for the old taxonomy with int IDs
@@ -131,12 +142,13 @@ defmodule Bonfire.Tag.Tags do
   @doc """
   Create a tag mixin for an existing poitable object (you usually want to use maybe_make_tag instead)
   """
-  def make_tag(_creator, %{} = pointable_obj, attrs) when is_map(attrs) do
+  def make_tag(_creator, %{id: _} = pointable_obj, attrs) when is_map(attrs) do
     repo().transact_with(fn ->
       # TODO: check that the tag doesn't already exist (same name and parent)
 
       with {:ok, attrs} <- attrs_with_tag(attrs, pointable_obj),
            {:ok, tag} <- insert_tag(attrs) do
+            # TODO: add Peered mixin with canonical URL
         {:ok, tag}
       end
     end)
@@ -244,7 +256,7 @@ defmodule Bonfire.Tag.Tags do
   #doc """ Add tag(s) to a pointable thing. Will replace any existing tags. """
   defp do_tag_thing(user, thing, tags) when is_list(tags) do
     pointer = thing_to_pointer(thing)
-    tags = Enum.map(tags, &tag_preprocess(user, &1))
+    tags = Enum.map(tags, &tag_preprocess(user, &1)) |> Enum.reject(&is_nil/1)
     #IO.inspect(tags: tags)
     with {:ok, tagged} <- thing_tags_save(pointer, tags) do
        {:ok, thing |> Map.merge(%{tags: tags})}
@@ -293,8 +305,9 @@ defmodule Bonfire.Tag.Tags do
       # with an object that we have just made into a tag
       tag_preprocess(user, tag)
     else
-      _e ->
-        {:error, "Could not find or create such a tag or tag context"}
+      e ->
+        Logger.error("Got #{inspect e} when trying to find or create this tag: #{inspect tag} ")
+        nil
     end
   end
 
