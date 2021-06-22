@@ -16,7 +16,7 @@ defmodule Bonfire.Tag.Queries do
     from(c in Tag, as: :tag)
   end
 
-  def query(filters), do: filter(Tag, filters)
+  def query(filters), do: query(Tag, filters)
 
   def query(q, filters), do: filter(query(q), filters)
 
