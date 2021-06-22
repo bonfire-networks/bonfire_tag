@@ -44,7 +44,7 @@ defmodule Bonfire.Tag.Tagged do
       where: [tag_id: ^tag_id],
       order_by: [desc: va.inserted_at]
 
-    repo().all(q)
+    repo().many(q)
   end
 
   @doc """
@@ -56,10 +56,10 @@ defmodule Bonfire.Tag.Tagged do
       where: [pointer_id: ^thing_id],
       order_by: [desc: va.inserted_at]
 
-    repo().all(q)
+    repo().many(q)
   end
 
   def all() do
-    repo().all(Bonfire.Tag.Tagged)
+    repo().many(Bonfire.Tag.Tagged)
   end
 end

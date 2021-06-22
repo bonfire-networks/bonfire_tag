@@ -28,7 +28,7 @@ defmodule Bonfire.Tag.Tags do
   Used by:
   * Various parts of the codebase that need to query for tags (inc. tests)
   """
-  def many(filters \\ []), do: {:ok, repo().all(Queries.query(Tag, filters))}
+  def many(filters \\ []), do: {:ok, repo().many(Queries.query(Tag, filters))}
 
 
   def get(id) do
@@ -39,7 +39,7 @@ defmodule Bonfire.Tag.Tags do
     end
   end
 
-  # def many(filters \\ []), do: {:ok, repo().all(Queries.query(Tag, filters))}
+  # def many(filters \\ []), do: {:ok, repo().many(Queries.query(Tag, filters))}
 
   def prefix("Community") do
     "&"
