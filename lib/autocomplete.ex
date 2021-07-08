@@ -1,6 +1,7 @@
 defmodule Bonfire.Tag.Autocomplete do
   import Bonfire.Common.Utils
   alias Bonfire.Tag.Tags
+  require Logger
 
   # TODO: put in config
   @tag_terminator " "
@@ -38,6 +39,9 @@ defmodule Bonfire.Tag.Autocomplete do
     search_or_lookup(tag_search, @taxonomy_index, %{"index_type" => prefix_index(prefix)})
   end
 
+  def search_type(tag_search, type) do
+    search_or_lookup(tag_search, @taxonomy_index, %{"index_type" => type})
+  end
 
   def tag_lookup_public(tag_search, prefix, consumer, index_type) do
     hits = maybe_search(tag_search, %{"index_type" => index_type})
@@ -65,11 +69,12 @@ defmodule Bonfire.Tag.Autocomplete do
     end
   end
 
-  def maybe_search(tag_search, opts \\ nil, facets \\ nil) do
+  def maybe_search(tag_search, opts, facets \\ nil) do
     #IO.inspect(searched: tag_search)
     #IO.inspect(facets: facets)
 
     if module_enabled?(Bonfire.Search) do # use search index if available
+      Logger.info("Bonfire.Tag.Autocomplete: searching #{inspect tag_search} with facets #{inspect facets}")
       search = Bonfire.Search.search(tag_search, opts, false, facets)
       # IO.inspect(searched: search)
 
