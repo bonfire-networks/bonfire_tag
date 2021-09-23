@@ -141,8 +141,9 @@ defmodule Bonfire.Tag.Autocomplete do
 
   def find_all_tags(content) do
     #IO.inspect(prefixes: @prefixes)
+
     # FIXME?
-    words = tags_split(content)
+    words = content |> HtmlEntities.decode() |> tags_split()
     #IO.inspect(tags_split: words)
 
     if words do
