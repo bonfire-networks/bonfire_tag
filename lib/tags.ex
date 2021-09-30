@@ -54,18 +54,24 @@ defmodule Bonfire.Tag.Tags do
     "+"
   end
 
-  def maybe_find_tag(_user \\ nil, tag) when is_binary(tag) do
-    with {:ok, tag} <- get(tag) do
+  def maybe_find_tag(_user \\ nil, id_or_username_or_url) when is_binary(id_or_username_or_url) do
+    with {:ok, tag} <- get(id_or_username_or_url) do # check if tag already exists
       {:ok, tag}
-    else _e ->
-        with {:ok, pointer} <- Bonfire.Common.Pointers.get(tag) do
-          pointer
-        else _e ->
-            if Utils.module_enabled?(Bonfire.Me.Users) do
-              with {:ok, user} <- Bonfire.Me.Users.by_username(tag) do
-                user
-              end
+    else
+      _e ->
+        if Bonfire.Common.Utils.is_ulid?(id_or_username_or_url) do
+          with {:ok, obj} <- Bonfire.Common.Pointers.get(id_or_username_or_url) do
+            {:ok, obj}
+          end
+        else
+          # if Bonfire.Common.Extend.extension_enabled?(Bonfire.Federate.ActivityPub) do
+            with {:ok, federated_object_or_character} <- Bonfire.Federate.ActivityPub.Utils.get_by_url_ap_id_or_username(id_or_username_or_url) do
+              # IO.inspect(federated_object_or_character: federated_object_or_character)
+              {:ok, federated_object_or_character}
             end
+          # else
+          #   {:error, "no such tag"}
+          # end
         end
     end
   end
@@ -83,17 +89,12 @@ defmodule Bonfire.Tag.Tags do
     {:ok, tag}
   end
 
-  def maybe_make_tag(user, pointer_id, attrs) when is_binary(pointer_id) do
-    if Bonfire.Common.Utils.is_numeric(pointer_id) do # rembemer is_number != is_numeric
-      maybe_make_tag(user, String.to_integer(pointer_id), attrs)
+  def maybe_make_tag(user, id_or_username_or_url, attrs) when is_binary(id_or_username_or_url) do
+    if Bonfire.Common.Utils.is_numeric(id_or_username_or_url) do # rembemer is_number != is_numeric
+      maybe_make_tag(user, String.to_integer(id_or_username_or_url), attrs)
     else
-      with {:ok, tag} <- get(pointer_id) do # check if tag already exists
-        {:ok, tag}
-      else
-        _e ->
-          with {:ok, pointer} <- Bonfire.Common.Pointers.get(pointer_id) do
-            make_tag(user, pointer, attrs)
-          end
+      with {:ok, tag} <- maybe_find_tag(user, id_or_username_or_url) do # check if tag already exists
+        make_tag(user, tag, attrs)
       end
     end
   end
@@ -175,7 +176,7 @@ defmodule Bonfire.Tag.Tags do
   defp insert_tag(attrs) do
     #IO.inspect(insert_tag: attrs)
     cs = Tag.create_changeset(attrs)
-    with {:ok, tag} <- repo().insert(cs), do: {:ok, tag}
+    with {:ok, tag} <- repo().insert(cs, on_conflict: :nothing), do: {:ok, tag}
   end
 
   # TODO: take the user who is performing the update
