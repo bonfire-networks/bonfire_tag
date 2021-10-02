@@ -201,30 +201,30 @@ defmodule Bonfire.Tag.Tags do
   @doc """
   Maybe tag something
   """
-  def maybe_tag(user, thing, tags \\ nil)
+  def maybe_tag(user, thing, tags \\ nil, boost_category_mentions? \\ true)
 
   # def maybe_tag(user, thing, %{tags: tag_string}) when is_binary(tag_string) do
   #   tag_strings = Bonfire.Tag.Autocomplete.tags_split(tag_string)
   #   tag_something(user, thing, tag_strings)
   # end
 
-  def maybe_tag(user, thing, %{tags: tags}), do: maybe_tag(user, thing, tags)
-  def maybe_tag(user, thing, %{tag: tag}), do: maybe_tag(user, thing, tag)
-  def maybe_tag(user, thing, tags) when is_list(tags), do: tag_something(user, thing, tags)
-  def maybe_tag(user, thing, %Bonfire.Tag{} = tag), do: tag_something(user, thing, tag)
+  def maybe_tag(user, thing, %{tags: tags}, boost_category_mentions?), do: maybe_tag(user, thing, tags, boost_category_mentions?)
+  def maybe_tag(user, thing, %{tag: tag}, boost_category_mentions?), do: maybe_tag(user, thing, tag, boost_category_mentions?)
+  def maybe_tag(user, thing, tags, boost_category_mentions?) when is_list(tags), do: tag_something(user, thing, tags, boost_category_mentions?)
+  def maybe_tag(user, thing, %Bonfire.Tag{} = tag, boost_category_mentions?), do: tag_something(user, thing, tag, boost_category_mentions?)
 
-  def maybe_tag(user, thing, text) when is_binary(text) do
+  def maybe_tag(user, thing, text, boost_category_mentions?) when is_binary(text) do
 
     tag_or_tags = if text != "", do: Bonfire.Tag.Autocomplete.find_all_tags(text) # TODO, switch to TextContent.Process?
 
     case tag_or_tags do
       %{} = tag ->
 
-        maybe_tag(user, thing, tag)
+        maybe_tag(user, thing, tag, boost_category_mentions?)
 
       tags when is_list(tags) and length(tags)>0 ->
 
-        maybe_tag(user, thing, tags)
+        maybe_tag(user, thing, tags, boost_category_mentions?)
 
       _ ->
         Logger.info("Bonfire.Tag - no matches in '#{text}'")
@@ -233,9 +233,9 @@ defmodule Bonfire.Tag.Tags do
   end
 
   #doc """ otherwise maybe we have tagnames inline in the text of the object? """
-  def maybe_tag(user, obj, _), do: maybe_tag(user, obj, Process.object_text_content(obj))
+  def maybe_tag(user, obj, _, boost_category_mentions?), do: maybe_tag(user, obj, Process.object_text_content(obj), boost_category_mentions?)
 
-  # def maybe_tag(_user, thing, _maybe_tags) do
+  # def maybe_tag(_user, thing, _maybe_tags, boost_category_mentions?) do
   #   #IO.inspect(maybe_tags: maybe_tags)
   #   {:ok, thing}
   # end
@@ -250,8 +250,19 @@ defmodule Bonfire.Tag.Tags do
   #   end
   # end
 
-  def tag_something(user, thing, tags) do
-    do_tag_thing(user, thing, tags)
+  def tag_something(user, thing, tags, boost_category_mentions?) do
+    with {:ok, thing} <- do_tag_thing(user, thing, tags) do
+
+      if boost_category_mentions? and Bonfire.Common.Utils.module_enabled?(Bonfire.Classify.Categories) and Bonfire.Common.Utils.module_enabled?(Bonfire.Social.Boosts) do
+        Logger.info("Bonfire.Tag: boost mentions to the category's feed")
+        tags = thing.tags
+        |> repo().maybe_preload([:category, :character])
+        |> Enum.reject(&(is_nil(&1.category) or is_nil(&1.character)))
+        |> Enum.each(&Bonfire.Social.Boosts.boost(&1, thing))
+      end
+
+      {:ok, thing}
+    end
   end
 
   #doc """ Add tag(s) to a pointable thing. Will replace any existing tags. """
