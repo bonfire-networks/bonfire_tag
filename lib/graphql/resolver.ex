@@ -22,15 +22,18 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
 
   require Logger
 
-  def tag(%{id: id}, info) do
-    ResolveField.run(%ResolveField{
-      module: __MODULE__,
-      fetcher: :fetch_tag,
-      context: id,
-      info: info
-    })
-  end
+  if Code.ensure_loaded?(ResolveField) do
 
+    def tag(%{id: id}, info) do
+      ResolveField.run(%ResolveField{
+        module: __MODULE__,
+        fetcher: :fetch_tag,
+        context: id,
+        info: info
+      })
+    end
+
+  end
   ## fetchers
 
   def fetch_tag(_info, id) do

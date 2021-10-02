@@ -40,6 +40,9 @@ defmodule Bonfire.Tag do
       on_replace: :delete
     )
 
+    many_to_many :related, Bonfire.Tag, join_through: Bonfire.Data.Assort.Ranked, join_keys: [item_id: :id, scope_id: :id]
+
+
     # include fields/relations defined in config (using Flexto, already done by `mixin_schema`)
     # flex_schema(:bonfire_tag)
   end
