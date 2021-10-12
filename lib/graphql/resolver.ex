@@ -89,16 +89,16 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
     ) #|> IO.inspect
   end
 
-  # def tag_prepare(%{profile: %{name: name}} = tag, page_opts, info)
-  #     when not is_nil(name) do
-  #   Map.merge(
-  #     tag,
-  #     %{
-  #       name: name,
-  #       summary: tag.profile.summary
-  #     }
-  #   )
-  # end
+  def tag_prepare(%{profile: %{name: name}} = tag, page_opts, info)
+      when not is_nil(name) do
+    Map.merge(
+      tag,
+      %{
+        name: name,
+        summary: tag.profile.summary
+      }
+    )
+  end
 
   def tag_prepare(%{category_id: category_id, id: mixin_id}, page_opts, info)
       when is_nil(category_id) do

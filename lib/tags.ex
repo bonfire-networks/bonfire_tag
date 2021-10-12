@@ -269,9 +269,9 @@ defmodule Bonfire.Tag.Tags do
   defp do_tag_thing(user, thing, tags) when is_list(tags) do
     pointer = thing_to_pointer(thing)
     tags = Enum.map(tags, &tag_preprocess(user, &1)) |> Enum.reject(&is_nil/1)
-    #IO.inspect(tags: tags)
+    # IO.inspect(do_tag_thing: tags)
     with {:ok, tagged} <- thing_tags_save(pointer, tags) do
-       {:ok, thing |> Map.merge(%{tags: tags})}
+       {:ok, (if is_map(thing), do: thing, else: pointer) |> Map.merge(%{tags: tags})}
     end
     # Bonfire.Repo.maybe_preload(thing, :tags)
   end
@@ -337,6 +337,9 @@ defmodule Bonfire.Tag.Tags do
   defp thing_tags_save(%{} = thing, tags) when is_list(tags) and length(tags) > 0 do
     # remove nils
     tags = Enum.filter(tags, & &1)
+    |> Map.new(fn x -> {x.id, x} end)
+    |> Map.values()
+    # |> IO.inspect(label: "thing_tags_save")
 
     repo().transact_with(fn ->
       cs = Tag.thing_tags_changeset(thing, tags)
