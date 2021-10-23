@@ -60,13 +60,13 @@ defmodule Bonfire.Tag.GraphQL.TagSchema do
     end
 
     @desc "Unique URL (on original instance)"
-    field(:canonicalUrl, :string) do
-      resolve(&TagResolver.canonical_url/3)
+    field(:canonical_url, :string) do
+      resolve(&Bonfire.GraphQL.CommonResolver.canonical_url_edge/3)
     end
 
     @desc "Unique URL (on original instance)"
-    field(:displayUsername, :string) do
-      resolve(&TagResolver.display_username/3)
+    field(:display_username, :string) do
+      resolve(&Bonfire.GraphQL.CommonResolver.display_username_edge/3)
     end
 
     @desc "Objects that were tagged with this tag"
