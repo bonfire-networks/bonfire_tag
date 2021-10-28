@@ -6,6 +6,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   alias Bonfire.Common.Config
   alias Bonfire.Common.Utils
   alias Bonfire.Tag.Autocomplete
+  require Logger
 
   @safe_mention_regex ~r/^(\s*(?<mentions>([@|&amp;|\+].+?\s+){1,})+)(?<rest>.*)/s
   @link_regex ~r"((?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~%:/?#[\]@!\$&'\(\)\*\+,;=.]+)|[0-9a-z+\-\.]+:[0-9a-z$-_.+!*'(),]+"ui
@@ -53,11 +54,11 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
   def tag_handler("@" <> nickname, buffer, opts, acc) do
     case Autocomplete.search_prefix(nickname, "@") do
-      u when is_map(u) or is_list(u) and length(u)>0 ->
+      u when is_map(u) or ( is_list(u) and length(u)>0 ) ->
         mention_process(opts, only_or_first(u), acc, Map.get(opts, :content_type))
 
       no ->
-        IO.inspect(tag_handler: no)
+        Logger.warn("Tag.tag_handler: could not process mention for #{nickname}, expected a map or list, got #{inspect no}")
         {buffer, acc}
     end
   end

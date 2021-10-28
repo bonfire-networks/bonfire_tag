@@ -55,18 +55,23 @@ defmodule Bonfire.Tag.Tags do
   end
 
   def maybe_find_tag(_user \\ nil, id_or_username_or_url) when is_binary(id_or_username_or_url) do
+    Logger.info("Tags.maybe_find_tag: #{id_or_username_or_url}")
     with {:ok, tag} <- get(id_or_username_or_url) do # check if tag already exists
       {:ok, tag}
     else
-      _e ->
+      e ->
+      # Logger.info("Tags.maybe_find_tag: no prexisting tag #{inspect e}")
+
         if Bonfire.Common.Utils.is_ulid?(id_or_username_or_url) do
+          Logger.info("Tags.maybe_find_tag: try by ID")
           with {:ok, obj} <- Bonfire.Common.Pointers.get(id_or_username_or_url) do
             {:ok, obj}
           end
         else
           # if Bonfire.Common.Extend.extension_enabled?(Bonfire.Federate.ActivityPub) do
+          Logger.info("Tags.maybe_find_tag: try get_by_url_ap_id_or_username")
             with {:ok, federated_object_or_character} <- Bonfire.Federate.ActivityPub.Utils.get_by_url_ap_id_or_username(id_or_username_or_url) do
-              # IO.inspect(federated_object_or_character: federated_object_or_character)
+              IO.inspect(federated_object_or_character: federated_object_or_character)
               {:ok, federated_object_or_character}
             end
           # else

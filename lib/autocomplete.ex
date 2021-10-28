@@ -8,7 +8,6 @@ defmodule Bonfire.Tag.Autocomplete do
   @tags_seperator " "
   @prefixes ["@", "&", "+"]
   @taxonomy_prefix "+"
-  @taxonomy_index "public"
   @search_index "public"
   @max_length 50
 
@@ -36,11 +35,11 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def search_prefix(tag_search, prefix) do
-    search_or_lookup(tag_search, @taxonomy_index, %{"index_type" => prefix_index(prefix)})
+    search_or_lookup(tag_search, @search_index, %{"index_type" => prefix_index(prefix)})
   end
 
   def search_type(tag_search, type) do
-    search_or_lookup(tag_search, @taxonomy_index, %{"index_type" => type})
+    search_or_lookup(tag_search, @search_index, %{"index_type" => type})
   end
 
   def tag_lookup_public(tag_search, prefix, consumer, index_type) do
@@ -55,9 +54,12 @@ defmodule Bonfire.Tag.Autocomplete do
     end
   end
 
-  def search_or_lookup(tag_search, index, facets \\ nil) do
-    # IO.inspect(searching: tag_search)
-    # IO.inspect(facets: facets)
+  def search_or_lookup(tag_search, index, facets \\ nil)
+
+  def search_or_lookup("lt", _, _), do: nil # dirty workaround
+
+  def search_or_lookup(tag_search, index, facets) do
+    # Logger.info("Search.search_or_lookup: #{tag_search} with facets #{inspect facets}")
 
     hits = maybe_search(tag_search, %{index: index}, facets)
     if hits do # use search index if available
