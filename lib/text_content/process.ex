@@ -13,7 +13,7 @@ defmodule Bonfire.Tag.TextContent.Process do
   def process(
         user \\ nil,
         text,
-        content_type \\ "text/plain"
+        content_type \\ "text/markdown"
       )
 
   def process(
@@ -28,6 +28,7 @@ defmodule Bonfire.Tag.TextContent.Process do
     text
     # |> IO.inspect
     |> object_text_content()
+    # |> Bonfire.Social.PostContents.prepare_text() # FIXME: make modular
     |> format_input(content_type, options)
     # |> maybe_add_attachments(attachments, attachment_links)
     # |> maybe_add_nsfw_tag(data)
