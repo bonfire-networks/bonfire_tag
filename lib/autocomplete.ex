@@ -1,5 +1,6 @@
 defmodule Bonfire.Tag.Autocomplete do
   import Bonfire.Common.Utils
+  alias Bonfire.Common.URIs
   alias Bonfire.Tag.Tags
   require Logger
 
@@ -30,8 +31,8 @@ defmodule Bonfire.Tag.Autocomplete do
 
   # FIXME combine the following functions
 
-  def tag_lookup(tag_search, prefix, consumer) do
-    tag_lookup_public(tag_search, prefix, consumer, prefix_index(prefix))
+  def api_tag_lookup(tag_search, prefix, consumer) do
+    api_tag_lookup_public(tag_search, prefix, consumer, prefix_index(prefix))
   end
 
   def search_prefix(tag_search, prefix) do
@@ -42,16 +43,14 @@ defmodule Bonfire.Tag.Autocomplete do
     search_or_lookup(tag_search, @search_index, %{"index_type" => type})
   end
 
-  def tag_lookup_public(tag_search, prefix, consumer, index_type) do
-    hits = maybe_search(tag_search, %{"index_type" => index_type})
-    if hits do
-      #IO.inspect(search)
-      tag_lookup_process(tag_search, hits, prefix, consumer)
-    else
-      with {:ok, tag} <- Tags.maybe_find_tag(tag_search) do
-        tag
+  def api_tag_lookup_public(tag_search, prefix, consumer, index_type) do
+    hits = maybe_search(tag_search, %{"index_type" => index_type}) || (
+      with {:ok, tags} <- Tags.maybe_find_tags(tag_search) do
+        tags
       end
-    end
+    )
+
+    tag_lookup_process(tag_search, hits, prefix, consumer)
   end
 
   def search_or_lookup(tag_search, index, facets \\ nil)
@@ -65,8 +64,8 @@ defmodule Bonfire.Tag.Autocomplete do
     if hits do # use search index if available
       hits
     else
-      with {:ok, tag} <- Tags.maybe_find_tag(tag_search) do
-        tag
+      with {:ok, tags} <- Tags.maybe_find_tags(tag_search) do
+        tags
       end
     end
   end
@@ -98,20 +97,19 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def tag_hit_prepare(hit, _tag_search, prefix, consumer) do
-    #IO.inspect(consumer)
-    #IO.inspect(Map.new(consumer: "test"))
+    # IO.inspect(hit)
+
+    hit = stringify_keys(hit) |> IO.inspect()
+
+    username = hit["username"] || hit["character"]["username"]
 
     # FIXME: do this by filtering Meili instead?
-    if strlen(hit["username"]) > 0 or (prefix == "+" and strlen(hit["id"]) > 0) do
-      hit
-      |> Map.merge(%{
-        "name" => e(hit, "name_crumbs", e(hit, "name", e(hit, "username", nil)))
-      })
-      |> Map.merge(%{
-        "link" => e(hit, "canonical_url", "#unknown-hit-url")
-      })
-      |> tag_add_field(consumer, prefix, e(hit, "username", e(hit, "id", "")))
-      |> Map.drop(["name_crumbs"])
+    if strlen(username) do
+      %{
+        "name" => e(hit, "name_crumbs", e(hit, "profile", "name", e(hit, "name", e(hit, "username", nil)))),
+        "link" => e(hit, "canonical_url", URIs.canonical_url(e(hit, "id", nil)))
+      }
+      |> tag_add_field(consumer, prefix, (username || e(hit, "id", "")))
     end
   end
 

@@ -40,6 +40,15 @@ defmodule Bonfire.Tag.Tags do
     end
   end
 
+  def find(id) do
+    if Bonfire.Common.Utils.is_ulid?(id) do
+      one(id: id)
+    else
+      # TODO: lookup Peered with canonical_uri if id is a URL
+      many(autocomplete: id)
+    end
+  end
+
   # def many(filters \\ []), do: {:ok, repo().many(Queries.query(Tag, filters))}
 
   def prefix("Community") do
@@ -78,6 +87,16 @@ defmodule Bonfire.Tag.Tags do
           #   {:error, "no such tag"}
           # end
         end
+    end
+  end
+
+  def maybe_find_tags(_user \\ nil, id_or_username_or_url) when is_binary(id_or_username_or_url) do
+    Logger.info("Tags.maybe_find_tag: #{id_or_username_or_url}")
+    with {:ok, tags} <- find(id_or_username_or_url) do # check if tag already exists
+      {:ok, tags}
+    else
+      e ->
+        [maybe_find_tag(id_or_username_or_url)]
     end
   end
 

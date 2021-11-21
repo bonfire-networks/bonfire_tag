@@ -89,7 +89,9 @@ defmodule Bonfire.Tag.Queries do
     q
     |> join_to(:profile)
     |> preload(:profile)
-    |> where([profile: p], ilike(p.name, ^"#{text}%") or ilike(p.name, ^"% #{text}%"))
+    |> join_to(:character)
+    |> preload(:character)
+    |> where([profile: p, character: a], ilike(p.name, ^"#{text}%") or ilike(p.name, ^"% #{text}%") or ilike(a.username, ^"#{text}%") or ilike(a.username, ^"% #{text}%"))
   end
 
   def filter(q, {:user, _user}), do: q

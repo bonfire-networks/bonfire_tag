@@ -23,6 +23,8 @@ defmodule Bonfire.Tag.Web.Routes do
         pipe_through :browser
         pipe_through :user_required
 
+        get "/api/tag/autocomplete/:prefix/:search", Pages.Autocomplete, :get
+        get "/api/tag/autocomplete/:consumer/:prefix/:search", Pages.Autocomplete, :get
 
       end
 
