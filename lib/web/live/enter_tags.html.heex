@@ -1,5 +1,5 @@
 <div class="additional__hashtags">
-  <input id="<%=@id%>_tags"  name="tags" type="text" multiple placeholder="Enter one or more tags or categories...">
+  <input id={@id<>"_tags"}  name="tags" type="text" multiple placeholder="Enter one or more tags or categories...">
 </div>
 <%= live_component(
     @socket,
