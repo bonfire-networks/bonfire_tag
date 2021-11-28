@@ -63,7 +63,7 @@ defmodule Bonfire.Tag.Tags do
     "+"
   end
 
-  def maybe_find_tag(_user \\ nil, id_or_username_or_url) when is_binary(id_or_username_or_url) do
+  def maybe_find_tag(user \\ nil, id_or_username_or_url) when is_binary(id_or_username_or_url) do
     Logger.info("Tags.maybe_find_tag: #{id_or_username_or_url}")
     with {:ok, tag} <- get(id_or_username_or_url) do # check if tag already exists
       {:ok, tag}
@@ -73,7 +73,7 @@ defmodule Bonfire.Tag.Tags do
 
         if Bonfire.Common.Utils.is_ulid?(id_or_username_or_url) do
           Logger.info("Tags.maybe_find_tag: try by ID")
-          with {:ok, obj} <- Bonfire.Common.Pointers.get(id_or_username_or_url) do
+          with {:ok, obj} <- Bonfire.Common.Pointers.get(id_or_username_or_url, current_user: user) do
             {:ok, obj}
           end
         else
@@ -124,7 +124,7 @@ defmodule Bonfire.Tag.Tags do
   end
 
   def maybe_make_tag(user, %Pointers.Pointer{} = pointer, attrs) do
-    with {:ok, obj} <- Bonfire.Common.Pointers.get(pointer) do
+    with {:ok, obj} <- Bonfire.Common.Pointers.get(pointer, current_user: user) do
       # IO.inspect(maybe_make_tag: obj)
       if obj != pointer do
         maybe_make_tag(user, obj, attrs)
@@ -378,7 +378,7 @@ defmodule Bonfire.Tag.Tags do
 
   #doc """ Load thing as Pointer """
   defp thing_to_pointer(pointer_id) when is_binary(pointer_id) do
-    with {:ok, pointer} <- Bonfire.Common.Pointers.one(id: pointer_id) do
+    with {:ok, pointer} <- Bonfire.Common.Pointers.one(id: pointer_id, skip_boundary_check: true) do
       pointer
     end
   end
