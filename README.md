@@ -1,8 +1,8 @@
-# Bonfire:Tag
+# Bonfire.Tag
 
 An extension for [Bonfire](https://bonfire.cafe/) that handles:
 
-- Tagging posts or other things (i.e. with a Category from Bonfire:Classify or a location from Bonfire:Geolocate)
+- Tagging posts or other things (i.e. with a Category from Bonfire.Classify or a location from Bonfire.Geolocate)
 - @ mentions (WIP)
 - Hashtags (WIP)
 
