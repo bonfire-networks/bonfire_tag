@@ -80,7 +80,7 @@ defmodule Bonfire.Tag.Tags do
           # if Bonfire.Common.Extend.extension_enabled?(Bonfire.Federate.ActivityPub) do
           Logger.info("Tags.maybe_find_tag: try get_by_url_ap_id_or_username")
             with {:ok, federated_object_or_character} <- Bonfire.Federate.ActivityPub.Utils.get_by_url_ap_id_or_username(id_or_username_or_url) do
-              IO.inspect(federated_object_or_character: federated_object_or_character)
+              Logger.debug("Tags: federated_object_or_character: #{inspect federated_object_or_character}")
               {:ok, federated_object_or_character}
             end
           # else
@@ -314,7 +314,7 @@ defmodule Bonfire.Tag.Tags do
   end
 
   defp tag_preprocess(_user, {:error, e}) do
-    IO.inspect(invalid_tag: e)
+    Logger.warn("Tags: invalid tag: #{inspect e}")
     nil
   end
 
