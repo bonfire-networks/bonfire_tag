@@ -5,7 +5,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   # alias Bonfire.Tag.TextContent.Scrubber
   alias Bonfire.Common.Config
   alias Bonfire.Common.Utils
-  alias Bonfire.Tag.Autocomplete
+  alias Bonfire.Tag.Tags
   require Logger
 
   @safe_mention_regex ~r/^(\s*(?<mentions>([@|&amp;|\+].+?\s+){1,})+)(?<rest>.*)/s
@@ -23,8 +23,8 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   def escape_mention_handler("@" <> nickname = mention, buffer, _, _) do
-    case Autocomplete.search_prefix(nickname, "@") do
-      %{id: _} ->
+    case Tags.maybe_lookup_tag(nickname, "@") do
+      {:ok, tag} ->
         # escape markdown characters with `\\`
         # (we don't want something like @user__name to be parsed by markdown)
         String.replace(mention, @markdown_characters_regex, "\\\\\\1")
@@ -53,39 +53,37 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   def tag_handler("@" <> nickname, buffer, opts, acc) do
-    case Autocomplete.search_prefix(nickname, "@") do
-      u when is_map(u) or ( is_list(u) and length(u)>0 ) ->
-        mention_process(opts, only_or_first(u), acc, Map.get(opts, :content_type))
+    case Tags.maybe_lookup_tag(nickname, "@") do
+      {:ok, tag} ->
+        mention_process(opts, tag, acc, Map.get(opts, :content_type))
 
       no ->
-        Logger.warn("Tag.tag_handler: could not process mention for #{nickname}, expected a map or list, got #{inspect no}")
+        Logger.warn("Tag.tag_handler: could not process @ mention for #{nickname}, got #{inspect no}")
         {buffer, acc}
     end
   end
 
   def tag_handler("&" <> nickname, buffer, opts, acc) do
-    case Autocomplete.search_prefix(nickname, "&")  do
-      u when is_map(u) or is_list(u) and length(u)>0 ->
-        mention_process(opts, only_or_first(u), acc, Map.get(opts, :content_type))
+    case Tags.maybe_lookup_tag(nickname, "&")  do
+      {:ok, tag} ->
+        mention_process(opts, tag, acc, Map.get(opts, :content_type))
 
-      _ ->
+      no ->
+        Logger.warn("Tag.tag_handler: could not process & mention for #{nickname}, got #{inspect no}")
         {buffer, acc}
     end
   end
 
   def tag_handler("+" <> nickname, buffer, opts, acc) do
 
-    case Autocomplete.search_prefix(nickname, "+") do
-      u when is_map(u) or is_list(u) and length(u)>0 ->
-        mention_process(opts, only_or_first(u), acc, Map.get(opts, :content_type))
+    case Tags.maybe_lookup_tag(nickname, "+") do
+      {:ok, tag} ->
+        mention_process(opts, tag, acc, Map.get(opts, :content_type))
 
-      _ ->
+      no ->
+        Logger.warn("Tag.tag_handler: could not process + mention for #{nickname}, got #{inspect no}")
         {buffer, acc}
     end
-  end
-
-  defp only_or_first(u) do
-    if is_list(u), do: List.first(u), else: u
   end
 
   defp mention_process(_opts, obj, acc, content_type) do

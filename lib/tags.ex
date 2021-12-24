@@ -36,7 +36,11 @@ defmodule Bonfire.Tag.Tags do
       one(id: id)
     else
       # TODO: lookup Peered with canonical_uri if id is a URL
-      one(username: id)
+      with {:ok, character} <- Utils.maybe_apply(Bonfire.Me.Characters, :by_username, id) do
+        {:ok, character}
+      else _ ->
+        one(username: id)
+      end
     end
   end
 
@@ -73,7 +77,7 @@ defmodule Bonfire.Tag.Tags do
 
         if Bonfire.Common.Utils.is_ulid?(id_or_username_or_url) do
           Logger.info("Tags.maybe_find_tag: try by ID")
-          with {:ok, obj} <- Bonfire.Common.Pointers.get(id_or_username_or_url, current_user: user) do
+          with {:ok, obj} <- Bonfire.Common.Pointers.one(id_or_username_or_url, current_user: user, skip_boundary_check: true) do
             {:ok, obj}
           end
         else
@@ -90,14 +94,24 @@ defmodule Bonfire.Tag.Tags do
     end
   end
 
+  @doc """
+  Search / autocomplete for tags by name
+  """
   def maybe_find_tags(_user \\ nil, id_or_username_or_url) when is_binary(id_or_username_or_url) do
     Logger.info("Tags.maybe_find_tag: #{id_or_username_or_url}")
     with {:ok, tags} <- find(id_or_username_or_url) do # check if tag already exists
       {:ok, tags}
     else
       e ->
-        [maybe_find_tag(id_or_username_or_url)]
+        {:ok, [maybe_find_tag(id_or_username_or_url)]}
     end
+  end
+
+  @doc """
+  Lookup a signle for a tag by its name/username
+  """
+  def maybe_lookup_tag(id_or_username_or_url, _prefix \\ "@") when is_binary(id_or_username_or_url) do
+    maybe_find_tag(id_or_username_or_url)
   end
 
 ### Functions for creating tags ###
@@ -117,32 +131,29 @@ defmodule Bonfire.Tag.Tags do
     if Bonfire.Common.Utils.is_numeric(id_or_username_or_url) do # rembemer is_number != is_numeric
       maybe_make_tag(user, String.to_integer(id_or_username_or_url), attrs)
     else
-      with {:ok, tag} <- maybe_find_tag(user, id_or_username_or_url) do # check if tag already exists
+      with {:ok, tag} <- maybe_find_tag(user, id_or_username_or_url) do
+        Logger.info("Tag does not already exist, make it now")
         make_tag(user, tag, attrs)
       end
     end
   end
 
   def maybe_make_tag(user, %Pointers.Pointer{} = pointer, attrs) do
-    with {:ok, obj} <- Bonfire.Common.Pointers.get(pointer, current_user: user) do
-      # IO.inspect(maybe_make_tag: obj)
+    with {:ok, obj} <- Bonfire.Common.Pointers.get(pointer, current_user: user, skip_boundary_check: true) do
+      Logger.info("Tag from pointer")
       if obj != pointer do
         maybe_make_tag(user, obj, attrs)
       end
     end
   end
 
-  def maybe_make_tag(user, %{id: id} = _context, attrs) do
-    # from search index
-    maybe_make_tag(user, id, attrs)
-  end
-
   def maybe_make_tag(user, %{id: _} = obj, attrs) when is_struct(obj) do # some other obj
+    Logger.info("Tag from struct")
     make_tag(user, obj, attrs)
   end
 
   def maybe_make_tag(user, %{id: id} = _context, attrs) do
-    # from search index
+    Logger.info("Tag from object or search index")
     maybe_make_tag(user, id, attrs)
   end
 
