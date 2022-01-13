@@ -68,7 +68,7 @@ defmodule Bonfire.Tag.Tags do
   end
 
   def maybe_find_tag(user \\ nil, id_or_username_or_url) when is_binary(id_or_username_or_url) do
-    Logger.info("Tags.maybe_find_tag: #{id_or_username_or_url}")
+    Logger.debug("Tags.maybe_find_tag: #{id_or_username_or_url}")
     with {:ok, tag} <- get(id_or_username_or_url) do # check if tag already exists
       {:ok, tag}
     else
@@ -76,7 +76,7 @@ defmodule Bonfire.Tag.Tags do
       # Logger.info("Tags.maybe_find_tag: no prexisting tag #{inspect e}")
 
         if Bonfire.Common.Utils.is_ulid?(id_or_username_or_url) do
-          Logger.info("Tags.maybe_find_tag: try by ID")
+          Logger.debug("Tags.maybe_find_tag: try by ID")
           with {:ok, obj} <- Bonfire.Common.Pointers.one(id_or_username_or_url, current_user: user, skip_boundary_check: true) do
             {:ok, obj}
           end
@@ -132,7 +132,7 @@ defmodule Bonfire.Tag.Tags do
       maybe_make_tag(user, String.to_integer(id_or_username_or_url), attrs)
     else
       with {:ok, tag} <- maybe_find_tag(user, id_or_username_or_url) do
-        Logger.info("Tag does not already exist, make it now")
+        Logger.debug("Tag does not already exist, make it now")
         make_tag(user, tag, attrs)
       end
     end
@@ -140,7 +140,7 @@ defmodule Bonfire.Tag.Tags do
 
   def maybe_make_tag(user, %Pointers.Pointer{} = pointer, attrs) do
     with {:ok, obj} <- Bonfire.Common.Pointers.get(pointer, current_user: user, skip_boundary_check: true) do
-      Logger.info("Tag from pointer")
+      Logger.debug("Tag from pointer")
       if obj != pointer do
         maybe_make_tag(user, obj, attrs)
       end
@@ -148,12 +148,12 @@ defmodule Bonfire.Tag.Tags do
   end
 
   def maybe_make_tag(user, %{id: _} = obj, attrs) when is_struct(obj) do # some other obj
-    Logger.info("Tag from struct")
+    Logger.debug("Tag from struct")
     make_tag(user, obj, attrs)
   end
 
   def maybe_make_tag(user, %{id: id} = _context, attrs) do
-    Logger.info("Tag from object or search index")
+    Logger.debug("Tag from object or search index")
     maybe_make_tag(user, id, attrs)
   end
 
@@ -289,7 +289,7 @@ defmodule Bonfire.Tag.Tags do
     with {:ok, thing} <- do_tag_thing(user, thing, tags) do
 
       if boost_category_mentions? and Bonfire.Common.Utils.module_enabled?(Bonfire.Classify.Categories) and Bonfire.Common.Utils.module_enabled?(Bonfire.Social.Boosts) do
-        Logger.info("Bonfire.Tag: boost mentions to the category's feed")
+        Logger.debug("Bonfire.Tag: boost mentions to the category's feed")
         tags = thing.tags
         |> repo().maybe_preload([:category, :character])
         |> Enum.reject(&(is_nil(&1.category) or is_nil(&1.character)))
