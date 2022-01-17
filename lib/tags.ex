@@ -285,7 +285,8 @@ defmodule Bonfire.Tag.Tags do
   #   end
   # end
 
-  def tag_something(user, thing, tags, boost_category_mentions?) do
+  def tag_something(user, thing, tags, boost_category_mentions? \\ false) do
+
     with {:ok, thing} <- do_tag_thing(user, thing, tags) do
 
       if boost_category_mentions? and Bonfire.Common.Utils.module_enabled?(Bonfire.Classify.Categories) and Bonfire.Common.Utils.module_enabled?(Bonfire.Social.Boosts) do
