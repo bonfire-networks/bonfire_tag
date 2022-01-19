@@ -17,9 +17,9 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     Config.get(Bonfire.Tag.TextContent.Formatter, []) ++
       [
         hashtag: true,
-        hashtag_handler: &Bonfire.Tag.TextContent.Formatter.tag_handler/4,
+        hashtag_handler: &tag_handler/4,
         mention: true,
-        mention_handler: &Bonfire.Tag.TextContent.Formatter.tag_handler/4
+        mention_handler: &tag_handler/4
       ]
   end
 
@@ -48,51 +48,44 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
     # TODO? save hashtag as a Category
 
-    link = tag_link("#", url, tag_text, Map.get(opts, :content_type))
+    link = tag_link("#", url, tag, Map.get(opts, :content_type))
 
     {link, %{acc | tags: MapSet.put(acc.tags, {tag_text, tag})}}
   end
 
   def tag_handler("@" <> nickname, buffer, opts, acc) do
-    case Tags.maybe_lookup_tag(nickname, "@") do
-      {:ok, tag} ->
-        mention_process(opts, tag, acc, Map.get(opts, :content_type))
-
-      no ->
-        Logger.warn("Tag.tag_handler: could not process @ mention for #{nickname}, got #{inspect no}")
-        {buffer, acc}
-    end
+    tag_handler("@", nickname, buffer, opts, acc)
   end
 
   def tag_handler("&" <> nickname, buffer, opts, acc) do
-    case Tags.maybe_lookup_tag(nickname, "&")  do
-      {:ok, tag} ->
-        mention_process(opts, tag, acc, Map.get(opts, :content_type))
-
-      no ->
-        Logger.warn("Tag.tag_handler: could not process & mention for #{nickname}, got #{inspect no}")
-        {buffer, acc}
-    end
+    tag_handler("&", nickname, buffer, opts, acc)
   end
 
   def tag_handler("+" <> nickname, buffer, opts, acc) do
+    tag_handler("+", nickname, buffer, opts, acc)
+  end
 
-    case Tags.maybe_lookup_tag(nickname, "+") do
+  def tag_handler("!" <> nickname, buffer, opts, acc) do
+    tag_handler("!", nickname, buffer, opts, acc)
+  end
+
+  defp tag_handler(type, nickname, buffer, opts, acc) do
+    case Tags.maybe_lookup_tag(nickname, type) do
       {:ok, tag} ->
-        mention_process(opts, tag, acc, Map.get(opts, :content_type))
+        mention_process(type, tag, acc, Map.get(opts, :content_type), opts)
 
-      no ->
-        Logger.warn("Tag.tag_handler: could not process + mention for #{nickname}, got #{inspect no}")
+      none ->
+        Logger.warn("Tag.tag_handler: could not process #{type} mention for #{nickname}, got #{inspect none}")
         {buffer, acc}
     end
   end
 
-  defp mention_process(_opts, obj, acc, content_type) do
+  defp mention_process(type, obj, acc, content_type, _opts) do
 
     url = if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters), do: Bonfire.Me.Characters.character_url(obj)
     display_name = if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters), do: Bonfire.Me.Characters.display_username(obj)
 
-    link = tag_link(nil, url, display_name, content_type)
+    link = tag_link(type, url, display_name, content_type)
 
     {link, %{acc | mentions: MapSet.put(acc.mentions, {display_name, obj})}}
   end
@@ -102,12 +95,12 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   defp tag_link(type, url, display_name, nil),
     do: tag_link(type, url, display_name, "text/html")
 
-  defp tag_link(_type, url, display_name, "text/markdown") do
-    "[#{display_name}](#{url})"
+  defp tag_link(type, url, display_name, "text/markdown") do
+    "#{type}[#{display_name}](#{url})"
   end
 
   defp tag_link("#", url, tag, "text/html") do
-    Phoenix.HTML.Tag.content_tag(:a, "#{tag}",
+    Phoenix.HTML.Tag.content_tag(:a, "##{tag}",
       class: "hashtag",
       "data-tag": tag,
       href: url,
@@ -116,12 +109,12 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     |> Phoenix.HTML.safe_to_string()
   end
 
-  defp tag_link(_type, url, display_name, "text/html") do
+  defp tag_link(type, url, display_name, "text/html") do
     Phoenix.HTML.Tag.content_tag(
       :span,
       Phoenix.HTML.Tag.content_tag(
         :a,
-        display_name,
+        type<>display_name,
         "data-user": display_name,
         class: "u-url mention",
         href: url,

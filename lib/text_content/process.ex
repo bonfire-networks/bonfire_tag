@@ -1,5 +1,6 @@
 # Based on code from Pleroma: A lightweight social networking server
 # Copyright © 2017-2020 Pleroma Authors <https://pleroma.social/>
+# Copyright © 2021 Bonfire contributors <https://bonfirenetworks.org/>
 # SPDX-License-Identifier: AGPL-3.0-only
 defmodule Bonfire.Tag.TextContent.Process do
   alias Bonfire.Common.Config
