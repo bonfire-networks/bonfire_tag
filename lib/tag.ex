@@ -36,7 +36,7 @@ defmodule Bonfire.Tag do
     many_to_many(:tagged, Pointers.Pointer,
       join_through: Bonfire.Tag.Tagged,
       unique: true,
-      join_keys: [tag_id: :id, pointer_id: :id],
+      join_keys: [tag_id: :id, id: :id],
       on_replace: :delete
     )
 
@@ -64,7 +64,6 @@ defmodule Bonfire.Tag do
 
   defp common_changeset(changeset) do
     changeset
-    # |> Changeset.foreign_key_constraint(:pointer_id, name: :tag_pointer_id_fkey)
     # |> change_public()
     # |> change_disabled()
   end

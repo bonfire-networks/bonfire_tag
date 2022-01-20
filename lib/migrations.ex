@@ -3,10 +3,10 @@ defmodule Bonfire.Tag.Migrations do
   import Pointers.Migration
 
   alias Bonfire.Tag
+  alias Bonfire.Tag.Tagged
 
   def up() do
-
-    create_mixin_table("bonfire_tag") do
+    create_mixin_table(Tag) do
       add(:prefix, :string)
       add(:facet, :string)
     end
@@ -14,14 +14,10 @@ defmodule Bonfire.Tag.Migrations do
   end
 
   def tagged_up() do
-
-    create_if_not_exists table(:bonfire_tagged, primary_key: false) do
-      add(:pointer_id, strong_pointer(), null: false)
-
-      add(:tag_id, strong_pointer(Tag), null: false)
+    create_mixin_table(Tagged, primary_key: false) do
+      add(:tag_id, strong_pointer(Tag), null: false, primary_key: true)
     end
-
-    create(unique_index(:bonfire_tagged, [:pointer_id, :tag_id]))
+    create(index(:bonfire_tagged, [:tag_id]))
   end
 
   def tagged_timestamps_up() do
@@ -38,11 +34,8 @@ defmodule Bonfire.Tag.Migrations do
     end
   end
 
-  def down() do
-    drop_mixin_table(Tag)
-  end
+  def down(), do: drop_mixin_table(Tag)
 
-  def tagged_down() do
-    drop_table("bonfire_tagged")
-  end
+  def tagged_down(), do: drop_mixin_table(Tagged)
+
 end

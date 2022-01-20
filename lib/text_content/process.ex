@@ -10,7 +10,7 @@ defmodule Bonfire.Tag.TextContent.Process do
   @doc """
   For use for things like a bio, where we want links but not to actually trigger mentions.
   """
-
+  # TODO: batch lookups
   def process(
         user \\ nil,
         text,
