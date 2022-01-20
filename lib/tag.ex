@@ -87,6 +87,7 @@ defmodule Bonfire.Tag do
   @doc """
   Add tags to a thing (any Pointer object which defines a many_to_many relation to tag). This function applies to your object schema but is here for convenience.
   """
+
   def thing_tags_changeset(
         %{} = thing,
         tags

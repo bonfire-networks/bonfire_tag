@@ -11,7 +11,15 @@ defmodule Bonfire.Tag.Tagged do
     timestamps() # Added bonus, a join schema will also allow you to set timestamps
   end
 
-  def changeset(struct, params \\ %{}) do
+  def changeset(struct, params \\ %{})
+
+  def changeset(struct, %{id: tag_id} = _object) do
+    struct
+    |> Ecto.Changeset.cast(%{tag_id: tag_id}, [:tag_id, :pointer_id])
+    |> Ecto.Changeset.validate_required([:tag_id, :pointer_id])
+  end
+
+  def changeset(struct, params) do
     struct
     |> Ecto.Changeset.cast(params, [:tag_id, :pointer_id])
     |> Ecto.Changeset.validate_required([:tag_id, :pointer_id])
