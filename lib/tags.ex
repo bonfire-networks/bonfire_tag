@@ -8,7 +8,6 @@ defmodule Bonfire.Tag.Tags do
   alias Pointers.Pointer # warning: do not move after we alias Pointers
   alias Bonfire.Common.{Pointers, Utils} # warning: do not move before we alias Pointer
   alias Bonfire.Me.Characters
-  alias Bonfire.Tag
   alias Bonfire.Tag.{AutoComplete, Queries, TextContent.Process}
 
   require Logger
@@ -21,14 +20,14 @@ defmodule Bonfire.Tag.Tags do
   * ActivityPub integration
   * Various parts of the codebase that need to query for tags (inc. tests)
   """
-  def one(filters), do: repo().single(Queries.query(Tag, filters))
+  def one(filters), do: repo().single(Queries.query(filters))
 
   @doc """
   Retrieves a list of tags by arbitrary filters.
   Used by:
   * Various parts of the codebase that need to query for tags (inc. tests)
   """
-  def many(filters \\ []), do: {:ok, repo().many(Queries.query(Tag, filters))}
+  def many(filters \\ []), do: {:ok, repo().many(Queries.query(filters))}
 
 
   def get(id) do
@@ -108,7 +107,7 @@ defmodule Bonfire.Tag.Tags do
   def maybe_tag(user, thing, tags, boost_category_mentions?) when is_list(tags), do: tag_something(user, thing, tags, boost_category_mentions?)
   def maybe_tag(user, thing, %{__struct__: _} = tag, boost_category_mentions?), do: tag_something(user, thing, tag, boost_category_mentions?)
   def maybe_tag(user, thing, text, boost_category_mentions?) when is_binary(text) do
-    tags = if text != "", do: Bonfire.Tag.Autocomplete.find_all_tags(text) # TODO, switch to TextContent.Process?
+    tags = if text != "", do: Autocomplete.find_all_tags(text) # TODO, switch to TextContent.Process?
     if is_map(tags) or (is_list(tags) and tags != []) do
       maybe_tag(user, thing, tags, boost_category_mentions?)
     else
@@ -185,7 +184,7 @@ defmodule Bonfire.Tag.Tags do
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq_by(&(&1.id))
     # |> Utils.debug("tags")
-    |> Tag.thing_tags_changeset(thing, tags)
+    |> Bonfire.Tag.thing_tags_changeset(thing, tags)
     # |> Utils.debug("changeset")
     |> repo().transact_with(fn -> repo().update(..., on_conflict: :nothing) end)
   end
