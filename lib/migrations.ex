@@ -6,16 +6,17 @@ defmodule Bonfire.Tag.Migrations do
   alias Bonfire.Tag.Tagged
 
   def up() do
-    create_mixin_table(Tag) do
-      add(:prefix, :string)
-      add(:facet, :string)
-    end
+    # create_mixin_table(Bonfire.Tag) do
+    #   add(:prefix, :string)
+    #   add(:facet, :string)
+    # end
+    migrate_virtual(Bonfire.Tag)
 
   end
 
   def tagged_up() do
-    create_mixin_table(Tagged, primary_key: false) do
-      add(:tag_id, strong_pointer(Tag), null: false, primary_key: true)
+    create_mixin_table(Bonfire.Tag.Tagged, primary_key: false) do
+      add(:tag_id, strong_pointer(), null: false, primary_key: true)
     end
     create(index(:bonfire_tagged, [:tag_id]))
   end
@@ -34,7 +35,7 @@ defmodule Bonfire.Tag.Migrations do
     end
   end
 
-  def down(), do: drop_mixin_table(Tag)
+  def down(), do: drop_virtual(Tag)
 
   def tagged_down(), do: drop_mixin_table(Tagged)
 

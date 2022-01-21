@@ -1,4 +1,4 @@
-Bonfire.Common.Config.require_extension_config!(:bonfire_tag)
+# Bonfire.Common.Config.require_extension_config!(:bonfire_tag)
 defmodule Bonfire.Tag.Tags do
 
   use Arrows

@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 defmodule Bonfire.Tag do
 
-  use Pointers.Mixin,
+  use Pointers.Virtual,
     otp_app: :bonfire_tag,
-    source: "bonfire_tag"
+    source: "bonfire_tag", # default name of view in database
+    table_id: "ATAGCANBEANYP01NTAB1E0BJEC" # valid ULID to identify virtual
 
   import Flexto
 
@@ -13,14 +14,15 @@ defmodule Bonfire.Tag do
   import Bonfire.Common.Config, only: [repo: 0]
 
   @type t :: %__MODULE__{}
-  @required ~w(id prefix facet)a
+  @required [:id]
+  # @required ~w(id prefix facet)a
 
-  mixin_schema do
+  virtual_schema do
 
     # eg. @ or + or #
-    field(:prefix, :string)
+    field(:prefix, :string, virtual: true)
 
-    field(:facet, :string) # FIXME: make enum or ref to other table?
+    field(:facet, :string, virtual: true) # FIXME: make enum or ref to other table?
 
     # field(:tagged_count, :integer) # TODO
 
