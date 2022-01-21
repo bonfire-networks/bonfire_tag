@@ -1,88 +1,20 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 defmodule Bonfire.Tag do
-
-  use Pointers.Virtual,
-    otp_app: :bonfire_tag,
-    source: "bonfire_tag", # default name of view in database
-    table_id: "ATAGCANBEANYP01NTAB1E0BJEC" # valid ULID to identify virtual
-
-  import Flexto
-
-  alias Ecto.Changeset
-  alias Bonfire.Tag
-
   import Bonfire.Common.Config, only: [repo: 0]
-
-  @type t :: %__MODULE__{}
-  @required [:id]
-  # @required ~w(id prefix facet)a
-
-  virtual_schema do
-
-    # eg. @ or + or #
-    field(:prefix, :string, virtual: true)
-
-    field(:facet, :string, virtual: true) # FIXME: make enum or ref to other table?
-
-    # field(:tagged_count, :integer) # TODO
-
-    # Optionally, a profile and character (if not using context) - TODO should be set these in config using Flexto instead (after (ArgumentError) field/association :character is already set on schema issue is sorted)
-    # has_one(:category, Bonfire.Classify.Category, references: :id, foreign_key: :id)
-    # # stores common fields like name/description
-    # has_one(:profile, Bonfire.Data.Social.Profile, references: :id, foreign_key: :id)
-    # # allows it to be follow-able and federate activities
-    # has_one(:character, Bonfire.Data.Identity.Character, references: :id, foreign_key: :id)
-    # # location used as tag
-    # has_one(:geolocation, Bonfire.Geolocate.Geolocation, references: :id, foreign_key: :id)
-
-    many_to_many(:tagged, Pointers.Pointer,
-      join_through: Bonfire.Tag.Tagged,
-      unique: true,
-      join_keys: [tag_id: :id, id: :id],
-      on_replace: :delete
-    )
-
-    many_to_many :related, Bonfire.Tag, join_through: Bonfire.Data.Assort.Ranked, join_keys: [item_id: :id, scope_id: :id]
-
-
-    # include fields/relations defined in config (using Flexto, already done by `mixin_schema`)
-    # flex_schema(:bonfire_tag)
-  end
-
-  def create_changeset(attrs) do
-    %Tag{}
-    |> Changeset.cast(attrs, @required)
-    |> common_changeset()
-  end
-
-  def update_changeset(
-        %Tag{} = tag,
-        attrs
-      ) do
-    tag
-    |> Changeset.cast(attrs, @required)
-    |> common_changeset()
-  end
-
-  defp common_changeset(changeset) do
-    changeset
-    # |> change_public()
-    # |> change_disabled()
-  end
+  alias Ecto.Changeset
 
   @doc """
   Add things (Pointer objects) to a tag. You usually want to add tags to a thing instead, see `thing_tags_changeset`
   """
   def tag_things_changeset(
-        %Tag{} = tag,
+        %{} = tag,
         things
       ) do
     tag
     |> repo().maybe_preload(:tagged)
     |> Changeset.change()
     # Set the association
-    |> Ecto.Changeset.put_assoc(:tagged, things)
-    |> common_changeset()
+    |> Changeset.put_assoc(:tagged, things)
   end
 
   @doc """
@@ -97,13 +29,11 @@ defmodule Bonfire.Tag do
     |> repo().maybe_preload(:tags)
     |> Changeset.change()
     # Set the association
-    |> Ecto.Changeset.put_assoc(:tags, tags)
-    |> common_changeset()
+    |> Changeset.put_assoc(:tags, tags)
   end
 
   def context_module, do: Bonfire.Tag.Tags
 
   def queries_module, do: Bonfire.Tag.Queries
 
-  def follow_filters, do: [:default]
 end

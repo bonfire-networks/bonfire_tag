@@ -17,12 +17,6 @@ defmodule Bonfire.Tag.GraphQL.TagSchema do
 
   object :tag_mutations do
 
-    @desc "Create a Tag out of something else. You can also directly use the tag() mutation with a pointer ID instead."
-    field :make_tag, :tag do
-      arg(:context_id, :string)
-      resolve(&TagResolver.make_pointer_tag/2)
-    end
-
     @desc "Tag a thing (using a Pointer) with one or more Tags (or Categories, or even Pointers to anything that can become tag)"
     field :tag, :boolean do
       arg(:thing, non_null(:string))
@@ -38,16 +32,10 @@ defmodule Bonfire.Tag.GraphQL.TagSchema do
     @desc "The primary key of the tag"
     field(:id, :id)
 
-    @desc "What character is used to trigger this tag (eg. @, #, +)"
-    field(:prefix, :string)
-
     @desc "The object used as a tag (eg. Category, Geolocation, Hashtag, User...)"
     field :context, :any_context do
       resolve(&Bonfire.GraphQL.CommonResolver.context_edge/3)
     end
-
-    @desc "Type of tag (i.e. context)"
-    field(:facet, :string)
 
     @desc "Name of the tag (derived from its context)"
     field(:name, :string) do

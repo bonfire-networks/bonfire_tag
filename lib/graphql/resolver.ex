@@ -44,7 +44,7 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
   @doc """
   Things associated with a Tag
   """
-  def tagged_things_edges(%Tag{tagged: _things} = tag, %{} = page_opts, info) do
+  def tagged_things_edges(%{tagged: _things} = tag, %{} = page_opts, info) do
     tag = repo().maybe_preload(tag, :tagged)
     # pointers = for %{id: tid} <- tag.tagged, do: tid
     pointers =
@@ -107,18 +107,6 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
 
   #### MUTATIONS
 
-
-  @doc """
-  Turn a Pointer into a Tag. You can use `tag_something/2` to tag something with Pointers directly instead.
-  """
-  def make_pointer_tag(%{context_id: pointer_id}, info) do
-    repo().transact_with(fn ->
-      with {:ok, me} <- GraphQL.current_user_or_not_logged_in(info),
-           {:ok, tag} <- Bonfire.Tag.Tags.maybe_make_tag(me, pointer_id, %{}) do
-        {:ok, tag}
-      end
-    end)
-  end
 
   def tag_something(%{thing: thing_id, tags: tags}, info) do
     with {:ok, me} <- GraphQL.current_user_or_not_logged_in(info),

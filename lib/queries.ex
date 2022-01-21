@@ -2,7 +2,7 @@
 defmodule Bonfire.Tag.Queries do
   import Ecto.Query
 
-  alias Bonfire.Tag
+  alias Pointers.Pointer, as: Tag
 
   def query(Tag) do
     from(t in Tag,
