@@ -82,7 +82,7 @@ defmodule Bonfire.Tag.Autocomplete do
       if(is_map(search) and Map.has_key?(search, "hits") and length(search["hits"])) do
         # search["hits"]
         Enum.map(search["hits"], &tag_hit_prepare(&1, tag_search))
-        |> Enum.filter(& &1)
+        |> Utils.filter_empty()
         |> input_to_atoms()
         # |> IO.inspect(label: "maybe_search results")
       end
@@ -93,7 +93,7 @@ defmodule Bonfire.Tag.Autocomplete do
     #IO.inspect(search["hits"])
     hits
     |> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer))
-    |> Enum.filter(& &1)
+    |> Utils.filter_empty()
   end
 
   def tag_hit_prepare(hit, _tag_search, prefix, consumer) do
@@ -153,7 +153,7 @@ defmodule Bonfire.Tag.Autocomplete do
       # |> IO.inspect
       |> Enum.map(&filter_results(&1))
       |> List.flatten()
-      |> Enum.filter(& &1)
+      |> Utils.filter_empty()
       # |> IO.inspect
 
       #IO.inspect(find_all_tags: tries)
@@ -181,7 +181,7 @@ defmodule Bonfire.Tag.Autocomplete do
     #IO.inspect(prefixes: @prefixes)
     # FIXME?
     tries = Enum.map(@prefixes, &try_tag_search(&1, content))
-      |> Enum.filter(& &1)
+      |> Utils.filter_empty()
     #IO.inspect(try_prefixes: tries)
 
     List.first(tries)
