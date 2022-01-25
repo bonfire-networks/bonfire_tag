@@ -2,7 +2,6 @@ defmodule Bonfire.Tag.Migrations do
   import Ecto.Migration
   import Pointers.Migration
 
-  alias Bonfire.Tag
   alias Bonfire.Tag.Tagged
 
   @table_name :bonfire_tagged
@@ -16,6 +15,6 @@ defmodule Bonfire.Tag.Migrations do
     create(index(@table_name, [:tag_id]))
   end
 
-  def down(), do: drop_mixin_table(@table_name)
+  def down(), do: drop_mixin_table(Bonfire.Tag.Tagged)
 
 end
