@@ -1,5 +1,5 @@
 defmodule Bonfire.Tag.Autocomplete do
-  import Bonfire.Common.Utils
+  use Bonfire.Common.Utils
   alias Bonfire.Common.URIs
   alias Bonfire.Tag.Tags
   require Logger
