@@ -8,7 +8,7 @@ defmodule Bonfire.Tag.Tagged do
   import Bonfire.Common.Config, only: [repo: 0]
 
   mixin_schema do
-    belongs_to :tag, Bonfire.Tag
+    belongs_to :tag, Pointers.Pointer
     timestamps() # Added bonus, a join schema will also allow you to set timestamps
   end
 

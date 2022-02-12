@@ -62,6 +62,9 @@ defmodule Bonfire.Tag.Tags do
       with {:ok, federated_object_or_character} <- Bonfire.Federate.ActivityPub.Utils.get_by_url_ap_id_or_username(id_or_username_or_url) do
         Logger.debug("Tags: federated_object_or_character: #{inspect federated_object_or_character}")
         {:ok, federated_object_or_character}
+      else _ ->
+        Logger.info("Tags.maybe_find_tag: no such federated remote tag found")
+        {:error, "no such tag"}
       end
       # else
       #   {:error, "no such tag"}
@@ -76,7 +79,7 @@ defmodule Bonfire.Tag.Tags do
   when is_binary(id_or_username_or_url) do
     Logger.info("Tags.maybe_find_tag: #{id_or_username_or_url}")
     find(id_or_username_or_url) <~> # check if tag already exists
-    {:ok, [maybe_find_tag(id_or_username_or_url)]}
+    [maybe_find_tag(id_or_username_or_url)]
   end
 
   @doc """

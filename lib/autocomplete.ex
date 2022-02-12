@@ -44,11 +44,7 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def api_tag_lookup_public(tag_search, prefix, consumer, index_type) do
-    hits = maybe_search(tag_search, %{"index_type" => index_type}) || (
-      with {:ok, tags} <- Tags.maybe_find_tags(tag_search) do
-        tags
-      end
-    )
+    hits = maybe_search(tag_search, %{"index_type" => index_type}) || Tags.maybe_find_tags(tag_search)
 
     tag_lookup_process(tag_search, hits, prefix, consumer)
   end
@@ -64,9 +60,7 @@ defmodule Bonfire.Tag.Autocomplete do
     if hits do # use search index if available
       hits
     else
-      with {:ok, tags} <- Tags.maybe_find_tags(tag_search) do
-        tags
-      end
+      Tags.maybe_find_tags(tag_search)
     end
   end
 
