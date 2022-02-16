@@ -2,11 +2,12 @@
 defmodule Bonfire.Tag.Tags do
 
   use Arrows
+  use Bonfire.Common.Utils
   import Bonfire.Common.Config, only: [repo: 0]
-  alias Bonfire.Common.{Types, Utils}
+  alias Bonfire.Common.Types
 
   alias Pointers.Pointer # warning: do not move after we alias Pointers
-  alias Bonfire.Common.{Pointers, Utils} # warning: do not move before we alias Pointer
+  alias Bonfire.Common.Pointers # warning: do not move before we alias Pointer
   alias Bonfire.Me.Characters
   alias Bonfire.Tag.{AutoComplete, Queries, TextContent.Process}
 
@@ -161,7 +162,7 @@ defmodule Bonfire.Tag.Tags do
   end
   defp do_tag_thing(user, thing, tag), do: do_tag_thing(user, thing, [tag])
 
-  #doc """ Prepare a tag to be used, by loading or even creating it """
+  #doc """ Prepare a tag to be used, by loading it from DB if necessary """
   defp tag_preprocess(_user, %{__struct__: _} = tag), do: tag
   defp tag_preprocess(_, tag) when is_nil(tag) or tag == "", do: nil
   defp tag_preprocess(_user, {:error, e}) do
@@ -173,6 +174,7 @@ defmodule Bonfire.Tag.Tags do
   defp tag_preprocess(user, "@" <> tag), do: tag_preprocess(user, tag)
   defp tag_preprocess(user, "+" <> tag), do: tag_preprocess(user, tag)
   defp tag_preprocess(user, "&" <> tag), do: tag_preprocess(user, tag)
+  defp tag_preprocess(_user, tag) when is_binary(tag), do: get(tag) |> ok_or(nil)
   defp tag_preprocess(_user, tag) do
     Logger.error("Tags.tag_preprocess: didn't recognise this as a tag: #{inspect tag} ")
     nil
@@ -187,7 +189,7 @@ defmodule Bonfire.Tag.Tags do
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq_by(&(&1.id))
     # |> Utils.debug("tags")
-    |> Bonfire.Tag.thing_tags_changeset(thing, tags)
+    |> Bonfire.Tag.thing_tags_changeset(thing, ...)
     # |> Utils.debug("changeset")
     |> repo().transact_with(fn -> repo().update(..., on_conflict: :nothing) end)
   end

@@ -3,7 +3,7 @@ if Code.ensure_loaded?(Bonfire.GraphQL) do
 defmodule Bonfire.Tag.GraphQL.TagResolver do
   @moduledoc "GraphQL tag/category queries"
   import Bonfire.Common.Config, only: [repo: 0]
-  alias Bonfire.Common.Utils
+  use Bonfire.Common.Utils
 
   alias Bonfire.GraphQL
   alias Bonfire.GraphQL.{
@@ -75,16 +75,13 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
   end
 
   def tag_prepare(%{category: %{id: id} = category} = tag, _page_opts, _info) when not is_nil(id) do
-    # TODO: do this better
     Map.merge(
       category,
       %{
-        name: tag.profile.name,
-        summary: tag.profile.summary,
-        prefix: tag.prefix,
-        facet: tag.facet,
-        character: tag.character,
-        profile: tag.profile
+        name: e(tag, :profile, :name, nil),
+        summary: e(tag, :profile, :summary, nil),
+        character: e(tag, :character, nil),
+        profile: e(tag, :profile, nil)
       }
     ) #|> IO.inspect
   end
@@ -95,7 +92,7 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
       tag,
       %{
         name: name,
-        summary: tag.profile.summary
+        summary: e(tag, :profile, :summary, nil),
       }
     )
   end
