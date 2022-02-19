@@ -7,7 +7,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   alias Bonfire.Common.Config
   alias Bonfire.Common.Utils
   alias Bonfire.Tag.Tags
-  require Logger
+  import Where
 
   @safe_mention_regex ~r/^(\s*(?<mentions>([@|&amp;|\+].+?\s+){1,})+)(?<rest>.*)/s
   @link_regex ~r"((?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~%:/?#[\]@!\$&'\(\)\*\+,;=.]+)|[0-9a-z+\-\.]+:[0-9a-z$-_.+!*'(),]+"ui
@@ -75,7 +75,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
         mention_process(type, tag, acc, Map.get(opts, :content_type), opts)
 
       none ->
-        Logger.warn("Tag.tag_handler: could not process #{type} mention for #{nickname}, got #{inspect none}")
+        warn("Tag.tag_handler: could not process #{type} mention for #{nickname}, got #{inspect none}")
         {buffer, acc}
     end
   end

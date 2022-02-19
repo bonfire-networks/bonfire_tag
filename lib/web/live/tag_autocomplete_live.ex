@@ -35,10 +35,10 @@ defmodule Bonfire.Web.Component.TagAutocomplete do
   end
 
   def tag_suggest(%{"tags" => tags}, socket) when byte_size(tags) >= 1 do
-    IO.inspect(tag_suggest_tags: tags)
+    debug(tag_suggest_tags: tags)
 
     found = try_tag_search(tags)
-    #IO.inspect(found: found)
+    #debug(found: found)
 
     if(is_map(found) and Map.has_key?(found, :tag_results) and length(found.tag_results) > 0) do
       {:noreply,
@@ -54,7 +54,7 @@ defmodule Bonfire.Web.Component.TagAutocomplete do
 
   def tag_suggest(%{"content" => content}, socket)
       when byte_size(content) >= 1 do
-    IO.inspect(tag_suggest_content: content)
+    debug(tag_suggest_content: content)
 
     found = try_prefixes(content)
 
@@ -71,7 +71,7 @@ defmodule Bonfire.Web.Component.TagAutocomplete do
   end
 
   def tag_suggest(data, socket) do
-    IO.inspect(ignore_tag_suggest: data)
+    debug(ignore_tag_suggest: data)
 
     {:noreply,
      assign(socket,

@@ -1,6 +1,5 @@
 # Bonfire.Common.Config.require_extension_config!(:bonfire_tag)
 defmodule Bonfire.Tag.Tags do
-
   use Arrows
   use Bonfire.Common.Utils
   import Bonfire.Common.Config, only: [repo: 0]
@@ -10,9 +9,6 @@ defmodule Bonfire.Tag.Tags do
   alias Bonfire.Common.Pointers # warning: do not move before we alias Pointer
   alias Bonfire.Me.Characters
   alias Bonfire.Tag.{AutoComplete, Queries, TextContent.Process}
-
-  require Logger
-
 
   @doc """
   Retrieves a single tag by arbitrary filters.
@@ -32,14 +28,14 @@ defmodule Bonfire.Tag.Tags do
 
 
   def get(id) do
-    if Bonfire.Common.Utils.is_ulid?(id),
+    if is_ulid?(id),
       do: one(id: id),
       # TODO: lookup Peered with canonical_uri if id is a URL
-      else: Utils.maybe_apply(Characters, :by_username, id) <~> one(username: id)
+      else: maybe_apply(Characters, :by_username, id) <~> one(username: id)
   end
 
   def find(id) do
-    if Bonfire.Common.Utils.is_ulid?(id),
+    if is_ulid?(id),
       do: one(id: id),
       # TODO: lookup Peered with canonical_uri if id is a URL
       else: many(autocomplete: id)
@@ -52,19 +48,19 @@ defmodule Bonfire.Tag.Tags do
   def prefix(_), do: "+"
 
   def maybe_find_tag(user \\ nil, id_or_username_or_url) when is_binary(id_or_username_or_url) do
-    Logger.debug("Tags.maybe_find_tag: #{id_or_username_or_url}")
+    debug("Tags.maybe_find_tag: #{id_or_username_or_url}")
     get(id_or_username_or_url) <~> # check if tag already exists
-    (if Bonfire.Common.Utils.is_ulid?(id_or_username_or_url) do
-      Logger.debug("Tags.maybe_find_tag: try by ID")
+    (if is_ulid?(id_or_username_or_url) do
+      debug("Tags.maybe_find_tag: try by ID")
       Pointers.one(id_or_username_or_url, current_user: user, skip_boundary_check: true)
     else
       # if Bonfire.Common.Extend.extension_enabled?(Bonfire.Federate.ActivityPub) do
-      Logger.info("Tags.maybe_find_tag: try get_by_url_ap_id_or_username")
+      debug("Tags.maybe_find_tag: try get_by_url_ap_id_or_username")
       with {:ok, federated_object_or_character} <- Bonfire.Federate.ActivityPub.Utils.get_by_url_ap_id_or_username(id_or_username_or_url) do
-        Logger.debug("Tags: federated_object_or_character: #{inspect federated_object_or_character}")
+        debug("Tags: federated_object_or_character: #{inspect federated_object_or_character}")
         {:ok, federated_object_or_character}
       else _ ->
-        Logger.info("Tags.maybe_find_tag: no such federated remote tag found")
+        debug("Tags.maybe_find_tag: no such federated remote tag found")
         {:error, "no such tag"}
       end
       # else
@@ -78,7 +74,7 @@ defmodule Bonfire.Tag.Tags do
   """
   def maybe_find_tags(_user \\ nil, id_or_username_or_url)
   when is_binary(id_or_username_or_url) do
-    Logger.info("Tags.maybe_find_tag: #{id_or_username_or_url}")
+    debug("Tags.maybe_find_tag: #{id_or_username_or_url}")
     find(id_or_username_or_url) <~> # check if tag already exists
     [maybe_find_tag(id_or_username_or_url)]
   end
@@ -115,14 +111,14 @@ defmodule Bonfire.Tag.Tags do
     if is_map(tags) or (is_list(tags) and tags != []) do
       maybe_tag(user, thing, tags, boost_category_mentions?)
     else
-      Logger.info("Bonfire.Tag - no matches in '#{text}'")
+      debug("Bonfire.Tag - no matches in '#{text}'")
       {:ok, thing}
     end
   end
   def maybe_tag(user, obj, _, boost_category_mentions?), # otherwise maybe we have tagnames inline in the text of the object?
     do: maybe_tag(user, obj, Process.object_text_content(obj), boost_category_mentions?)
   # def maybe_tag(_user, thing, _maybe_tags, boost_category_mentions?) do
-  #   #IO.inspect(maybe_tags: maybe_tags)
+  #   #debug(maybe_tags: maybe_tags)
   #   {:ok, thing}
   # end
 
@@ -138,9 +134,9 @@ defmodule Bonfire.Tag.Tags do
   def tag_something(user, thing, tags, boost_category_mentions? \\ false) do
     with {:ok, thing} <- do_tag_thing(user, thing, tags) do
       if boost_category_mentions?
-      and Bonfire.Common.Utils.module_enabled?(Bonfire.Classify.Categories)
-      and Bonfire.Common.Utils.module_enabled?(Bonfire.Social.Boosts) do
-        Logger.debug("Bonfire.Tag: boost mentions to the category's feed")
+      and module_enabled?(Bonfire.Classify.Categories)
+      and module_enabled?(Bonfire.Social.Boosts) do
+        debug("Bonfire.Tag: boost mentions to the category's feed")
         thing.tags
         |> repo().maybe_preload([:category, :character])
         |> Enum.reject(&(is_nil(&1.category) or is_nil(&1.character)))
@@ -154,7 +150,7 @@ defmodule Bonfire.Tag.Tags do
   defp do_tag_thing(user, thing, tags) when is_list(tags) do
     pointer = thing_to_pointer(thing)
     tags = Enum.map(tags, &tag_preprocess(user, &1)) |> Enum.reject(&is_nil/1)
-    # IO.inspect(do_tag_thing: tags)
+    # debug(do_tag_thing: tags)
     with {:ok, tagged} <- thing_tags_save(pointer, tags) do
        {:ok, (if is_map(thing), do: thing, else: pointer) |> Map.merge(%{tags: tags})}
     end
@@ -166,7 +162,7 @@ defmodule Bonfire.Tag.Tags do
   defp tag_preprocess(_user, %{__struct__: _} = tag), do: tag
   defp tag_preprocess(_, tag) when is_nil(tag) or tag == "", do: nil
   defp tag_preprocess(_user, {:error, e}) do
-    Logger.warn("Tags: invalid tag: #{inspect e}")
+    warn("Tags: invalid tag: #{inspect e}")
     nil
   end
 
@@ -176,7 +172,7 @@ defmodule Bonfire.Tag.Tags do
   defp tag_preprocess(user, "&" <> tag), do: tag_preprocess(user, tag)
   defp tag_preprocess(_user, tag) when is_binary(tag), do: get(tag) |> ok_or(nil)
   defp tag_preprocess(_user, tag) do
-    Logger.error("Tags.tag_preprocess: didn't recognise this as a tag: #{inspect tag} ")
+    error("Tags.tag_preprocess: didn't recognise this as a tag: #{inspect tag} ")
     nil
   end
 
@@ -188,9 +184,9 @@ defmodule Bonfire.Tag.Tags do
     tags
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq_by(&(&1.id))
-    # |> Utils.debug("tags")
+    # |> debug("tags")
     |> Bonfire.Tag.thing_tags_changeset(thing, ...)
-    # |> Utils.debug("changeset")
+    # |> debug("changeset")
     |> repo().transact_with(fn -> repo().update(..., on_conflict: :nothing) end)
   end
   defp thing_tags_save(thing, _tags), do: {:ok, thing}
@@ -200,7 +196,7 @@ defmodule Bonfire.Tag.Tags do
     do: Pointers.one(id: pointer_id, skip_boundary_check: true)
 
   def indexing_object_format(object) do
-    # IO.inspect(indexing_object_format: object)
+    # debug(indexing_object_format: object)
     %{
       "id"=> object.id,
       "name"=> object.profile.name,

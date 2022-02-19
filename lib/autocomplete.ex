@@ -2,7 +2,7 @@ defmodule Bonfire.Tag.Autocomplete do
   use Bonfire.Common.Utils
   alias Bonfire.Common.URIs
   alias Bonfire.Tag.Tags
-  require Logger
+  import Where
 
   # TODO: put in config
   @tag_terminator " "
@@ -54,7 +54,7 @@ defmodule Bonfire.Tag.Autocomplete do
   def search_or_lookup("lt", _, _), do: nil # dirty workaround
 
   def search_or_lookup(tag_search, index, facets) do
-    # Logger.info("Search.search_or_lookup: #{tag_search} with facets #{inspect facets}")
+    # debug("Search.search_or_lookup: #{tag_search} with facets #{inspect facets}")
 
     hits = maybe_search(tag_search, %{index: index}, facets)
     if hits do # use search index if available
@@ -65,35 +65,35 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def maybe_search(tag_search, opts, facets \\ nil) do
-    #IO.inspect(searched: tag_search)
-    #IO.inspect(facets: facets)
+    #debug(searched: tag_search)
+    #debug(facets: facets)
 
     if module_enabled?(Bonfire.Search) do # use search index if available
-      Logger.info("Bonfire.Tag.Autocomplete: searching #{inspect tag_search} with facets #{inspect facets}")
+      debug("Bonfire.Tag.Autocomplete: searching #{inspect tag_search} with facets #{inspect facets}")
       search = Bonfire.Search.search(tag_search, opts, false, facets)
-      # IO.inspect(searched: search)
+      # debug(searched: search)
 
       if(is_map(search) and Map.has_key?(search, "hits") and length(search["hits"])) do
         # search["hits"]
         Enum.map(search["hits"], &tag_hit_prepare(&1, tag_search))
         |> Utils.filter_empty()
         |> input_to_atoms()
-        # |> IO.inspect(label: "maybe_search results")
+        # |> debug(label: "maybe_search results")
       end
     end
   end
 
   def tag_lookup_process(tag_search, hits, prefix, consumer) do
-    #IO.inspect(search["hits"])
+    #debug(search["hits"])
     hits
     |> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer))
     |> Utils.filter_empty()
   end
 
   def tag_hit_prepare(hit, _tag_search, prefix, consumer) do
-    # IO.inspect(hit)
+    # debug(hit)
 
-    hit = stringify_keys(hit) |> IO.inspect()
+    hit = stringify_keys(hit) |> debug()
 
     username = hit["username"] || hit["character"]["username"]
 
@@ -124,7 +124,7 @@ defmodule Bonfire.Tag.Autocomplete do
 
   #   if !is_nil(name) and name =~ tag_search do
   #     split = String.split(name, tag_search, parts: 2, trim: false)
-  #     IO.inspect(split)
+  #     debug(split)
   #     [head | tail] = split
 
   #     List.to_string([head, "<span>", tag_search, "</span>", tail])
@@ -134,11 +134,11 @@ defmodule Bonfire.Tag.Autocomplete do
   # end
 
   def find_all_tags(content) do
-    #IO.inspect(prefixes: @prefixes)
+    #debug(prefixes: @prefixes)
 
     # FIXME?
     words = content |> HtmlEntities.decode() |> tags_split()
-    #IO.inspect(tags_split: words)
+    #debug(tags_split: words)
 
     if words do
       # tries =
@@ -150,7 +150,7 @@ defmodule Bonfire.Tag.Autocomplete do
       |> Utils.filter_empty()
       # |> IO.inspect
 
-      #IO.inspect(find_all_tags: tries)
+      #debug(find_all_tags: tries)
 
     end
   end
@@ -172,11 +172,11 @@ defmodule Bonfire.Tag.Autocomplete do
   ## moved from tag_autocomplete_live.ex ##
 
   def try_prefixes(content) do
-    #IO.inspect(prefixes: @prefixes)
+    #debug(prefixes: @prefixes)
     # FIXME?
     tries = Enum.map(@prefixes, &try_tag_search(&1, content))
       |> Utils.filter_empty()
-    #IO.inspect(try_prefixes: tries)
+    #debug(try_prefixes: tries)
 
     List.first(tries)
   end
@@ -204,8 +204,8 @@ defmodule Bonfire.Tag.Autocomplete do
   def tag_search(tag_search, tag_prefix) do
     tag_results = search_prefix(tag_search, tag_prefix)
 
-    #IO.inspect(tag_prefix: tag_prefix)
-    #IO.inspect(tag_results: tag_results)
+    #debug(tag_prefix: tag_prefix)
+    #debug(tag_results: tag_results)
 
     if tag_results do
       %{tag_search: tag_search, tag_results: tag_results, tag_prefix: tag_prefix}
@@ -216,7 +216,7 @@ defmodule Bonfire.Tag.Autocomplete do
     parts = String.split(text, prefix, parts: 2)
 
     if length(parts) > 1 do
-      # IO.inspect(tag_search_from_text: parts)
+      # debug(tag_search_from_text: parts)
       typed = List.last(parts)
 
       if String.length(typed) > 0 and String.length(typed) < @max_length and !(typed =~ @tag_terminator) do
@@ -260,7 +260,7 @@ defmodule Bonfire.Tag.Autocomplete do
 
     if !is_nil(name) and name =~ tag_search do
       split = String.split(name, tag_search, parts: 2, trim: false)
-      #IO.inspect(split)
+      #debug(split)
       [head | tail] = split
 
       List.to_string([head, "<span>", tag_search, "</span>", tail])

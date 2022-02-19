@@ -20,7 +20,7 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
   alias Bonfire.Tag
   alias Bonfire.Tag.Tags
 
-  require Logger
+  import Where
 
   if Code.ensure_loaded?(ResolveField) do
 
@@ -70,7 +70,7 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
   end
 
   def tags_edges(_, _, _) do
-    Logger.warn("no tags")
+    warn("no tags")
     {:ok, nil}
   end
 
