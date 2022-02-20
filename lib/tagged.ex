@@ -8,6 +8,7 @@ defmodule Bonfire.Tag.Tagged do
     otp_app: :bonfire_tag,
     source: "bonfire_tagged"
 
+  mixin_schema do
     belongs_to :tag, Pointer
     timestamps() # Added bonus, a join schema will also allow you to set timestamps
   end
@@ -54,6 +55,7 @@ defmodule Bonfire.Tag.Tagged do
   def with_tag(tag_id) do
       q = from va in Bonfire.Tag.Tagged,
       where: [tag_id: ^tag_id],
+
       order_by: [desc: va.inserted_at]
 
     repo().many(q)
