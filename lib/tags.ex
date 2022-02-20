@@ -80,7 +80,7 @@ defmodule Bonfire.Tag.Tags do
   end
 
   @doc """
-  Lookup a signle for a tag by its name/username
+  Lookup a single for a tag by its name/username
   """
   def maybe_lookup_tag(id_or_username_or_url, _prefix \\ "@")
   when is_binary(id_or_username_or_url), do: maybe_find_tag(id_or_username_or_url)

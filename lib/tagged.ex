@@ -1,14 +1,14 @@
 defmodule Bonfire.Tag.Tagged do
+
+  alias Pointers.Pointer
+  import Ecto.Query, only: [from: 2]
+  import Bonfire.Common.Config, only: [repo: 0]
   use Ecto.Schema
   use Pointers.Mixin,
     otp_app: :bonfire_tag,
     source: "bonfire_tagged"
 
-  import Ecto.Query, only: [from: 2]
-  import Bonfire.Common.Config, only: [repo: 0]
-
-  mixin_schema do
-    belongs_to :tag, Pointers.Pointer
+    belongs_to :tag, Pointer
     timestamps() # Added bonus, a join schema will also allow you to set timestamps
   end
 
