@@ -86,7 +86,7 @@ defmodule Bonfire.Tag.Autocomplete do
   def tag_lookup_process(tag_search, hits, prefix, consumer) do
     #debug(search["hits"])
     hits
-    |> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer))
+    ~> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer))
     |> Utils.filter_empty()
   end
 
