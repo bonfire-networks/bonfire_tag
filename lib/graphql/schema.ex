@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-if Code.ensure_loaded?(Absinthe.Schema.Notation) do
+if Bonfire.Common.Utils.module_enabled?(Absinthe.Schema.Notation) do
 defmodule Bonfire.Tag.GraphQL.TagSchema do
   use Absinthe.Schema.Notation
 

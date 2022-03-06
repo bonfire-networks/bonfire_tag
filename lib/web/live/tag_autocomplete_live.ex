@@ -1,4 +1,4 @@
-defmodule Bonfire.Web.Component.TagAutocomplete do
+defmodule Bonfire.Tag.Web.Component.TagAutocomplete do
   use Bonfire.Web, :live_component
 
   import Bonfire.Tag.Autocomplete
