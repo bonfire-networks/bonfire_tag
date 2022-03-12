@@ -96,7 +96,8 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     do: tag_link(type, url, display_name, "text/html")
 
   defp tag_link(type, url, display_name, "text/markdown") do
-    "#{type}[#{display_name}](#{url})"
+    if String.starts_with?(display_name, type), do: "[#{display_name}](#{url})",
+    else: "#{type}[#{display_name}](#{url})"
   end
 
   defp tag_link("#", url, tag, "text/html") do
