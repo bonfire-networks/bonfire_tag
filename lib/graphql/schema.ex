@@ -34,7 +34,7 @@ defmodule Bonfire.Tag.GraphQL.TagSchema do
 
     @desc "The object used as a tag (eg. Category, Geolocation, Hashtag, User...)"
     field :context, :any_context do
-      resolve(&Bonfire.GraphQL.CommonResolver.context_edge/3)
+      resolve(&Bonfire.API.GraphQL.CommonResolver.context_edge/3)
     end
 
     @desc "Name of the tag (derived from its context)"
@@ -49,12 +49,12 @@ defmodule Bonfire.Tag.GraphQL.TagSchema do
 
     @desc "Unique URL (on original instance)"
     field(:canonical_url, :string) do
-      resolve(&Bonfire.GraphQL.CommonResolver.canonical_url_edge/3)
+      resolve(&Bonfire.API.GraphQL.CommonResolver.canonical_url_edge/3)
     end
 
     @desc "Unique URL (on original instance)"
     field(:display_username, :string) do
-      resolve(&Bonfire.GraphQL.CommonResolver.display_username_edge/3)
+      resolve(&Bonfire.API.GraphQL.CommonResolver.display_username_edge/3)
     end
 
     @desc "Objects that were tagged with this tag"

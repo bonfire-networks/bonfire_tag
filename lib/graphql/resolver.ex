@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-only
-if Code.ensure_loaded?(Bonfire.GraphQL) do
+if Code.ensure_loaded?(Bonfire.API.GraphQL) do
 defmodule Bonfire.Tag.GraphQL.TagResolver do
   @moduledoc "GraphQL tag/category queries"
   import Bonfire.Common.Config, only: [repo: 0]
   use Bonfire.Common.Utils
 
-  alias Bonfire.GraphQL
-  alias Bonfire.GraphQL.{
+  alias Bonfire.API.GraphQL
+  alias Bonfire.API.GraphQL.{
     # FetchFields,
     # FetchPage,
     # FetchPages,
@@ -53,7 +53,7 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
 
     # |> Map.new()
 
-    Bonfire.GraphQL.CommonResolver.context_edges(%{context_ids: pointers}, page_opts, info)
+    Bonfire.API.GraphQL.CommonResolver.context_edges(%{context_ids: pointers}, page_opts, info)
   end
 
   @doc """
@@ -99,7 +99,7 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
 
   def tag_prepare(%{category_id: category_id, id: mixin_id}, page_opts, info)
       when is_nil(category_id) do
-    Bonfire.GraphQL.CommonResolver.context_edge(%{context_id: mixin_id}, page_opts, info)
+    Bonfire.API.GraphQL.CommonResolver.context_edge(%{context_id: mixin_id}, page_opts, info)
   end
 
   #### MUTATIONS

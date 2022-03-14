@@ -78,7 +78,7 @@ defmodule Bonfire.Tag.Autocomplete do
         Enum.map(search["hits"], &tag_hit_prepare(&1, tag_search))
         |> Utils.filter_empty([])
         |> input_to_atoms()
-        # |> debug(label: "maybe_search results")
+        # |> debug("maybe_search results")
       end
     end
   end
