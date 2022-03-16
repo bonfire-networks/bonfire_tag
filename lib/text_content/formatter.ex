@@ -176,7 +176,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   def html_escape(text, "text/html") do
-    if Utils.module_enabled?(Scrubber), do: Scrubber.filter_tags(text),
+    if Bonfire.Common.Extend.module_enabled?(Scrubber), do: Scrubber.filter_tags(text),
     else: text
   end
 

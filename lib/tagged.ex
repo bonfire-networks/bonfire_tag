@@ -45,7 +45,7 @@ defmodule Bonfire.Tag.Tagged do
       |> repo().maybe_preload([:pointer, [tag: [:profile, :geolocation, :category, :character]]])
 
     tagged
-      |> Map.put(:thing, Bonfire.Common.Pointers.follow!(tagged.pointer))
+      |> Map.put(:thing, Bonfire.Common.Pointers.get(tagged.pointer))
   end
 
   @doc """
