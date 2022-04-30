@@ -90,10 +90,10 @@ defmodule Bonfire.Tag.Autocomplete do
     |> Utils.filter_empty([])
   end
 
-  def tag_hit_prepare(hit, _tag_search, prefix, consumer) do
+  def tag_hit_prepare(object, _tag_search, prefix, consumer) do
     # debug(hit)
 
-    hit = stringify_keys(hit) |> debug()
+    hit = stringify_keys(object) |> debug()
 
     username = hit["username"] || hit["character"]["username"]
 
@@ -101,7 +101,7 @@ defmodule Bonfire.Tag.Autocomplete do
     if strlen(username) do
       %{
         "name" => e(hit, "name_crumbs", e(hit, "profile", "name", e(hit, "name", e(hit, "username", nil)))),
-        "link" => e(hit, "canonical_url", URIs.canonical_url(e(hit, "id", nil)))
+        "link" => e(hit, "canonical_url", URIs.canonical_url(object))
       }
       |> tag_add_field(consumer, prefix, (username || e(hit, "id", "")))
     end
@@ -111,7 +111,7 @@ defmodule Bonfire.Tag.Autocomplete do
     Map.merge(hit, %{tag_as: as})
   end
 
-  def tag_add_field(hit, "ck5", prefix, as) do
+  def tag_add_field(hit, consumer, prefix, as) when consumer in ["ck5", "quill"] do
     if String.at(as, 0) == prefix do
       Map.merge(hit, %{"id" => to_string(as)})
     else

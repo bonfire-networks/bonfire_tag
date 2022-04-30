@@ -1,4 +1,4 @@
-defmodule Bonfire.Tag.Web.Pages.Autocomplete do
+defmodule Bonfire.Tag.Web.API.Autocomplete do
   use Bonfire.Web, :controller
 
   alias Bonfire.Tag.Autocomplete
