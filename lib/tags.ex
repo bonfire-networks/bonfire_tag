@@ -9,6 +9,7 @@ defmodule Bonfire.Tag.Tags do
   alias Bonfire.Common.Pointers # warning: do not move before we alias Pointer
   alias Bonfire.Me.Characters
   alias Bonfire.Tag.{AutoComplete, Queries, TextContent.Process}
+  alias Bonfire.Tag.Tagged
 
   @doc """
   Retrieves a single tag by arbitrary filters.
@@ -26,7 +27,6 @@ defmodule Bonfire.Tag.Tags do
   """
   def many(filters \\ []), do: {:ok, repo().many(Queries.query(filters))}
 
-
   def get(id) do
     if is_ulid?(id),
       do: one(id: id),
@@ -41,7 +41,14 @@ defmodule Bonfire.Tag.Tags do
       else: many(autocomplete: id)
   end
 
-  # def many(filters \\ []), do: {:ok, repo().many(Queries.query(Tag, filters))}
+  def list_trending(in_last_x_days \\ 30, limit \\ 10) do
+    DateTime.now!("Etc/UTC")
+    |> DateTime.add(-in_last_x_days*24*60*60, :second)
+    |> Queries.list_trending(limit)
+    |> repo().all()
+    |> Enum.map(fn tag -> struct(Tagged, tag) end)
+    |> repo().maybe_preload(tag: [:profile, :character])
+  end
 
   def prefix("Community"), do: "&"
   def prefix("User"), do: "@"

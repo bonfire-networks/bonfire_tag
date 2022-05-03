@@ -10,6 +10,9 @@ defmodule Bonfire.Tag.Tagged do
 
   mixin_schema do
     belongs_to :tag, Pointer
+
+    field :count, :integer, virtual: true
+
     timestamps() # Added bonus, a join schema will also allow you to set timestamps
   end
 
