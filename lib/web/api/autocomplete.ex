@@ -1,5 +1,5 @@
 defmodule Bonfire.Tag.Web.API.Autocomplete do
-  use Bonfire.Web, :controller
+  use Bonfire.UI.Common.Web, :controller
 
   alias Bonfire.Tag.Autocomplete
 

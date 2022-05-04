@@ -161,7 +161,7 @@ defmodule Bonfire.Tag.Tags do
     with {:ok, tagged} <- thing_tags_save(pointer, tags) do
        {:ok, (if is_map(thing), do: thing, else: pointer) |> Map.merge(%{tags: tags})}
     end
-    # Bonfire.Repo.maybe_preload(thing, :tags)
+    # Bonfire.Common.Repo.maybe_preload(thing, :tags)
   end
   defp do_tag_thing(user, thing, tag), do: do_tag_thing(user, thing, [tag])
 

@@ -2,7 +2,7 @@ defmodule Bonfire.Tag.Web.Component.TagAutocompleteMeiliDirect do
   @moduledoc """
   Alternative approach to tagging, using JS to directly use Meili's API, rather than passing through Elixir
   """
-  use Bonfire.Web, :live_component
+  use Bonfire.UI.Common.Web, :live_component
 
   #
 
