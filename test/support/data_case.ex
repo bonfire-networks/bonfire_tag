@@ -22,7 +22,7 @@ defmodule Bonfire.Tag.DataCase do
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import Bonfire.Tag.DataCase
+      # import Bonfire.Tag.DataCase
     end
   end
 
