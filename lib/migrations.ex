@@ -3,6 +3,8 @@ defmodule Bonfire.Tag.Migrations do
   import Pointers.Migration
 
   alias Bonfire.Tag.Tagged
+  alias Bonfire.Data.Social.Hashtag
+  require Bonfire.Tag.Hashtag.Migration
 
   @table_name :bonfire_tagged
 
@@ -16,5 +18,8 @@ defmodule Bonfire.Tag.Migrations do
   end
 
   def down(), do: drop_mixin_table(Bonfire.Tag.Tagged)
+
+
+  def migrate_hashtag(), do: Bonfire.Tag.Hashtag.Migration.migrate_hashtag()
 
 end

@@ -42,17 +42,17 @@ defmodule Bonfire.Tag.Tags do
   end
 
   def list_trending(in_last_x_days \\ 30, limit \\ 10) do
+    # TODO: aggresively cache this
     DateTime.now!("Etc/UTC")
     |> DateTime.add(-in_last_x_days*24*60*60, :second)
     |> Queries.list_trending(limit)
     |> repo().all()
     |> Enum.map(fn tag -> struct(Tagged, tag) end)
     |> repo().maybe_preload(tag: [:profile, :character])
+    |> repo().maybe_preload(:tag, [skip_boundary_check: true])
+    # |> dump
   end
 
-  def prefix("Community"), do: "&"
-  def prefix("User"), do: "@"
-  def prefix(_), do: "+"
 
   def maybe_find_tag(user \\ nil, id_or_username_or_url) when is_binary(id_or_username_or_url) do
     debug("Tags.maybe_find_tag: #{id_or_username_or_url}")
@@ -208,8 +208,6 @@ defmodule Bonfire.Tag.Tags do
       "id"=> object.id,
       "name"=> object.profile.name,
       "summary"=> object.profile.summary,
-      "prefix"=> object.prefix,
-      "facet"=> object.facet
       # TODO: add url/username
     }
   end

@@ -7,6 +7,8 @@ defmodule Bonfire.Tag.TextContent.Process do
 
   alias Bonfire.Tag.TextContent.Formatter
 
+  @default_content_type "text/markdown" # TODO: configure based on which text editor is in use?
+
   @doc """
   For use for things like a bio, where we want links but not to actually trigger mentions.
   """
@@ -14,21 +16,19 @@ defmodule Bonfire.Tag.TextContent.Process do
   def process(
         user \\ nil,
         text,
-        content_type \\ "text/markdown"
+        content_type \\ @default_content_type
       )
 
   def process(
         user,
         text,
         content_type
-      )
-      do
+      ) when is_binary(text) do
     options = [mentions_format: :full, user: user]
-    content_type = get_content_type(content_type)
+    content_type = content_type(content_type)
 
     text
     # |> IO.inspect
-    |> object_text_content()
     # |> Bonfire.Social.PostContents.prepare_text() # FIXME: make modular
     |> format_input(content_type, options)
     # |> maybe_add_attachments(attachments, attachment_links)
@@ -37,7 +37,7 @@ defmodule Bonfire.Tag.TextContent.Process do
   end
 
 
-  defp get_content_type(content_type) do
+  defp content_type(content_type) do
     if Enum.member?(
          Config.get([:instance, :allowed_post_formats], [
            "text/plain",
@@ -92,15 +92,5 @@ defmodule Bonfire.Tag.TextContent.Process do
   # end
 
   # defp maybe_add_nsfw_tag(data, _), do: data
-
-  def object_text_content(text) when is_binary(text) and bit_size(text) > 1, do: text
-  def object_text_content(%{post_content: p}), do: object_text_content(p)
-  def object_text_content(%{post: p}), do: object_text_content(p)
-  def object_text_content(%{profile: p}), do: object_text_content(p)
-  def object_text_content(%{html_body: text} = _thing)  when is_binary(text) and bit_size(text) > 1, do: text
-  def object_text_content(%{summary: text} = _thing) when is_binary(text) and bit_size(text) > 1, do: text
-  def object_text_content(%{note: text} = _thing) when is_binary(text) and bit_size(text) > 1, do: text
-  def object_text_content(%{name: text} = _thing) when is_binary(text) and bit_size(text) > 1, do: text
-  def object_text_content(_), do: ""
 
 end

@@ -43,14 +43,18 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     String.replace(mention, @markdown_characters_regex, "\\\\\\1")
   end
 
-  def tag_handler("#" <> tag = tag_text, _buffer, opts, acc) do
-    url = Bonfire.Common.URIs.base_url()<>"/tag/#{tag}"
+  def tag_handler("#" <> tag = tag_text, buffer, opts, acc) do
+    with {:ok, hashtag} <- Bonfire.Tag.Hashtag.get_or_create_by_name(tag) do
+      tag = hashtag.name
+      url = Bonfire.Common.URIs.base_url()<>"/tag/#{tag}"
+      link = tag_link("#", url, tag, Map.get(opts, :content_type))
 
-    # TODO? save hashtag as a Category
+      {link, %{acc | tags: MapSet.put(acc.tags, {"##{tag}", hashtag})}}
 
-    link = tag_link("#", url, tag, Map.get(opts, :content_type))
-
-    {link, %{acc | tags: MapSet.put(acc.tags, {tag_text, tag})}}
+    else none ->
+      warn("could not create Hashtag for #{tag_text}, got #{inspect none}")
+      {buffer, acc}
+    end
   end
 
   def tag_handler("@" <> nickname, buffer, opts, acc) do
@@ -71,23 +75,23 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
   defp tag_handler(type, nickname, buffer, opts, acc) do
     case Tags.maybe_lookup_tag(nickname, type) do
-      {:ok, tag} ->
-        mention_process(type, tag, acc, Map.get(opts, :content_type), opts)
+      {:ok, tag_object} ->
+        mention_process(type, tag_object, acc, Map.get(opts, :content_type), opts)
 
       none ->
-        warn("Tag.tag_handler: could not process #{type} mention for #{nickname}, got #{inspect none}")
+        warn("could not process #{type} mention for #{nickname}, got #{inspect none}")
         {buffer, acc}
     end
   end
 
-  defp mention_process(type, obj, acc, content_type, _opts) do
+  defp mention_process(type, tag_object, acc, content_type, _opts) do
 
-    url = if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters), do: Bonfire.Me.Characters.character_url(obj)
-    display_name = if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters), do: Bonfire.Me.Characters.display_username(obj)
+    url = if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters), do: Bonfire.Me.Characters.character_url(tag_object)
+    display_name = if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters), do: Bonfire.Me.Characters.display_username(tag_object)
 
     link = tag_link(type, url, display_name, content_type)
 
-    {link, %{acc | mentions: MapSet.put(acc.mentions, {display_name, obj})}}
+    {link, %{acc | mentions: MapSet.put(acc.mentions, {display_name, tag_object})}}
   end
 
   defp tag_link(type, url, display_name, content_type \\ "text/html")
@@ -97,7 +101,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
   defp tag_link(type, url, display_name, "text/markdown") do
     if String.starts_with?(display_name, type), do: "[#{display_name}](#{url})",
-    else: "#{type}[#{display_name}](#{url})"
+    else: "[#{type}#{display_name}](#{url})"
   end
 
   defp tag_link("#", url, tag, "text/html") do
