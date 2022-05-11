@@ -110,12 +110,13 @@ defmodule Bonfire.Tag.Queries do
   def filter(q, {:order, [asc: :id]}), do: order_by(q, [tag: r], asc: r.id)
   def filter(q, {:order, [desc: :id]}), do: order_by(q, [tag: r], desc: r.id)
 
-  def list_trending(since_date, limit) do
+  def list_trending(since_date, exclude \\ [], limit \\ 10) do
     from(tagged in Tagged,
       left_join: tag in assoc(tagged, :tag),
       # left_join: object in assoc(tagged, :pointer),
       group_by: tagged.tag_id,
       select: %{tag_id: tagged.tag_id, count: count(tagged.id)},
+      where: tag.table_id not in ^exclude,
       where: tagged.inserted_at >= ^since_date,
       order_by: [desc: :count],
       limit: ^limit,

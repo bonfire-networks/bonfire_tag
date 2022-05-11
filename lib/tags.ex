@@ -41,11 +41,13 @@ defmodule Bonfire.Tag.Tags do
       else: many(autocomplete: id)
   end
 
-  def list_trending(in_last_x_days \\ 30, limit \\ 10) do
+  def list_trending(in_last_x_days \\ 30, exclude \\ nil, limit \\ 10) do
+    exclude = exclude || [Bonfire.Data.Identity.User.__pointers__(:table_id)] # todo: configurable
+
     # TODO: aggresively cache this
     DateTime.now!("Etc/UTC")
     |> DateTime.add(-in_last_x_days*24*60*60, :second)
-    |> Queries.list_trending(limit)
+    |> Queries.list_trending(exclude, limit)
     |> repo().all()
     |> Enum.map(fn tag -> struct(Tagged, tag) end)
     |> repo().maybe_preload(tag: [:profile, :character])
