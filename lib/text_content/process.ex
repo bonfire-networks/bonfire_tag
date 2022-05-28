@@ -7,7 +7,7 @@ defmodule Bonfire.Tag.TextContent.Process do
 
   alias Bonfire.Tag.TextContent.Formatter
 
-  @default_content_type "text/markdown" # TODO: configure based on which text editor is in use?
+  @default_content_type "text/markdown"
 
   @doc """
   For use for things like a bio, where we want links but not to actually trigger mentions.
@@ -16,7 +16,7 @@ defmodule Bonfire.Tag.TextContent.Process do
   def process(
         user \\ nil,
         text,
-        content_type \\ @default_content_type
+        content_type \\ nil
       )
 
   def process(
@@ -36,7 +36,9 @@ defmodule Bonfire.Tag.TextContent.Process do
     # |> elem(0)
   end
 
-
+  defp content_type(:markdown), do: content_type("text/markdown")
+  defp content_type(:html), do: content_type("text/html")
+  defp content_type(:plain), do: content_type("text/plain")
   defp content_type(content_type) do
     if Enum.member?(
          Config.get([:instance, :allowed_post_formats], [
@@ -48,7 +50,7 @@ defmodule Bonfire.Tag.TextContent.Process do
        ) do
       content_type
     else
-      "text/plain"
+      @default_content_type
     end
   end
 

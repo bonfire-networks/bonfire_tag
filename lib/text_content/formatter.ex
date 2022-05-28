@@ -119,7 +119,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
       :span,
       Phoenix.HTML.Tag.content_tag(
         :a,
-        type<>display_name,
+        display_name,
         "data-user": display_name,
         class: "u-url mention",
         href: url,
