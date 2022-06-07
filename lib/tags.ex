@@ -41,11 +41,14 @@ defmodule Bonfire.Tag.Tags do
       else: many(autocomplete: id)
   end
 
+  @default_cache_ttl 1_000 * 60 * 60 # 1 hour # TODO: configurable
+
   def list_trending(in_last_x_days \\ 30, limit \\ 10) do
-    apply_cached(:query_list_trending, [in_last_x_days, limit])
+    Cache.maybe_apply_cached(&query_list_trending/2, [in_last_x_days, limit], ttl: @default_cache_ttl)
+    # Cache.maybe_apply_cached({__MODULE__, :query_list_trending}, [in_last_x_days, limit], ttl: @default_cache_ttl)
   end
 
-  def query_list_trending(in_last_x_days \\ 30, limit \\ 10) do
+  defp query_list_trending(in_last_x_days \\ 30, limit \\ 10) do
     exclude = [Bonfire.Data.Identity.User.__pointers__(:table_id)] # todo: configurable
 
     # TODO: aggresively cache this
@@ -57,27 +60,6 @@ defmodule Bonfire.Tag.Tags do
     |> repo().maybe_preload(tag: [:profile, :character])
     |> repo().maybe_preload(:tag, [skip_boundary_check: true])
     # |> dump
-  end
-
-  defp apply_cached(module \\ __MODULE__, fun, args, opts \\ []) do # TODO: put somewhere generic
-    key = "#{module}.#{fun}(#{inspect args})"
-    cache = opts[:cache] || :bonfire_cache
-
-    case Cachex.exists?(cache, key) do
-      {:ok, true} ->
-        debug(key, "getting from cache")
-        Cachex.get!(cache, key)
-
-      {:ok, false} ->
-        debug(key, "fetching and putting in cache for next time")
-        val = maybe_apply(module, fun, args)
-        Cachex.put!(cache, key, val)
-        val
-
-      {:error, _} = e ->
-        error(e, "!! CACHE IS NOT WORKING !!")
-        maybe_apply(module, fun, args)
-    end
   end
 
   def maybe_find_tag(user \\ nil, id_or_username_or_url) when is_binary(id_or_username_or_url) do
