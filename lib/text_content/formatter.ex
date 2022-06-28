@@ -3,23 +3,51 @@
 # Copyright © 2021 Bonfire contributors <https://bonfirenetworks.org/>
 # SPDX-License-Identifier: AGPL-3.0-only
 defmodule Bonfire.Tag.TextContent.Formatter do
-  # alias Bonfire.Tag.TextContent.Scrubber
   alias Bonfire.Common.Config
   alias Bonfire.Common.Utils
   alias Bonfire.Tag.Tags
   import Where
 
   @safe_mention_regex ~r/^(\s*(?<mentions>([@|&amp;|\+].+?\s+){1,})+)(?<rest>.*)/s
-  @link_regex ~r"((?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~%:/?#[\]@!\$&'\(\)\*\+,;=.]+)|[0-9a-z+\-\.]+:[0-9a-z$-_.+!*'(),]+"ui
   @markdown_characters_regex ~r/(`|\*|_|{|}|[|]|\(|\)|#|\+|-|\.|!)/
+
+  @doc """
+  Parses a text and replace plain text links with HTML. Returns a tuple with a result text, mentions, and hashtags.
+
+  If the 'safe_mention' option is given, only consecutive mentions at the start the post are actually mentioned.
+  """
+  @spec linkify(String.t(), keyword()) ::
+          {String.t(), [{String.t(), User.t()}], [{String.t(), String.t()}]}
+  def linkify(text, options \\ []) do
+    options = linkify_opts() ++ options
+
+    if options[:safe_mention] && Regex.named_captures(@safe_mention_regex, text) do
+      %{"mentions" => mentions, "rest" => rest} = Regex.named_captures(@safe_mention_regex, text)
+      acc = %{mentions: MapSet.new(), tags: MapSet.new(), urls: MapSet.new()}
+
+      {text_mentions, %{mentions: mentions}} = Linkify.link_map(mentions, acc, options)
+      {text_rest, %{tags: tags, urls: urls}} = Linkify.link_map(rest, acc, options)
+
+      {text_mentions <> text_rest, MapSet.to_list(mentions), MapSet.to_list(tags), MapSet.to_list(urls)}
+    else
+      acc = %{mentions: MapSet.new(), tags: MapSet.new(), urls: MapSet.new()}
+      {text, %{mentions: mentions, tags: tags, urls: urls}} = Linkify.link_map(text, acc, options)
+
+      {text, MapSet.to_list(mentions), MapSet.to_list(tags), MapSet.to_list(urls)}
+    end
+  end
 
   defp linkify_opts do
     Config.get(Bonfire.Tag.TextContent.Formatter, []) ++
       [
+        url_handler: &url_handler/3,
         hashtag: true,
         hashtag_handler: &tag_handler/4,
         mention: true,
-        mention_handler: &tag_handler/4
+        mention_handler: &tag_handler/4,
+        email: true,
+        strip_prefix: true,
+        truncate: 30
       ]
   end
 
@@ -41,6 +69,17 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
   def escape_mention_handler("+" <> _nickname = mention, _buffer, _, _) do
     String.replace(mention, @markdown_characters_regex, "\\\\\\1")
+  end
+
+  def url_handler(url, opts, acc) do
+    link = Linkify.Parser.link_url(url, opts)
+
+    # with {:ok, meta} <- Furlex.unfurl(url) do
+    #   {link, %{acc | urls: MapSet.put(acc.urls, {url, meta})}}
+    # else none ->
+    #   warn(url, "process URL")
+      {link, %{acc | urls: MapSet.put(acc.urls, {url, url})}}
+    # end
   end
 
   def tag_handler("#" <> tag = tag_text, buffer, opts, acc) do
@@ -115,6 +154,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   defp tag_link(type, url, display_name, "text/html") do
+    debug(type)
     Phoenix.HTML.Tag.content_tag(
       :span,
       Phoenix.HTML.Tag.content_tag(
@@ -131,33 +171,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   @doc """
-  Parses a text and replace plain text links with HTML. Returns a tuple with a result text, mentions, and hashtags.
-
-  If the 'safe_mention' option is given, only consecutive mentions at the start the post are actually mentioned.
-  """
-  @spec linkify(String.t(), keyword()) ::
-          {String.t(), [{String.t(), User.t()}], [{String.t(), String.t()}]}
-  def linkify(text, options \\ []) do
-    options = linkify_opts() ++ options
-
-    if options[:safe_mention] && Regex.named_captures(@safe_mention_regex, text) do
-      %{"mentions" => mentions, "rest" => rest} = Regex.named_captures(@safe_mention_regex, text)
-      acc = %{mentions: MapSet.new(), tags: MapSet.new()}
-
-      {text_mentions, %{mentions: mentions}} = Linkify.link_map(mentions, acc, options)
-      {text_rest, %{tags: tags}} = Linkify.link_map(rest, acc, options)
-
-      {text_mentions <> text_rest, MapSet.to_list(mentions), MapSet.to_list(tags)}
-    else
-      acc = %{mentions: MapSet.new(), tags: MapSet.new()}
-      {text, %{mentions: mentions, tags: tags}} = Linkify.link_map(text, acc, options)
-
-      {text, MapSet.to_list(mentions), MapSet.to_list(tags)}
-    end
-  end
-
-  @doc """
-  Escapes a special characters in mention names.
+  Escapes a special characters in mention names (not used right now)
   """
   def mentions_escape(text, options \\ []) do
     options =
@@ -175,21 +189,5 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     end
   end
 
-  def html_escape({text, mentions, hashtags}, type) do
-    {html_escape(text, type), mentions, hashtags}
-  end
 
-  def html_escape(text, "text/html") do
-    if Bonfire.Common.Extend.module_enabled?(Scrubber), do: Scrubber.filter_tags(text),
-    else: text
-  end
-
-  def html_escape(text, "text/plain") do
-    Regex.split(@link_regex, text, include_captures: true)
-    |> Enum.map_every(2, fn chunk ->
-      {:safe, part} = Phoenix.HTML.html_escape(chunk)
-      part
-    end)
-    |> Enum.join("")
-  end
 end

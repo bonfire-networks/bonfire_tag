@@ -8,6 +8,7 @@ defmodule Bonfire.Tag.TextContent.Process do
   alias Bonfire.Tag.TextContent.Formatter
 
   @default_content_type "text/markdown"
+  @link_regex ~r"((?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~%:/?#[\]@!\$&'\(\)\*\+,;=.]+)|[0-9a-z+\-\.]+:[0-9a-z$-_.+!*'(),]+"ui
 
   @doc """
   For use for things like a bio, where we want links but not to actually trigger mentions.
@@ -62,20 +63,18 @@ defmodule Bonfire.Tag.TextContent.Process do
   #doc """ Formatting text to plain text. """
   def format_input(text, "text/plain" = content_type, options) do
     text
-    |> Formatter.html_escape(content_type)
+    |> html_escape(content_type)
     |> String.replace("&amp;", "&")
-    |> Formatter.linkify(options)
-    |> (fn {text, mentions, tags} ->
-          {String.replace(text, ~r/\r?\n/, "<br>"), mentions, tags}
-        end).()
+    |> String.replace(~r/\r?\n/, "<br>")
+    |> Formatter.linkify(options ++ [content_type: content_type])
   end
 
   #doc """ Formatting text to html. """
   def format_input(text, "text/html" = content_type, options) do
     text
-    |> Formatter.html_escape(content_type)
+    |> html_escape(content_type)
     |> String.replace("&amp;", "&")
-    |> Formatter.linkify(options)
+    |> Formatter.linkify(options ++ [content_type: content_type])
   end
 
   #doc """ Formatting text to markdown. FIXME """
@@ -94,5 +93,28 @@ defmodule Bonfire.Tag.TextContent.Process do
   # end
 
   # defp maybe_add_nsfw_tag(data, _), do: data
+
+
+  def html_escape({text, mentions, hashtags}, type) do
+    {html_escape(text, type), mentions, hashtags}
+  end
+
+  # def html_escape(text, "text/html") do
+  #   if Bonfire.Common.Extend.module_enabled?(Scrubber), do: Scrubber.filter_tags(text),
+  #   else: text
+  # end
+
+  def html_escape(text, "text/plain") do
+    Regex.split(@link_regex, text, include_captures: true)
+    |> Enum.map_every(2, fn chunk ->
+      {:safe, part} = Phoenix.HTML.html_escape(chunk)
+      part
+    end)
+    |> Enum.join("")
+  end
+
+  def html_escape(text, _) do
+    text
+  end
 
 end
