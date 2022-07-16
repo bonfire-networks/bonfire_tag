@@ -148,6 +148,7 @@ defmodule Bonfire.Tag.Tags do
   # end
   def tag_something(user, thing, tags, boost_category_mentions? \\ false) do
     with {:ok, thing} <- do_tag_thing(user, thing, tags) do
+
       if boost_category_mentions?
       and module_enabled?(Bonfire.Classify.Categories)
       and module_enabled?(Bonfire.Social.Boosts) do
@@ -157,16 +158,23 @@ defmodule Bonfire.Tag.Tags do
         |> Enum.reject(&(is_nil(&1.category) or is_nil(&1.character)))
         |> Enum.each(&Bonfire.Social.Boosts.boost(&1, thing))
       end
+
       {:ok, thing}
     end
   end
 
   #doc """ Add tag(s) to a pointable thing. Will replace any existing tags. """
   defp do_tag_thing(user, thing, tags) when is_list(tags) do
-    pointer = thing_to_pointer(thing)
-    tags = Enum.map(tags, &tag_preprocess(user, &1)) |> Enum.reject(&is_nil/1)
-    # debug(do_tag_thing: tags)
-    with {:ok, tagged} <- thing_tags_save(pointer, tags) do
+    pointer = thing
+    |> debug("thing")
+    |> thing_to_pointer()
+    |> debug("pointer")
+
+    tags = Enum.map(tags, &tag_preprocess(user, &1))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq_by(&(&1.id))
+    |> debug("tags")
+    with {:ok, tagged} <- thing_tags_save(pointer, tags) |> debug("saved") do
        {:ok, (if is_map(thing), do: thing, else: pointer) |> Map.merge(%{tags: tags})}
     end
     # Bonfire.Common.Repo.maybe_preload(thing, :tags)
@@ -174,7 +182,7 @@ defmodule Bonfire.Tag.Tags do
   defp do_tag_thing(user, thing, tag), do: do_tag_thing(user, thing, [tag])
 
   #doc """ Prepare a tag to be used, by loading it from DB if necessary """
-  defp tag_preprocess(_user, %{__struct__: _} = tag), do: tag
+  defp tag_preprocess(_user, %{__struct__: _} = tag), do: tag |> thing_to_pointer()
   defp tag_preprocess(_, tag) when is_nil(tag) or tag == "", do: nil
   defp tag_preprocess(_user, {:error, e}) do
     warn("Tags: invalid tag: #{inspect e}")
@@ -185,7 +193,7 @@ defmodule Bonfire.Tag.Tags do
   defp tag_preprocess(user, "@" <> tag), do: tag_preprocess(user, tag)
   defp tag_preprocess(user, "+" <> tag), do: tag_preprocess(user, tag)
   defp tag_preprocess(user, "&" <> tag), do: tag_preprocess(user, tag)
-  defp tag_preprocess(_user, tag) when is_binary(tag), do: get(tag) |> ok_or(nil)
+  defp tag_preprocess(_user, tag) when is_binary(tag), do: get(tag) |> ok_or(nil) |> thing_to_pointer()
   defp tag_preprocess(_user, tag) do
     error("Tags.tag_preprocess: didn't recognise this as a tag: #{inspect tag} ")
     nil
@@ -195,10 +203,8 @@ defmodule Bonfire.Tag.Tags do
   def tag_ids({_at_mention, %{id: tag_id}}), do: tag_id
   def tag_ids(%{id: tag_id}), do: tag_id
 
-  defp thing_tags_save(%{} = thing, [_|_] = tags) do
+  defp thing_tags_save(%{} = thing, tags) when is_list(tags) and length(tags)>0 do
     tags
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq_by(&(&1.id))
     # |> debug("tags")
     |> Bonfire.Tag.thing_tags_changeset(thing, ...)
     # |> debug("changeset")
