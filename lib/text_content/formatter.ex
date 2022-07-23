@@ -123,12 +123,12 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     end
   end
 
-  defp mention_process(type, tag_object, acc, content_type, _opts) do
+  defp mention_process(prefix, tag_object, acc, content_type, _opts) do
 
     url = if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters), do: Bonfire.Me.Characters.character_url(tag_object)
-    display_name = if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters), do: Bonfire.Me.Characters.display_username(tag_object)
+    display_name = if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters), do: Bonfire.Me.Characters.display_username(tag_object, false, nil, prefix)
 
-    link = tag_link(type, url, display_name, content_type)
+    link = tag_link(prefix, url, display_name, content_type)
 
     {link, %{acc | mentions: MapSet.put(acc.mentions, {display_name, tag_object})}}
   end
@@ -154,7 +154,8 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   defp tag_link(type, url, display_name, "text/html") do
-    debug(type)
+    info(type, "type")
+    info(display_name, "display_name")
     Phoenix.HTML.Tag.content_tag(
       :span,
       Phoenix.HTML.Tag.content_tag(
