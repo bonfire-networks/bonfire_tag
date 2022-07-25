@@ -215,6 +215,10 @@ defmodule Bonfire.Tag.Tags do
   defp thing_to_pointer(%{}=thing), do: Pointers.maybe_forge(thing)
   defp thing_to_pointer(pointer_id) when is_binary(pointer_id),
     do: Pointers.one(id: pointer_id, skip_boundary_check: true)
+  defp thing_to_pointer(other) do
+    warn(other, "dunno how to get a pointer from")
+    other
+  end
 
   def indexing_object_format(object) do
     # debug(indexing_object_format: object)
