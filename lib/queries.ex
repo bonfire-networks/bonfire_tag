@@ -4,6 +4,7 @@ defmodule Bonfire.Tag.Queries do
 
   alias Pointers.Pointer, as: Tag
   alias Bonfire.Tag.Tagged
+  alias Bonfire.Common.Utils
 
   def query(Tag) do
     from(t in Tag,
@@ -44,6 +45,10 @@ defmodule Bonfire.Tag.Queries do
     join(q, jq, [tag: c], t in assoc(c, :character), as: :character)
   end
 
+  def join_to(q, :category, jq) do
+    join(q, jq, [tag: c], t in assoc(c, :category), as: :category)
+  end
+
   @doc "Filter the query according to arbitrary criteria"
   def filter(q, filter_or_filters)
 
@@ -72,6 +77,11 @@ defmodule Bonfire.Tag.Queries do
   def filter(q, {:id, id}) when is_binary(id), do: where(q, [tag: c], c.id == ^id)
   def filter(q, {:id, ids}) when is_list(ids), do: where(q, [tag: c], c.id in ^ids)
 
+  def filter(q, {:type, types}) when is_list(types) or is_atom(types) do
+    table_ids = List.wrap(types) |> Enum.map(&Utils.maybe_apply(&1, :__pointers__, :table_id))
+    where(q, [tag], tag.table_id in ^Utils.ulids(table_ids))
+  end
+
   def filter(q, {:username, username}) when is_binary(username) do
     q
     |> join_to(:character)
@@ -88,6 +98,7 @@ defmodule Bonfire.Tag.Queries do
 
   def filter(q, {:autocomplete, text}) when is_binary(text) do
     q
+    |> filter(:deleted) # exclude soft-deleted categories
     |> join_to(:profile)
     |> preload(:profile)
     |> join_to(:character)
@@ -99,6 +110,16 @@ defmodule Bonfire.Tag.Queries do
       or ilike(p.name, ^"% #{text}%")
       or ilike(a.username, ^"#{text}%")
       or ilike(a.username, ^"% #{text}%"))
+  end
+
+  def filter(q, :deleted) do
+    if Bonfire.Common.Extend.module_enabled?(Bonfire.Classify.Category) do
+      q
+      |> join_to(:category)
+      |> where([category: o], is_nil(o.deleted_at))
+    else
+      q
+    end
   end
 
   def filter(q, {:user, _user}), do: q

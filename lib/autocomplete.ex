@@ -14,11 +14,11 @@ defmodule Bonfire.Tag.Autocomplete do
 
 
   def prefix_index("+" = prefix) do
-    ["Bonfire.Classify.Category", "Bonfire.Tag"]
+    [Bonfire.Classify.Category, Bonfire.Tag]
   end
 
   def prefix_index("@" = prefix) do
-    "Bonfire.Data.Identity.User"
+    Bonfire.Data.Identity.User
   end
 
   # def prefix_index(tag_search, "&" = prefix, consumer) do
@@ -26,7 +26,7 @@ defmodule Bonfire.Tag.Autocomplete do
   # end
 
   def prefix_index(_) do
-    ["Bonfire.Data.Identity.User", "Bonfire.Classify.Category", "Bonfire.Tag"]
+    [Bonfire.Data.Identity.User, Bonfire.Classify.Category, Bonfire.Tag]
   end
 
   # FIXME combine the following functions
@@ -36,15 +36,15 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def search_prefix(tag_search, prefix) do
-    search_or_lookup(tag_search, @search_index, %{"index_type" => prefix_index(prefix)})
+    search_or_lookup(tag_search, @search_index, prefix_index(prefix))
   end
 
   def search_type(tag_search, type) do
-    search_or_lookup(tag_search, @search_index, %{"index_type" => type})
+    search_or_lookup(tag_search, @search_index, type)
   end
 
   def api_tag_lookup_public(tag_search, prefix, consumer, index_type) do
-    hits = maybe_search(tag_search, %{"index_type" => index_type}) || Tags.maybe_find_tags(tag_search)
+    hits = maybe_search(tag_search, index_type) || Tags.maybe_find_tags(nil, tag_search, index_type)
 
     tag_lookup_process(tag_search, hits, prefix, consumer)
   end
@@ -56,26 +56,27 @@ defmodule Bonfire.Tag.Autocomplete do
   def search_or_lookup(tag_search, index, facets) do
     # debug("Search.search_or_lookup: #{tag_search} with facets #{inspect facets}")
 
-    hits = maybe_search(tag_search, %{index: index}, facets)
-    if hits do # use search index if available
+    hits = maybe_search(tag_search, facets)
+    if hits do # uses search index if available
       hits
     else
-      Tags.maybe_find_tags(tag_search)
+      Tags.maybe_find_tags(nil, tag_search, facets)
     end
   end
 
-  def maybe_search(tag_search, opts, facets \\ nil) do
+  def maybe_search(tag_search, facets \\ nil) do
     #debug(searched: tag_search)
     #debug(facets: facets)
 
     if module_enabled?(Bonfire.Search) do # use search index if available
       debug("Bonfire.Tag.Autocomplete: searching #{inspect tag_search} with facets #{inspect facets}")
-      search = Bonfire.Search.search(tag_search, opts, false, facets)
-      # debug(searched: search)
+      # search = Bonfire.Search.search(tag_search, opts, false, facets) |> e("hits")
+      search = Bonfire.Search.search_by_type(tag_search, facets)
+      |> debug()
 
-      if(is_map(search) and Map.has_key?(search, "hits") and length(search["hits"])) do
+      if(is_list(search) and length(search)>0) do
         # search["hits"]
-        Enum.map(search["hits"], &tag_hit_prepare(&1, tag_search))
+        Enum.map(search, &tag_hit_prepare(&1, tag_search))
         |> Utils.filter_empty([])
         |> input_to_atoms()
         # |> debug("maybe_search results")
@@ -90,10 +91,20 @@ defmodule Bonfire.Tag.Autocomplete do
     |> Utils.filter_empty([])
   end
 
+  def tag_hit_prepare(hit, tag_search) do
+    # FIXME: do this by filtering Meili instead?
+    if !is_nil(hit["username"]) or !is_nil(hit["id"]) do
+      hit
+      |> Map.merge(%{display: tag_suggestion_display(hit, tag_search)})
+      |> Map.merge(%{tag_as: e(hit, "username", e(hit, "id", ""))})
+    end
+  end
+
   def tag_hit_prepare(object, _tag_search, prefix, consumer) do
     # debug(hit)
 
-    hit = stringify_keys(object) |> debug()
+    hit = stringify_keys(object)
+    |> debug()
 
     username = hit["username"] || hit["character"]["username"]
 
@@ -101,7 +112,7 @@ defmodule Bonfire.Tag.Autocomplete do
     if strlen(username) do
       %{
         "name" => e(hit, "name_crumbs", e(hit, "profile", "name", e(hit, "name", e(hit, "username", nil)))),
-        "link" => e(hit, "canonical_url", URIs.canonical_url(object))
+        # "link" => e(hit, "canonical_url", URIs.canonical_url(object))
       }
       |> tag_add_field(consumer, prefix, (username || e(hit, "id", "")))
     end
@@ -245,15 +256,6 @@ defmodule Bonfire.Tag.Autocomplete do
     end
   end
 
-
-  def tag_hit_prepare(hit, tag_search) do
-    # FIXME: do this by filtering Meili instead?
-    if !is_nil(hit["username"]) or !is_nil(hit["id"]) do
-      hit
-      |> Map.merge(%{display: tag_suggestion_display(hit, tag_search)})
-      |> Map.merge(%{tag_as: e(hit, "username", e(hit, "id", ""))})
-    end
-  end
 
   def tag_suggestion_display(hit, tag_search) do
     name = e(hit, "name_crumbs", e(hit, "name", e(hit, "username", nil)))

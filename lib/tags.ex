@@ -34,11 +34,11 @@ defmodule Bonfire.Tag.Tags do
       else: maybe_apply(Characters, :by_username, id) <~> one(username: id)
   end
 
-  def find(id) do
+  def find(id, types \\ nil) do
     if is_ulid?(id),
-      do: one(id: id),
+      do: one(id: id, type: types),
       # TODO: lookup Peered with canonical_uri if id is a URL
-      else: many(autocomplete: id)
+      else: many(autocomplete: id, type: types)
   end
 
   @default_cache_ttl 1_000 * 60 * 60 # 1 hour # TODO: configurable
@@ -62,20 +62,23 @@ defmodule Bonfire.Tag.Tags do
     # |> dump
   end
 
-  def maybe_find_tag(user \\ nil, id_or_username_or_url) when is_binary(id_or_username_or_url) do
-    debug("Tags.maybe_find_tag: #{id_or_username_or_url}")
+  @doc """
+  Try to find one (best-match) tag
+  """
+  def maybe_find_tag(current_user, id_or_username_or_url, types \\ nil) when is_binary(id_or_username_or_url) do
+    debug(id_or_username_or_url)
     get(id_or_username_or_url) <~> # check if tag already exists
     (if is_ulid?(id_or_username_or_url) do
-      debug("Tags.maybe_find_tag: try by ID")
-      Pointers.one(id_or_username_or_url, current_user: user, skip_boundary_check: true)
+      debug("try by ID")
+      Pointers.one(id_or_username_or_url, current_user: current_user, skip_boundary_check: true)
     else
       # if Bonfire.Common.Extend.extension_enabled?(Bonfire.Federate.ActivityPub) do
-      debug("Tags.maybe_find_tag: try get_by_url_ap_id_or_username")
+      debug("try get_by_url_ap_id_or_username")
       with {:ok, federated_object_or_character} <- Bonfire.Federate.ActivityPub.Utils.get_by_url_ap_id_or_username(id_or_username_or_url) do
-        debug("Tags: federated_object_or_character: #{inspect federated_object_or_character}")
+        debug("federated_object_or_character: #{inspect federated_object_or_character}")
         {:ok, federated_object_or_character}
       else _ ->
-        debug("Tags.maybe_find_tag: no such federated remote tag found")
+        debug("no such federated remote tag found")
         {:error, "no such tag"}
       end
       # else
@@ -87,18 +90,18 @@ defmodule Bonfire.Tag.Tags do
   @doc """
   Search / autocomplete for tags by name
   """
-  def maybe_find_tags(_user \\ nil, id_or_username_or_url)
+  def maybe_find_tags(current_user, id_or_username_or_url, types \\ nil)
   when is_binary(id_or_username_or_url) do
-    debug("Tags.maybe_find_tag: #{id_or_username_or_url}")
-    find(id_or_username_or_url) <~> # check if tag already exists
-    [maybe_find_tag(id_or_username_or_url)]
+    debug(id_or_username_or_url)
+    find(id_or_username_or_url, types) <~>
+    [maybe_find_tag(current_user, id_or_username_or_url, types)] # if couldn't find, try lookup one
   end
 
   @doc """
   Lookup a single for a tag by its name/username
   """
   def maybe_lookup_tag(id_or_username_or_url, _prefix \\ "@")
-  when is_binary(id_or_username_or_url), do: maybe_find_tag(id_or_username_or_url)
+  when is_binary(id_or_username_or_url), do: maybe_find_tag(nil, id_or_username_or_url)
 
 
   def maybe_taxonomy_tag(user, id) do
