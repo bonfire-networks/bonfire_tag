@@ -30,8 +30,9 @@ defmodule Bonfire.Tag.Tags do
   def get(id) do
     if is_ulid?(id),
       do: one(id: id),
+      else: one(username: id)
+      # else: maybe_apply(Characters, :by_username, id) <~> one(username: id)
       # TODO: lookup Peered with canonical_uri if id is a URL
-      else: maybe_apply(Characters, :by_username, id) <~> one(username: id)
   end
 
   def find(id, types \\ nil) do
