@@ -167,18 +167,20 @@ defmodule Bonfire.Tag.Tags do
   #doc """ Add tag(s) to a pointable thing. Will replace any existing tags. """
   defp do_tag_thing(user, thing, tags) when is_list(tags) do
     pointer = thing
-    |> debug("thing")
+    # |> debug("thing")
     |> thing_to_pointer()
     |> debug("pointer")
 
-    tags = Enum.map(tags, &tag_preprocess(user, &1))
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq_by(&(&1.id))
-    |> debug("tags")
-    with {:ok, tagged} <- thing_tags_save(pointer, tags) |> debug("saved") do
-       {:ok, (if is_map(thing), do: thing, else: pointer) |> Map.merge(%{tags: tags})}
+    if pointer do
+      tags = Enum.map(tags, &tag_preprocess(user, &1))
+      |> Enum.reject(&is_nil/1)
+      |> Enum.uniq_by(&(&1.id))
+      # |> debug("tags")
+      with {:ok, tagged} <- thing_tags_save(pointer, tags) |> debug("saved") do
+        {:ok, (if is_map(thing), do: thing, else: pointer) |> Map.merge(%{tags: tags})}
+      end
+      # Bonfire.Common.Repo.maybe_preload(thing, :tags)
     end
-    # Bonfire.Common.Repo.maybe_preload(thing, :tags)
   end
   defp do_tag_thing(user, thing, tag), do: do_tag_thing(user, thing, [tag])
 
@@ -213,9 +215,10 @@ defmodule Bonfire.Tag.Tags do
   end
   defp thing_tags_save(thing, _tags), do: {:ok, thing}
 
+  defp thing_to_pointer({:ok, thing}), do: thing_to_pointer(thing)
   defp thing_to_pointer(%{}=thing), do: Pointers.maybe_forge(thing)
   defp thing_to_pointer(pointer_id) when is_binary(pointer_id),
-    do: Pointers.one(id: pointer_id, skip_boundary_check: true)
+    do: Pointers.one(id: pointer_id, skip_boundary_check: true) |> thing_to_pointer()
   defp thing_to_pointer(other) do
     warn(other, "dunno how to get a pointer from")
     other
