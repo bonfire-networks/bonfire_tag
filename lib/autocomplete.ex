@@ -44,9 +44,18 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def api_tag_lookup_public(tag_search, prefix, consumer, index_type) do
-    hits = maybe_search(tag_search, index_type) || Tags.maybe_find_tags(nil, tag_search, index_type)
+    tag_lookup_public(tag_search, index_type)
+    |> tag_lookup_process(tag_search, ..., prefix, consumer)
+  end
 
-    tag_lookup_process(tag_search, hits, prefix, consumer)
+  def tag_lookup_public(tag_search, index_type) do
+    maybe_search(tag_search, index_type) || maybe_find_tags(tag_search, index_type)
+  end
+
+  def maybe_find_tags(tag_search, index_type) do
+    with {:ok, tags} <- Tags.maybe_find_tags(nil, tag_search, index_type) do
+      tags
+    end
   end
 
   def search_or_lookup(tag_search, index, facets \\ nil)
@@ -60,7 +69,7 @@ defmodule Bonfire.Tag.Autocomplete do
     if hits do # uses search index if available
       hits
     else
-      Tags.maybe_find_tags(nil, tag_search, facets)
+      maybe_find_tags(tag_search, facets)
     end
   end
 
@@ -87,7 +96,7 @@ defmodule Bonfire.Tag.Autocomplete do
   def tag_lookup_process(tag_search, hits, prefix, consumer) do
     #debug(search["hits"])
     hits
-    ~> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer))
+    |> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer))
     |> Utils.filter_empty([])
   end
 
@@ -149,13 +158,13 @@ defmodule Bonfire.Tag.Autocomplete do
 
     # FIXME?
     words = content |> HtmlEntities.decode() |> tags_split()
-    #debug(tags_split: words)
+    |> debug("words")
 
     if words do
       # tries =
-      @prefixes
-      |> Enum.map(&try_tag_search(&1, words))
-      # |> IO.inspect
+      words
+      |> try_all_prefixes()
+      # |> debug
       |> Enum.map(&filter_results(&1))
       |> List.flatten()
       |> Utils.filter_empty([])
@@ -177,19 +186,22 @@ defmodule Bonfire.Tag.Autocomplete do
     [tag_results]
   end
   def filter_results(_) do
-    nil
+    []
   end
 
-  ## moved from tag_autocomplete_live.ex ##
+  def try_all_prefixes(content) do
+    if is_ulid?(content) do
+      [Tags.maybe_find_tag(nil, content)]
+    else
+      # FIXME! optimise this
+      Enum.map(@prefixes, &try_tag_search(&1, content))
+      |> Utils.filter_empty([])
+    end
+  end
 
   def try_prefixes(content) do
-    #debug(prefixes: @prefixes)
-    # FIXME?
-    tries = Enum.map(@prefixes, &try_tag_search(&1, content))
-      |> Utils.filter_empty([])
-    #debug(try_prefixes: tries)
-
-    List.first(tries)
+    try_all_prefixes(content)
+    |> List.first()
   end
 
   def try_tag_search(tag_prefix, words) when is_list(words) do
@@ -197,7 +209,6 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def try_tag_search(tag_prefix, content) do
-
     case tag_search_from_text(content, tag_prefix) do
       search when is_binary(search) and byte_size(search) > 0 -> tag_search(search, tag_prefix)
       _ -> nil

@@ -8,7 +8,7 @@ defmodule Bonfire.Tag.Tags do
   alias Pointers.Pointer # warning: do not move after we alias Pointers
   alias Bonfire.Common.Pointers # warning: do not move before we alias Pointer
   alias Bonfire.Me.Characters
-  alias Bonfire.Tag.{AutoComplete, Queries, TextContent.Process}
+  alias Bonfire.Tag.{Queries, TextContent.Process}
   alias Bonfire.Tag.Tagged
 
   @doc """
@@ -117,24 +117,25 @@ defmodule Bonfire.Tag.Tags do
   Maybe tag something
   """
   def maybe_tag(user, thing, tags \\ nil, boost_category_mentions? \\ true)
-  # def maybe_tag(user, thing, %{tags: tag_string}) when is_binary(tag_string) do
-  #   tag_strings = Bonfire.Tag.Autocomplete.tags_split(tag_string)
-  #   tag_something(user, thing, tag_strings)
-  # end
+
   def maybe_tag(user, thing, %{tags: tags}, boost_category_mentions?), do: maybe_tag(user, thing, tags, boost_category_mentions?)
   def maybe_tag(user, thing, %{tag: tag}, boost_category_mentions?), do: maybe_tag(user, thing, tag, boost_category_mentions?)
   def maybe_tag(user, thing, tags, boost_category_mentions?) when is_list(tags), do: tag_something(user, thing, tags, boost_category_mentions?)
   def maybe_tag(user, thing, %{__struct__: _} = tag, boost_category_mentions?), do: tag_something(user, thing, tag, boost_category_mentions?)
-  def maybe_tag(user, thing, text, boost_category_mentions?) when is_binary(text) do
-    tags = if text != "", do: Autocomplete.find_all_tags(text) # TODO, switch to TextContent.Process?
-    if is_map(tags) or (is_list(tags) and tags != []) do
-      maybe_tag(user, thing, tags, boost_category_mentions?)
-    else
-      debug("Bonfire.Tag - no matches in '#{text}'")
-      {:ok, thing}
-    end
+  def maybe_tag(user, thing, tag_string, boost_category_mentions?) when is_binary(tag_string) do
+    String.split(tag_string, ",")
+    |> tag_something(user, thing, ..., boost_category_mentions?)
   end
-  def maybe_tag(user, obj, _, boost_category_mentions?), # otherwise maybe we have tagnames inline in the text of the object?
+  # def maybe_tag(user, thing, text, boost_category_mentions?) when is_binary(text) do
+  #   tags = if text != "", do: Bonfire.Tag.Autocomplete.find_all_tags(text) |> debug # TODO, switch to TextContent.Process?
+  #   if is_map(tags) or (is_list(tags) and tags != []) do
+  #     maybe_tag(user, thing, tags, boost_category_mentions?)
+  #   else
+  #     debug("Bonfire.Tag - no matches in '#{text}'")
+  #     {:ok, thing}
+  #   end
+  # end
+  def maybe_tag(user, obj, _, boost_category_mentions?), # otherwise maybe we have tagnames inline in the text assocs of the object?
     do: maybe_tag(user, obj, Process.object_text_content(obj), boost_category_mentions?)
   # def maybe_tag(_user, thing, _maybe_tags, boost_category_mentions?) do
   #   #debug(maybe_tags: maybe_tags)
@@ -150,17 +151,13 @@ defmodule Bonfire.Tag.Tags do
   #     {:ok, Map.put(thing, :tags, Map.get(tagged, :tags, []))}
   #   end
   # end
-  def tag_something(user, thing, tags, boost_category_mentions? \\ false) do
+  def tag_something(user, thing, tags, boost_category_mentions? \\ true) do
     with {:ok, thing} <- do_tag_thing(user, thing, tags) do
 
       if boost_category_mentions?
-      and module_enabled?(Bonfire.Classify.Categories)
-      and module_enabled?(Bonfire.Social.Boosts) do
-        debug("Bonfire.Tag: boost mentions to the category's feed")
-        thing.tags
-        |> repo().maybe_preload([:category, :character])
-        |> Enum.reject(&(is_nil(&1.category) or is_nil(&1.character)))
-        |> Enum.each(&Bonfire.Social.Boosts.boost(&1, thing))
+      && module_enabled?(Bonfire.Social.Tags) do
+        debug("Bonfire.Tag: try to boost mentions to the category's feed, as permitted")
+        Bonfire.Social.Tags.maybe_auto_boost(user, e(thing, :tags, nil) || tags, thing)
       end
 
       {:ok, thing}
