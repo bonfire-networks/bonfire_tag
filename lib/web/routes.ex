@@ -9,6 +9,9 @@ defmodule Bonfire.Tag.Web.Routes do
 
         live "/tags/autocomplete", API.Autocomplete
 
+        live "/tag/:id", TagFeedLive, as: Bonfire.Tag
+        live "/hashtag/:hashtag", TagFeedLive, as: Bonfire.Tag.Hashtag
+
       end
 
       # pages you need an account to view

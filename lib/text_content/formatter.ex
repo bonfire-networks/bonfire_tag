@@ -85,7 +85,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   def tag_handler("#" <> tag = tag_text, buffer, opts, acc) do
     with {:ok, hashtag} <- Bonfire.Tag.Hashtag.get_or_create_by_name(tag) do
       tag = hashtag.name
-      url = Bonfire.Common.URIs.base_url()<>"/tag/#{tag}"
+      url = Bonfire.Common.URIs.base_url()<>"/hashtag/#{tag}"
       link = tag_link("#", url, tag, Map.get(opts, :content_type))
 
       {link, %{acc | tags: MapSet.put(acc.tags, {"##{tag}", hashtag})}}

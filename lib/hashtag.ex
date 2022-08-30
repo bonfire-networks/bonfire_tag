@@ -13,6 +13,7 @@ defmodule Bonfire.Tag.Hashtag do
   import Bonfire.Common.Config, only: [repo: 0]
 
   pointable_schema do
+    # TODO: use the Named mixin instead?
     field :name, :string
   end
 

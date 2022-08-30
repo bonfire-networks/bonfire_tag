@@ -1,12 +1,13 @@
 defmodule Bonfire.Tag.Tagged do
-
-  alias Pointers.Pointer
   import Ecto.Query, only: [from: 2]
   import Bonfire.Common.Config, only: [repo: 0]
   use Ecto.Schema
   use Pointers.Mixin,
     otp_app: :bonfire_tag,
     source: "bonfire_tagged"
+
+  alias Bonfire.Common.Utils
+  alias Pointers.Pointer
 
   mixin_schema do
     belongs_to :tag, Pointer
@@ -52,27 +53,46 @@ defmodule Bonfire.Tag.Tagged do
   end
 
   @doc """
-  Get the things tagged with a certain tag
+  List the things tagged with a certain tag
   """
-  def with_tag(%{id: id}), do: with_tag(id)
-  def with_tag(tag_id) do
-      q = from va in Bonfire.Tag.Tagged,
+  def q_with_tag(%{id: id}), do: q_with_tag(id)
+  def q_with_tag(tag_id) do
+    from va in Bonfire.Tag.Tagged,
       where: [tag_id: ^tag_id],
-
       order_by: [desc: va.inserted_at]
+  end
 
-    repo().many(q)
+  def with_tag(tag_id) do
+    repo().many(q_with_tag(tag_id))
   end
 
   @doc """
-  Get the tags of a thing
+  List the tags of a thing
   """
-  def with_thing(%{id: id}), do: with_thing(id)
-  def with_thing(thing_id) do
-    q = from va in Bonfire.Tag.Tagged,
+  def q_with_thing(%{id: id}), do: q_with_thing(id)
+  def q_with_thing(thing_id) do
+    from va in Bonfire.Tag.Tagged,
       where: [id: ^thing_id],
       order_by: [desc: va.inserted_at]
-    repo().many(q)
+  end
+
+  def with_thing(thing_id) do
+    repo().many(q_with_tag(thing_id))
+  end
+
+  @doc """
+  List by type of tagged thing
+  """
+  def q_with_type(types) do
+    table_ids = List.wrap(types) |> Enum.map(&Utils.maybe_apply(&1, :__pointers__, :table_id))
+    from va in Bonfire.Tag.Tagged,
+      left_join: tag in assoc(va, :tag),
+      where: tag.table_id in ^Utils.ulids(table_ids),
+      order_by: [desc: va.inserted_at]
+  end
+
+  def with_type(types) do
+    repo().many(q_with_type(types))
   end
 
   def all(), do: repo().many(Bonfire.Tag.Tagged)

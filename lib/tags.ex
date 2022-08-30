@@ -18,19 +18,19 @@ defmodule Bonfire.Tag.Tags do
   * ActivityPub integration
   * Various parts of the codebase that need to query for tags (inc. tests)
   """
-  def one(filters), do: repo().single(Queries.query(filters))
+  def one(filters, opts \\ []), do: repo().single(Queries.query(e(opts, :pointable, Pointer), filters))
 
   @doc """
   Retrieves a list of tags by arbitrary filters.
   Used by:
   * Various parts of the codebase that need to query for tags (inc. tests)
   """
-  def many(filters \\ []), do: {:ok, repo().many(Queries.query(filters))}
+  def many(filters \\ [], opts \\ []), do: {:ok, repo().many(Queries.query(e(opts, :pointable, Pointer), filters))}
 
-  def get(id) do
+  def get(id, opts \\ []) do
     if is_ulid?(id),
-      do: one(id: id),
-      else: one(username: id)
+      do: one([id: id], opts),
+      else: one([username: id], opts)
       # else: maybe_apply(Characters, :by_username, id) <~> one(username: id)
       # TODO: lookup Peered with canonical_uri if id is a URL
   end

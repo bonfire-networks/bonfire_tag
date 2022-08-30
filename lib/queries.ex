@@ -18,7 +18,15 @@ defmodule Bonfire.Tag.Queries do
     from(c in Tag, as: :tag)
   end
 
-  def query(filters), do: query(Tag, filters)
+  def query(pointable) when is_atom(pointable) do
+    from(t in pointable,
+      as: :tag
+      # left_join: c in assoc(t, :character),
+      # as: :character
+    )
+  end
+
+  def query(filters) when is_list(filters), do: query(Tag, filters)
 
   def query(q, filters), do: filter(query(q), filters)
 
@@ -94,6 +102,16 @@ defmodule Bonfire.Tag.Queries do
     |> join_to(:character)
     |> preload(:character)
     |> where([character: a], a.username in ^usernames)
+  end
+
+  def filter(q, {:name, name}) when is_binary(name) do
+    q
+    |> where([a], a.name == ^name)
+  end
+
+  def filter(q, {:name, name}) when is_list(name) do
+    q
+    |> where([a], a.name in ^name)
   end
 
   def filter(q, {:autocomplete, text}) when is_binary(text) do
