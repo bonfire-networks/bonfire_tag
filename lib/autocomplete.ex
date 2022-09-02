@@ -2,7 +2,7 @@ defmodule Bonfire.Tag.Autocomplete do
   use Bonfire.Common.Utils
   alias Bonfire.Common.URIs
   alias Bonfire.Tag.Tags
-  import Where
+  import Untangle
 
   # TODO: put in config
   @tag_terminator " "

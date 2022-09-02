@@ -6,7 +6,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   alias Bonfire.Common.Config
   alias Bonfire.Common.Utils
   alias Bonfire.Tag.Tags
-  import Where
+  import Untangle
 
   @safe_mention_regex ~r/^(\s*(?<mentions>([@|&amp;|\+].+?\s+){1,})+)(?<rest>.*)/s
   @markdown_characters_regex ~r/(`|\*|_|{|}|[|]|\(|\)|#|\+|-|\.|!)/

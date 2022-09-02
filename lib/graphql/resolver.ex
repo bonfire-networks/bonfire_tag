@@ -20,7 +20,7 @@ defmodule Bonfire.Tag.GraphQL.TagResolver do
   alias Bonfire.Tag
   alias Bonfire.Tag.Tags
 
-  import Where
+  import Untangle
 
   if Code.ensure_loaded?(ResolveField) do
 
