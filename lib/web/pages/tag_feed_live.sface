@@ -4,11 +4,11 @@
   class="md:flex md:mx-0">
   <section class="w-full mx-auto">
 
-    <Surface.Components.Dynamic.Component
+    <Dynamic.Component
       module={Config.get([:ui, :tag, :sections, tab(@selected_tab)], Bonfire.UI.Social.ProfileTimelineLive)}
       {...assigns}
       >
-    </Surface.Components.Dynamic.Component>
+    </Dynamic.Component>
   
   </section>
 </main>
