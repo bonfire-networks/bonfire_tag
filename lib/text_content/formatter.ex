@@ -23,14 +23,18 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
     if options[:safe_mention] && Regex.named_captures(@safe_mention_regex, text) do
       %{"mentions" => mentions, "rest" => rest} = Regex.named_captures(@safe_mention_regex, text)
+
       acc = %{mentions: MapSet.new(), tags: MapSet.new(), urls: MapSet.new()}
 
       {text_mentions, %{mentions: mentions}} = Linkify.link_map(mentions, acc, options)
+
       {text_rest, %{tags: tags, urls: urls}} = Linkify.link_map(rest, acc, options)
 
-      {text_mentions <> text_rest, MapSet.to_list(mentions), MapSet.to_list(tags), MapSet.to_list(urls)}
+      {text_mentions <> text_rest, MapSet.to_list(mentions), MapSet.to_list(tags),
+       MapSet.to_list(urls)}
     else
       acc = %{mentions: MapSet.new(), tags: MapSet.new(), urls: MapSet.new()}
+
       {text, %{mentions: mentions, tags: tags, urls: urls}} = Linkify.link_map(text, acc, options)
 
       {text, MapSet.to_list(mentions), MapSet.to_list(tags), MapSet.to_list(urls)}
@@ -78,21 +82,21 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     #   {link, %{acc | urls: MapSet.put(acc.urls, {url, meta})}}
     # else none ->
     #   warn(url, "process URL")
-      {link, %{acc | urls: MapSet.put(acc.urls, {url, url})}}
+    {link, %{acc | urls: MapSet.put(acc.urls, {url, url})}}
     # end
   end
 
   def tag_handler("#" <> tag = tag_text, buffer, opts, acc) do
     with {:ok, hashtag} <- Bonfire.Tag.Hashtag.get_or_create_by_name(tag) do
       tag = hashtag.name
-      url = Bonfire.Common.URIs.base_url()<>"/hashtag/#{tag}"
+      url = Bonfire.Common.URIs.base_url() <> "/hashtag/#{tag}"
       link = tag_link("#", url, tag, Map.get(opts, :content_type))
 
       {link, %{acc | tags: MapSet.put(acc.tags, {"##{tag}", hashtag})}}
-
-    else none ->
-      warn("could not create Hashtag for #{tag_text}, got #{inspect none}")
-      {buffer, acc}
+    else
+      none ->
+        warn("could not create Hashtag for #{tag_text}, got #{inspect(none)}")
+        {buffer, acc}
     end
   end
 
@@ -115,18 +119,29 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   defp tag_handler(type, nickname, buffer, opts, acc) do
     case Tags.maybe_lookup_tag(nickname, type) do
       {:ok, tag_object} ->
-        mention_process(type, tag_object, acc, Map.get(opts, :content_type), opts)
+        mention_process(
+          type,
+          tag_object,
+          acc,
+          Map.get(opts, :content_type),
+          opts
+        )
 
       none ->
-        warn("could not process #{type} mention for #{nickname}, got #{inspect none}")
+        warn("could not process #{type} mention for #{nickname}, got #{inspect(none)}")
+
         {buffer, acc}
     end
   end
 
   defp mention_process(prefix, tag_object, acc, content_type, _opts) do
+    url =
+      if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters),
+        do: Bonfire.Me.Characters.character_url(tag_object)
 
-    url = if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters), do: Bonfire.Me.Characters.character_url(tag_object)
-    display_name = if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters), do: Bonfire.Me.Characters.display_username(tag_object, false, nil, prefix)
+    display_name =
+      if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters),
+        do: Bonfire.Me.Characters.display_username(tag_object, false, nil, prefix)
 
     link = tag_link(prefix, url, display_name, content_type)
 
@@ -139,8 +154,9 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     do: tag_link(type, url, display_name, "text/html")
 
   defp tag_link(type, url, display_name, "text/markdown") do
-    if String.starts_with?(display_name, type), do: "[#{display_name}](#{url})",
-    else: "[#{type}#{display_name}](#{url})"
+    if String.starts_with?(display_name, type),
+      do: "[#{display_name}](#{url})",
+      else: "[#{type}#{display_name}](#{url})"
   end
 
   defp tag_link("#", url, tag, "text/html") do
@@ -156,6 +172,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   defp tag_link(type, url, display_name, "text/html") do
     info(type, "type")
     info(display_name, "display_name")
+
     Phoenix.HTML.Tag.content_tag(
       :span,
       Phoenix.HTML.Tag.content_tag(
@@ -184,11 +201,10 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
     if options[:safe_mention] && Regex.named_captures(@safe_mention_regex, text) do
       %{"mentions" => mentions, "rest" => rest} = Regex.named_captures(@safe_mention_regex, text)
+
       Linkify.link(mentions, options) <> Linkify.link(rest, options)
     else
       Linkify.link(text, options)
     end
   end
-
-
 end

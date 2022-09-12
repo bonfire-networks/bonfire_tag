@@ -10,6 +10,4 @@ defmodule Bonfire.Tag.Test.Faking do
   # import CommonsPub.Utils.Trendy
 
   # import Grumble
-
-
 end

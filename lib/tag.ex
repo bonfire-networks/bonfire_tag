@@ -35,5 +35,4 @@ defmodule Bonfire.Tag do
   def context_module, do: Bonfire.Tag.Tags
 
   def queries_module, do: Bonfire.Tag.Queries
-
 end

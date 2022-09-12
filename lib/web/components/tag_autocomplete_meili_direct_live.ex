@@ -8,8 +8,8 @@ defmodule Bonfire.Tag.Web.Component.TagAutocompleteMeiliDirect do
 
   def mount(socket) do
     {:ok,
-     socket
-     |> assign(
+     assign(
+       socket,
        meili_host: System.get_env("SEARCH_MEILI_INSTANCE", "http://localhost:7700"),
        tag_target: ""
      )}

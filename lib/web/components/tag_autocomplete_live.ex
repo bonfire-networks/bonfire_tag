@@ -8,8 +8,8 @@ defmodule Bonfire.Tag.Web.Component.TagAutocomplete do
 
   def mount(socket) do
     {:ok,
-     socket
-     |> assign(
+     assign(
+       socket,
        meili_host: System.get_env("SEARCH_MEILI_INSTANCE", "http://localhost:7700"),
        tag_search: nil,
        tag_results: []
@@ -38,9 +38,13 @@ defmodule Bonfire.Tag.Web.Component.TagAutocomplete do
     debug(tag_suggest_tags: tags)
 
     found = try_tag_search(tags)
-    #debug(found: found)
 
-    if(is_map(found) and Map.has_key?(found, :tag_results) and length(found.tag_results) > 0) do
+    # debug(found: found)
+
+    if(
+      is_map(found) and Map.has_key?(found, :tag_results) and
+        length(found.tag_results) > 0
+    ) do
       {:noreply,
        assign(socket,
          tag_search: found.tag_search,
@@ -79,5 +83,4 @@ defmodule Bonfire.Tag.Web.Component.TagAutocomplete do
        tag_results: []
      )}
   end
-
 end

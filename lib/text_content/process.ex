@@ -24,14 +24,15 @@ defmodule Bonfire.Tag.TextContent.Process do
         user,
         text,
         content_type
-      ) when is_binary(text) do
+      )
+      when is_binary(text) do
     options = [mentions_format: :full, user: user]
     content_type = content_type(content_type)
 
-    text
     # |> IO.inspect
     # |> Bonfire.Social.PostContents.prepare_text() # FIXME: make modular
-    |> format_input(content_type, options)
+    format_input(text, content_type, options)
+
     # |> maybe_add_attachments(attachments, attachment_links)
     # |> maybe_add_nsfw_tag(data)
     # |> elem(0)
@@ -40,6 +41,7 @@ defmodule Bonfire.Tag.TextContent.Process do
   defp content_type(:markdown), do: content_type("text/markdown")
   defp content_type(:html), do: content_type("text/html")
   defp content_type(:plain), do: content_type("text/plain")
+
   defp content_type(content_type) do
     if Enum.member?(
          Config.get([:instance, :allowed_post_formats], [
@@ -60,7 +62,7 @@ defmodule Bonfire.Tag.TextContent.Process do
   """
   def format_input(text, format \\ "text/plain", options \\ [])
 
-  #doc """ Formatting text to plain text. """
+  # doc """ Formatting text to plain text. """
   def format_input(text, "text/plain" = content_type, options) do
     text
     |> html_escape(content_type)
@@ -69,7 +71,7 @@ defmodule Bonfire.Tag.TextContent.Process do
     |> Formatter.linkify(options ++ [content_type: content_type])
   end
 
-  #doc """ Formatting text to html. """
+  # doc """ Formatting text to html. """
   def format_input(text, "text/html" = content_type, options) do
     text
     |> html_escape(content_type)
@@ -77,7 +79,7 @@ defmodule Bonfire.Tag.TextContent.Process do
     |> Formatter.linkify(options ++ [content_type: content_type])
   end
 
-  #doc """ Formatting text to markdown. FIXME """
+  # doc """ Formatting text to markdown. FIXME """
   def format_input(text, "text/markdown" = content_type, options) do
     text
     # |> Formatter.mentions_escape(options)
@@ -91,9 +93,7 @@ defmodule Bonfire.Tag.TextContent.Process do
   #      when sensitive in [true, "True", "true", "1"] do
   #   {text, mentions, [{"#nsfw", "nsfw"} | tags]}
   # end
-
   # defp maybe_add_nsfw_tag(data, _), do: data
-
 
   def html_escape({text, mentions, hashtags}, type) do
     {html_escape(text, type), mentions, hashtags}
@@ -116,5 +116,4 @@ defmodule Bonfire.Tag.TextContent.Process do
   def html_escape(text, _) do
     text
   end
-
 end

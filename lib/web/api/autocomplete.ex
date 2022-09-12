@@ -3,7 +3,11 @@ defmodule Bonfire.Tag.Web.API.Autocomplete do
 
   alias Bonfire.Tag.Autocomplete
 
-  def get(conn, %{"prefix" => prefix, "search" => search, "consumer" => consumer}) do
+  def get(conn, %{
+        "prefix" => prefix,
+        "search" => search,
+        "consumer" => consumer
+      }) do
     tags = Autocomplete.api_tag_lookup(search, prefix, consumer)
 
     json(conn, prepare(tags))
@@ -18,8 +22,8 @@ defmodule Bonfire.Tag.Web.API.Autocomplete do
   def prepare({key, val} = tags) when is_tuple(tags) do
     %{key => val}
   end
+
   def prepare(tags) do
     tags
   end
-
 end

@@ -1,15 +1,18 @@
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tributejs@latest/dist/tribute.css">
-<script src="https://cdn.jsdelivr.net/npm/tributejs@latest/dist/tribute.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/meilisearch@latest/dist/bundles/meilisearch.browser.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tributejs@latest/dist/tribute.css" />
+<script src="https://cdn.jsdelivr.net/npm/tributejs@latest/dist/tribute.min.js">
+</script>
+<script
+  src="https://cdn.jsdelivr.net/npm/meilisearch@latest/dist/bundles/meilisearch.browser.min.js"
+>
+</script>
 <script>
   const meili = {}
   meili.client = new MeiliSearch({
-    host: '<%=@meili_host%>',
+    host: '<%= @meili_host %>',
     apiKey: 'searchAPIKey',
   })
   meili.search = {index: meili.client.getIndex('search')}
   meili.tags = {index: meili.client.getIndex('taxonomy_tags')}
-
 
   var tributeMultipleTriggers = new Tribute({
     collection: [

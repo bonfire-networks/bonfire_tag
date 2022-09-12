@@ -1,9 +1,9 @@
 defmodule Bonfire.Tag.Hashtag do
-
   use Pointers.Pointable,
     otp_app: :bonfire_tag,
     table_id: "7HASHTAG1SPART0FF01KS0N0MY",
     source: "bonfire_tag_hashtag"
+
   @hashtag_table "bonfire_tag_hashtag"
 
   alias Bonfire.Tag.Hashtag
@@ -14,7 +14,7 @@ defmodule Bonfire.Tag.Hashtag do
 
   pointable_schema do
     # TODO: use the Named mixin instead?
-    field :name, :string
+    field(:name, :string)
   end
 
   def changeset(hashtag \\ %Hashtag{}, params)
@@ -57,22 +57,27 @@ defmodule Bonfire.Tag.Hashtag.Migration do
   defp make_hashtag_table(exprs) do
     quote do
       require Pointers.Migration
-      Pointers.Migration.create_pointable_table(Bonfire.Tag.Hashtag) do
-        Ecto.Migration.add :name, :string
+
+      Pointers.Migration.create_pointable_table Bonfire.Tag.Hashtag do
+        Ecto.Migration.add(:name, :string)
         unquote_splicing(exprs)
       end
     end
   end
 
   defmacro create_hashtag_table, do: make_hashtag_table([])
-  defmacro create_hashtag_table([do: body]), do: make_hashtag_table(body)
+  defmacro create_hashtag_table(do: body), do: make_hashtag_table(body)
 
   def drop_hashtag_table(), do: drop_pointable_table(Hashtag)
 
   defp make_name_index(opts) do
     quote do
       Ecto.Migration.create_if_not_exists(
-        Ecto.Migration.unique_index(unquote(@hashtag_table), [:name], unquote(opts))
+        Ecto.Migration.unique_index(
+          unquote(@hashtag_table),
+          [:name],
+          unquote(opts)
+        )
       )
     end
   end
@@ -92,6 +97,7 @@ defmodule Bonfire.Tag.Hashtag.Migration do
       unquote(make_name_index([]))
     end
   end
+
   defp maa(:down) do
     quote do
       Bonfire.Tag.Hashtag.Migration.drop_name_index()
@@ -106,5 +112,6 @@ defmodule Bonfire.Tag.Hashtag.Migration do
         else: unquote(maa(:down))
     end
   end
+
   defmacro migrate_hashtag(dir), do: maa(dir)
 end

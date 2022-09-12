@@ -9,6 +9,7 @@ defmodule Bonfire.Tag.Queries do
   def query(Tag) do
     from(t in Tag,
       as: :tag
+
       # left_join: c in assoc(t, :character),
       # as: :character
     )
@@ -21,6 +22,7 @@ defmodule Bonfire.Tag.Queries do
   def query(pointable) when is_atom(pointable) do
     from(t in pointable,
       as: :tag
+
       # left_join: c in assoc(t, :character),
       # as: :character
     )
@@ -82,11 +84,17 @@ defmodule Bonfire.Tag.Queries do
     where(q, [tag: f], f.id in ^ids)
   end
 
-  def filter(q, {:id, id}) when is_binary(id), do: where(q, [tag: c], c.id == ^id)
-  def filter(q, {:id, ids}) when is_list(ids), do: where(q, [tag: c], c.id in ^ids)
+  def filter(q, {:id, id}) when is_binary(id),
+    do: where(q, [tag: c], c.id == ^id)
+
+  def filter(q, {:id, ids}) when is_list(ids),
+    do: where(q, [tag: c], c.id in ^ids)
 
   def filter(q, {:type, types}) when is_list(types) or is_atom(types) do
-    table_ids = List.wrap(types) |> Enum.map(&Utils.maybe_apply(&1, :__pointers__, :table_id))
+    table_ids =
+      List.wrap(types)
+      |> Enum.map(&Utils.maybe_apply(&1, :__pointers__, :table_id))
+
     where(q, [tag], tag.table_id in ^Utils.ulids(table_ids))
   end
 
@@ -105,29 +113,30 @@ defmodule Bonfire.Tag.Queries do
   end
 
   def filter(q, {:name, name}) when is_binary(name) do
-    q
-    |> where([a], a.name == ^name)
+    where(q, [a], a.name == ^name)
   end
 
   def filter(q, {:name, name}) when is_list(name) do
-    q
-    |> where([a], a.name in ^name)
+    where(q, [a], a.name in ^name)
   end
 
   def filter(q, {:autocomplete, text}) when is_binary(text) do
     q
-    |> filter(:deleted) # exclude soft-deleted categories
+    # exclude soft-deleted categories
+    |> filter(:deleted)
     |> join_to(:profile)
     |> preload(:profile)
     |> join_to(:character)
     |> preload(:character)
-    |> where([profile: p, character: a],
-      a.username == ^text
-      or p.name == ^text
-      or ilike(p.name, ^"#{text}%")
-      or ilike(p.name, ^"% #{text}%")
-      or ilike(a.username, ^"#{text}%")
-      or ilike(a.username, ^"% #{text}%"))
+    |> where(
+      [profile: p, character: a],
+      a.username == ^text or
+        p.name == ^text or
+        ilike(p.name, ^"#{text}%") or
+        ilike(p.name, ^"% #{text}%") or
+        ilike(a.username, ^"#{text}%") or
+        ilike(a.username, ^"% #{text}%")
+    )
   end
 
   def filter(q, :deleted) do
@@ -158,7 +167,8 @@ defmodule Bonfire.Tag.Queries do
       where: tag.table_id not in ^exclude_table_ids,
       where: tagged.inserted_at >= ^since_date,
       order_by: [desc: :count],
-      limit: ^limit,
+      limit: ^limit
+
       # preload: [tag: tag]
     )
   end

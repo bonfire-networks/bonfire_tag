@@ -1,14 +1,9 @@
-<main
-  data-id="tag"
-  data-tag-id={e(@tag, :id, "")}
-  class="md:flex md:mx-0">
+<main data-id="tag" data-tag-id={e(@tag, :id, "")} class="md:flex md:mx-0">
   <section class="w-full mx-auto">
-
     <Dynamic.Component
       module={Config.get([:ui, :tag, :sections, tab(@selected_tab)], Bonfire.UI.Social.ProfileTimelineLive)}
       {...assigns}
-      >
+    >
     </Dynamic.Component>
-  
   </section>
 </main>
