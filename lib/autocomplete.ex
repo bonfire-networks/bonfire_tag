@@ -121,7 +121,7 @@ defmodule Bonfire.Tag.Autocomplete do
     # debug(hit)
 
     hit =
-      stringify_keys(object)
+      stringify_keys(object, true)
       |> debug()
 
     username = hit["username"] || hit["character"]["username"]
