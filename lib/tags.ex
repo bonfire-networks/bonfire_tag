@@ -64,7 +64,6 @@ defmodule Bonfire.Tag.Tags do
     # todo: configurable
     exclude = [Bonfire.Data.Identity.User.__pointers__(:table_id)]
 
-    # TODO: aggresively cache this
     DateTime.now!("Etc/UTC")
     |> DateTime.add(-in_last_x_days * 24 * 60 * 60, :second)
     |> Queries.list_trending(exclude, limit)
