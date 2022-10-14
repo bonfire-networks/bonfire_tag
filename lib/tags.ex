@@ -198,7 +198,7 @@ defmodule Bonfire.Tag.Tags do
   def tag_something(user, thing, tags, boost_category_mentions? \\ true) do
     with {:ok, thing} <- do_tag_thing(user, thing, tags) do
       if boost_category_mentions? &&
-           module_enabled?(Bonfire.Social.Tags) do
+           module_enabled?(Bonfire.Social.Tags, user) do
         debug("Bonfire.Tag: try to boost mentions to the category's feed, as permitted")
 
         Bonfire.Social.Tags.maybe_auto_boost(
