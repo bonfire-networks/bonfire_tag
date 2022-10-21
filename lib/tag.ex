@@ -32,7 +32,7 @@ defmodule Bonfire.Tag do
     |> Changeset.put_assoc(:tags, tags)
   end
 
+  @behaviour Bonfire.Common.SchemaModule
   def context_module, do: Bonfire.Tag.Tags
-
-  def queries_module, do: Bonfire.Tag.Queries
+  def query_module, do: Bonfire.Tag.Queries
 end
