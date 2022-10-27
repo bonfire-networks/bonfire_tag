@@ -50,17 +50,16 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
        tag: tag,
        canonical_url: canonical_url(tag),
        name: name,
-       page_title: name
-
-       # sidebar_widgets: [
-       #   users: [
-       #     main: [],
-       #     secondary: [
-       #       {Bonfire.Classify.Web.WidgetSubtopicsLive, [widget_title: l("Sub-topics of %{topic}", topic: e(tag, :character, :username, nil)), subcategories: subcategories.edges]},
-       #       {Bonfire.UI.Common.WidgetFeedbackLive, []}
-       #     ]
-       #   ]
-       # ]
+       page_title: name,
+       sidebar_widgets: [
+         users: [
+           main: [],
+           secondary: [
+             {Bonfire.Tag.Web.WidgetTagsLive, []},
+             {Bonfire.UI.Common.WidgetFeedbackLive, []}
+           ]
+         ]
+       ]
      )}
   end
 
