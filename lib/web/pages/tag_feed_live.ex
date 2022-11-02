@@ -44,7 +44,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
        socket,
        page: "tag",
        object_type: nil,
-       feed: [],
+       feed: nil,
        selected_tab: :timeline,
        smart_input_opts: [text: name],
        tag: tag,
