@@ -104,12 +104,8 @@ defmodule Bonfire.Tag.Tags do
       else
         _ ->
           debug("no such federated remote tag found")
-          {:error, "no such tag"}
+          error("no such tag")
       end
-
-      # else
-      #   {:error, "no such tag"}
-      # end
     end
   end
 
