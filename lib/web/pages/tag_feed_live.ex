@@ -53,7 +53,6 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
        page_title: name,
        sidebar_widgets: [
          users: [
-           main: [],
            secondary: [
              {Bonfire.Tag.Web.WidgetTagsLive, []},
              {Bonfire.UI.Common.WidgetFeedbackLive, []}
