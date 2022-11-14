@@ -20,7 +20,7 @@
         {#case e(tag, :tag, nil)}
           {#match %Bonfire.Tag.Hashtag{} = hashtag}
             <li class="">
-              <LiveRedirect to={"/hashtag/" <> hashtag.name}>
+              <LiveRedirect to={~p"/hashtag/" <> hashtag.name}>
                 <div class="flex flex-row items-center">
                   <div class="flex flex-col items-start flex-1 gap-0 text-left">
                     <div class="text-sm font-bold text-base-content truncate max-w-[320px]">
