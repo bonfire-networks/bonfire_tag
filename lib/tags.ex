@@ -60,6 +60,10 @@ defmodule Bonfire.Tag.Tags do
     # Cache.maybe_apply_cached({__MODULE__, :query_list_trending}, [in_last_x_days, limit], ttl: @default_cache_ttl)
   end
 
+  def list_trending_reset(in_last_x_days \\ 30, limit \\ 10) do
+    Cache.reset(&query_list_trending/2, [in_last_x_days, limit])
+  end
+
   defp query_list_trending(in_last_x_days \\ 30, limit \\ 10) do
     # todo: configurable
     exclude = [Bonfire.Data.Identity.User.__pointers__(:table_id)]
@@ -79,6 +83,8 @@ defmodule Bonfire.Tag.Tags do
   Try to find one (best-match) tag
   """
   def maybe_find_tag(current_user, id_or_username_or_url, types \\ nil)
+
+  def maybe_find_tag(current_user, id_or_username_or_url, types)
       when is_binary(id_or_username_or_url) do
     debug(id_or_username_or_url)
     # check if tag already exists
@@ -103,11 +109,13 @@ defmodule Bonfire.Tag.Tags do
         {:ok, federated_object_or_character}
       else
         _ ->
-          debug("no such federated remote tag found")
-          error("no such tag")
+          error("no such federated remote tag found")
+          nil
       end
     end
   end
+
+  def maybe_find_tag(_, _, _), do: nil
 
   @doc """
   Search / autocomplete for tags by name
@@ -214,11 +222,12 @@ defmodule Bonfire.Tag.Tags do
       thing
       # |> debug("thing")
       |> thing_to_pointer()
-      |> debug("pointer")
+      |> debug("thing pointer")
 
     if pointer do
       tags =
         Enum.map(tags, &tag_preprocess(user, &1))
+        |> debug("tags")
         |> Enum.reject(&is_nil/1)
         |> Enum.uniq_by(& &1.id)
 
@@ -283,7 +292,6 @@ defmodule Bonfire.Tag.Tags do
 
   defp thing_to_pointer(other) do
     warn(other, "dunno how to get a pointer from")
-    other
   end
 
   def indexing_object_format(object) do
