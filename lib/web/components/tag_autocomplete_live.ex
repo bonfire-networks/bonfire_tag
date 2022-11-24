@@ -17,20 +17,20 @@ defmodule Bonfire.Tag.Web.Component.TagAutocomplete do
   end
 
   # # need to alias some form posting events here to workaround having two events but one target on a form
-  # def handle_event("publish_ad", data, socket) do
+  # def do_handle_event("publish_ad", data, socket) do
   #   ValueFlows.Web.My.PublishAdLive.publish_ad(data, socket)
   # end
 
   # # need to alias some form posting events here to workaround having two events but one target on a form
-  # def handle_event("form_changes" = event, data, socket) do
+  # def do_handle_event("form_changes" = event, data, socket) do
   #   Bonfire.Web.My.ShareLinkLive.handle_event(event, data, socket)
   # end
 
-  # def handle_event("share_link" = event, data, socket) do
+  # def do_handle_event("share_link" = event, data, socket) do
   #   Bonfire.Web.My.ShareLinkLive.handle_event(event, data, socket)
   # end
 
-  def handle_event("tag_suggest", data, socket) do
+  def do_handle_event("tag_suggest", data, socket) do
     tag_suggest(data, socket)
   end
 
