@@ -1,7 +1,7 @@
 <Bonfire.UI.Common.WidgetBlockLive
   :if={!Bonfire.Me.Settings.get([:ui, :show_trending_tags, :disabled], nil, @__context__)}
   widget_title={@widget_title || l("Trending topics")}
-  class="relative w-full mx-auto"
+  
   title_class="mx-3 py-3 border-b border-base-content/10 text-sm font-medium tracking-wide text-base-content/60"
 >
   <ul
