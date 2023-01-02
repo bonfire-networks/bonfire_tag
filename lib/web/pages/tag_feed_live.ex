@@ -16,13 +16,14 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
   end
 
   defp mounted(%{"id" => id}, _session, socket) do
-    debug(id, "id")
+    # debug(id, "id")
 
     with {:ok, tag} <- Bonfire.Tag.Tags.get(id) do
       ok_assigns(
         socket,
         tag,
-        "#{e(tag, :profile, :name, nil) || e(tag, :post_content, :name, nil) || e(tag, :name, nil) || e(tag, :named, :name, nil) || l("404")}"
+        e(tag, :profile, :name, nil) || e(tag, :post_content, :name, nil) || e(tag, :name, nil) ||
+          e(tag, :named, :name, nil) || l("404")
       )
     else
       {:error, :not_found} -> mounted(%{"hashtag" => id}, nil, socket)
@@ -73,14 +74,13 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
 
   def do_handle_params(%{"tab" => tab} = params, _url, socket)
       when tab in ["posts", "timeline"] do
-    id = ulid(e(socket.assigns, :tag, nil))
-
     {:noreply,
      socket
-     |> assign(selected_tab: tab)
+     |> assign(selected_tab: tab(tab))
      |> assign(
        Bonfire.Social.Feeds.LiveHandler.feed_assigns_maybe_async(
-         {"feed:profile:timeline", Bonfire.Tag.Tagged.q_with_tag(id)},
+         {"feed:profile:timeline",
+          Bonfire.Tag.Tagged.q_with_tag(ulid(e(socket.assigns, :tag, nil)))},
          socket
        )
        |> debug("feed_assigns_maybe_async")
@@ -102,7 +102,8 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
         params,
         uri,
         socket,
-        __MODULE__
+        __MODULE__,
+        &do_handle_params/3
       )
 
   def handle_info(info, socket),
