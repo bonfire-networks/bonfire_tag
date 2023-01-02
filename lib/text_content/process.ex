@@ -3,8 +3,8 @@
 # Copyright © 2021 Bonfire contributors <https://bonfirenetworks.org/>
 # SPDX-License-Identifier: AGPL-3.0-only
 defmodule Bonfire.Tag.TextContent.Process do
+  import Untangle
   alias Bonfire.Common.Config
-
   alias Bonfire.Tag.TextContent.Formatter
 
   @default_content_type "text/markdown"
@@ -27,9 +27,11 @@ defmodule Bonfire.Tag.TextContent.Process do
       )
       when is_binary(text) do
     options = [mentions_format: :full, user: user]
-    content_type = content_type(content_type)
 
-    # |> IO.inspect
+    content_type =
+      content_type(content_type)
+      |> info("content_type")
+
     # |> Bonfire.Social.PostContents.prepare_text() # FIXME: make modular
     format_input(text, content_type, options)
 
