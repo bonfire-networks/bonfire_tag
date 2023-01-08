@@ -11,7 +11,6 @@ defmodule Bonfire.Tag.Tags do
   alias Bonfire.Common.Pointers
   alias Bonfire.Me.Characters
   alias Bonfire.Tag.Queries
-  alias Bonfire.Tag.TextContent.Process
 
   alias Bonfire.Tag.Tagged
 
@@ -182,7 +181,7 @@ defmodule Bonfire.Tag.Tags do
       maybe_tag(
         user,
         obj,
-        Process.object_text_content(obj),
+        Bonfire.Tag.TextContent.Process.object_text_content(obj),
         boost_category_mentions?
       )
 

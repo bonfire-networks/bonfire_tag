@@ -76,7 +76,11 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   def url_handler(url, opts, acc) do
-    link = Linkify.Parser.link_url(url, opts)
+    {display_url, attrs} =
+      Linkify.Builder.prepare_link(url, opts)
+      |> info()
+
+    link = render_link(display_url, Map.new(attrs), Map.get(opts, :content_type))
 
     # with {:ok, meta} <- Furlex.unfurl(url) do
     #   {link, %{acc | urls: MapSet.put(acc.urls, {url, meta})}}
@@ -188,23 +192,31 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     |> Phoenix.HTML.safe_to_string()
   end
 
+  defp render_link(display_url, %{href: href}, "text/markdown") do
+    "[#{display_url}](#{href})"
+  end
+
+  defp render_link(display_url, attrs, _) do
+    Linkify.Builder.format_url(attrs, display_url)
+  end
+
   @doc """
   Escapes a special characters in mention names (not used right now)
   """
-  def mentions_escape(text, options \\ []) do
-    options =
-      Keyword.merge(options,
-        mention: true,
-        url: false,
-        mention_handler: &Bonfire.Tag.TextContent.Formatter.escape_mention_handler/4
-      )
+  # def mentions_escape(text, options \\ []) do
+  #   options =
+  #     Keyword.merge(options,
+  #       mention: true,
+  #       url: false,
+  #       mention_handler: &Bonfire.Tag.TextContent.Formatter.escape_mention_handler/4
+  #     )
 
-    if options[:safe_mention] && Regex.named_captures(@safe_mention_regex, text) do
-      %{"mentions" => mentions, "rest" => rest} = Regex.named_captures(@safe_mention_regex, text)
+  #   if options[:safe_mention] && Regex.named_captures(@safe_mention_regex, text) do
+  #     %{"mentions" => mentions, "rest" => rest} = Regex.named_captures(@safe_mention_regex, text)
 
-      Linkify.link(mentions, options) <> Linkify.link(rest, options)
-    else
-      Linkify.link(text, options)
-    end
-  end
+  #     Linkify.link(mentions, options) <> Linkify.link(rest, options)
+  #   else
+  #     Linkify.link(text, options)
+  #   end
+  # end
 end
