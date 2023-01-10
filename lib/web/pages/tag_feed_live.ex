@@ -52,11 +52,11 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
        canonical_url: canonical_url(tag),
        name: name,
        page_title: name,
+       nav_items: Bonfire.Common.ExtensionModule.default_nav(:bonfire_ui_social),
        sidebar_widgets: [
          users: [
            secondary: [
              {Bonfire.Tag.Web.WidgetTagsLive, []},
-             {Bonfire.UI.Common.WidgetFeedbackLive, []}
            ]
          ]
        ]

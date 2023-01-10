@@ -1,4 +1,4 @@
-<main data-id="tag" data-tag-id={e(@tag, :id, "")} class="mt-6">
+<main data-id="tag" data-tag-id={e(@tag, :id, "")} class="">
   <section class="flex flex-col w-full gap-3 mx-auto">
     <!-- <Bonfire.UI.Common.PageTitleLive page_title={l("Results for ") <> @page_title} /> -->
     <Dynamic.Component
