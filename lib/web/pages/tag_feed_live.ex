@@ -56,7 +56,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
        sidebar_widgets: [
          users: [
            secondary: [
-             {Bonfire.Tag.Web.WidgetTagsLive, []},
+             {Bonfire.Tag.Web.WidgetTagsLive, []}
            ]
          ]
        ]
