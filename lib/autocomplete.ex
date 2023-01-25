@@ -93,7 +93,7 @@ defmodule Bonfire.Tag.Autocomplete do
       if(is_list(search) and length(search) > 0) do
         # search["hits"]
         Enum.map(search, &tag_hit_prepare(&1, tag_search))
-        |> Utils.filter_empty([])
+        |> Enums.filter_empty([])
         |> input_to_atoms()
 
         # |> debug("maybe_search results")
@@ -105,7 +105,7 @@ defmodule Bonfire.Tag.Autocomplete do
     # debug(search["hits"])
     hits
     |> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer))
-    |> Utils.filter_empty([])
+    |> Enums.filter_empty([])
   end
 
   def tag_hit_prepare(hit, tag_search) do
@@ -127,7 +127,7 @@ defmodule Bonfire.Tag.Autocomplete do
     username = hit["username"] || hit["character"]["username"]
 
     # FIXME: do this by filtering Meili instead?
-    if strlen(username) do
+    if Text.strlen(username) do
       # "link" => e(hit, "canonical_url", URIs.canonical_url(object))
       tag_add_field(
         %{
@@ -189,7 +189,7 @@ defmodule Bonfire.Tag.Autocomplete do
       # |> debug
       |> Enum.map(&filter_results(&1))
       |> List.flatten()
-      |> Utils.filter_empty([])
+      |> Enums.filter_empty([])
 
       # |> IO.inspect
 
@@ -220,7 +220,7 @@ defmodule Bonfire.Tag.Autocomplete do
     else
       # FIXME! optimise this
       Enum.map(@prefixes, &try_tag_search(&1, content))
-      |> Utils.filter_empty([])
+      |> Enums.filter_empty([])
     end
   end
 
@@ -246,7 +246,7 @@ defmodule Bonfire.Tag.Autocomplete do
   def try_tag_search(content) do
     tag_search = tag_search_from_tags(content)
 
-    if strlen(tag_search) > 0 do
+    if Text.strlen(tag_search) > 0 do
       tag_search(tag_search, @taxonomy_prefix)
     end
   end
