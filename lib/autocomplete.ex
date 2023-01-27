@@ -3,6 +3,7 @@ defmodule Bonfire.Tag.Autocomplete do
   alias Bonfire.Common.URIs
   alias Bonfire.Tag.Tags
   import Untangle
+  alias Enums
 
   # TODO: put in config
   @tag_terminator " "
