@@ -78,7 +78,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   def url_handler(url, opts, acc) do
     {display_url, attrs} =
       Linkify.Builder.prepare_link(url, opts)
-      |> info()
+      |> debug()
 
     link = render_link(display_url, Map.new(attrs), Map.get(opts, :content_type))
 
