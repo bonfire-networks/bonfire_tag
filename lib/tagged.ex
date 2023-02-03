@@ -8,6 +8,7 @@ defmodule Bonfire.Tag.Tagged do
     source: "bonfire_tagged"
 
   alias Bonfire.Common.Utils
+  alias Bonfire.Common.Types
   alias Pointers.Pointer
 
   mixin_schema do
@@ -101,7 +102,7 @@ defmodule Bonfire.Tag.Tagged do
 
     from(va in Bonfire.Tag.Tagged,
       left_join: tag in assoc(va, :tag),
-      where: tag.table_id in ^Utils.ulids(table_ids),
+      where: tag.table_id in ^Types.ulids(table_ids),
       order_by: [desc: va.inserted_at]
     )
   end
