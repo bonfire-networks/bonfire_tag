@@ -5,6 +5,7 @@ defmodule Bonfire.Tag.Queries do
   alias Pointers.Pointer, as: Tag
   alias Bonfire.Tag.Tagged
   alias Bonfire.Common.Utils
+  alias Bonfire.Common.Types
 
   def query(Tag) do
     from(t in Tag,
@@ -95,7 +96,7 @@ defmodule Bonfire.Tag.Queries do
       List.wrap(types)
       |> Enum.map(&Utils.maybe_apply(&1, :__pointers__, :table_id))
 
-    where(q, [tag], tag.table_id in ^Utils.ulids(table_ids))
+    where(q, [tag], tag.table_id in ^Types.ulids(table_ids))
   end
 
   def filter(q, {:username, username}) when is_binary(username) do
