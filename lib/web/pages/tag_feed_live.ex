@@ -47,7 +47,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
        object_type: nil,
        feed: [],
        selected_tab: :timeline,
-       smart_input_opts: [text: name],
+       smart_input_opts: %{text: name},
        tag: tag,
        canonical_url: canonical_url(tag),
        name: name,
