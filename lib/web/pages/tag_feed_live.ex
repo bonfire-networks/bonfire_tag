@@ -35,7 +35,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
 
     with {:ok, tag} <-
            Bonfire.Tag.Tags.one([name: hashtag], pointable: Bonfire.Tag.Hashtag) do
-      ok_assigns(socket, tag, "##{e(tag, :name, hashtag)}")
+      ok_assigns(socket, tag, "#{e(tag, :name, hashtag)}")
     end
   end
 
@@ -78,19 +78,20 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
       when tab in ["posts", "timeline"] do
     {:noreply,
      socket
-     |> assign(selected_tab: tab(tab))
      |> assign(
        Bonfire.Social.Feeds.LiveHandler.feed_assigns_maybe_async(
          {"feed:profile:timeline",
           Bonfire.Tag.Tagged.q_with_tag(ulid(e(socket.assigns, :tag, nil)))},
          socket
-         )
+       )
        |> debug("feed_assigns_maybe_async")
-    )
-    |> assign(page_title: "#{e(socket.assigns, :name, nil)} #{tab(tab)}")
-    |> assign(page_header_icon: "mingcute:hashtag-fill")
-
-  }
+     )
+     |> assign(
+       selected_tab: tab(tab),
+       page_title: e(socket.assigns, :name, nil),
+       #  page_title: "#{e(socket.assigns, :name, nil)} #{tab(tab)}")
+       page_header_icon: "mingcute:hashtag-fill"
+     )}
   end
 
   def do_handle_params(params, _url, socket) do
