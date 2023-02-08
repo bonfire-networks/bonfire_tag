@@ -44,8 +44,10 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
      assign(
        socket,
        page: "tag",
+       page_title: name,
        object_type: nil,
        feed: [],
+       hide_tabs: true,
        selected_tab: :timeline,
        smart_input_opts: %{text: name},
        tag: tag,
@@ -82,9 +84,13 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
          {"feed:profile:timeline",
           Bonfire.Tag.Tagged.q_with_tag(ulid(e(socket.assigns, :tag, nil)))},
          socket
-       )
+         )
        |> debug("feed_assigns_maybe_async")
-     )}
+    )
+    |> assign(page_title: "#{e(socket.assigns, :name, nil)} #{tab(tab)}")
+    |> assign(page_header_icon: "mingcute:hashtag-fill")
+
+  }
   end
 
   def do_handle_params(params, _url, socket) do
