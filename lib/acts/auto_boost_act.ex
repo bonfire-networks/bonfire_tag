@@ -1,8 +1,8 @@
 defmodule Bonfire.Tags.Acts.AutoBoost do
   use Bonfire.Common.Utils
   alias Bonfire.Epics
-  alias Bonfire.Epics.Act
-  alias Bonfire.Epics.Epic
+  # alias Bonfire.Epics.Act
+  # alias Bonfire.Epics.Epic
   import Epics
 
   def run(epic, act) do

@@ -3,13 +3,13 @@ defmodule Bonfire.Tag.Tags do
   use Arrows
   use Bonfire.Common.Utils
   import Bonfire.Common.Config, only: [repo: 0]
-  alias Bonfire.Common.Types
+  # alias Bonfire.Common.Types
 
   # warning: do not move after we alias Pointers
   alias Pointers.Pointer
   # warning: do not move before we alias Pointer
   alias Bonfire.Common.Pointers
-  alias Bonfire.Me.Characters
+  # alias Bonfire.Me.Characters
   alias Bonfire.Tag.Queries
 
   alias Bonfire.Tag.Tagged
@@ -83,7 +83,7 @@ defmodule Bonfire.Tag.Tags do
   """
   def maybe_find_tag(current_user, id_or_username_or_url, types \\ nil)
 
-  def maybe_find_tag(current_user, id_or_username_or_url, types)
+  def maybe_find_tag(current_user, id_or_username_or_url, _types)
       when is_binary(id_or_username_or_url) do
     debug(id_or_username_or_url)
     # check if tag already exists
@@ -231,7 +231,7 @@ defmodule Bonfire.Tag.Tags do
         |> Enum.uniq_by(& &1.id)
 
       # |> debug("tags")
-      with {:ok, tagged} <- thing_tags_save(pointer, tags) |> debug("saved") do
+      with {:ok, _tagged} <- thing_tags_save(pointer, tags) |> debug("saved") do
         {:ok, if(is_map(thing), do: thing, else: pointer) |> Map.merge(%{tags: tags})}
       end
 

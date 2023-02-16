@@ -2,8 +2,8 @@ defmodule Bonfire.Tag.Migrations do
   import Ecto.Migration
   import Pointers.Migration
 
-  alias Bonfire.Tag.Tagged
-  alias Bonfire.Data.Social.Hashtag
+  # alias Bonfire.Tag.Tagged
+  # alias Bonfire.Data.Social.Hashtag
   require Bonfire.Tag.Hashtag.Migration
 
   @table_name :bonfire_tagged

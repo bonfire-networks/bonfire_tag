@@ -9,7 +9,7 @@ defmodule Bonfire.Tag.Hashtag do
   alias Bonfire.Tag.Hashtag
   # alias Pointers.Changesets
   import Ecto.Changeset
-  import Ecto.Query
+  # import Ecto.Query
   import Bonfire.Common.Config, only: [repo: 0]
 
   pointable_schema do

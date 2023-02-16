@@ -1,6 +1,6 @@
 defmodule Bonfire.Tag.Autocomplete do
   use Bonfire.Common.Utils
-  alias Bonfire.Common.URIs
+  # alias Bonfire.Common.URIs
   alias Bonfire.Tag.Tags
   import Untangle
   alias Enums
@@ -13,11 +13,11 @@ defmodule Bonfire.Tag.Autocomplete do
   @search_index "public"
   @max_length 50
 
-  def prefix_index("+" = prefix) do
+  def prefix_index("+" = _prefix) do
     [Bonfire.Classify.Category, Bonfire.Tag]
   end
 
-  def prefix_index("@" = prefix) do
+  def prefix_index("@" = _prefix) do
     Bonfire.Data.Identity.User
   end
 
@@ -64,7 +64,7 @@ defmodule Bonfire.Tag.Autocomplete do
   # dirty workaround
   def search_or_lookup("lt", _, _), do: nil
 
-  def search_or_lookup(tag_search, index, facets) do
+  def search_or_lookup(tag_search, _index, facets) do
     # debug("Search.search_or_lookup: #{tag_search} with facets #{inspect facets}")
 
     hits = maybe_search(tag_search, facets)

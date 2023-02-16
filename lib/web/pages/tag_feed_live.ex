@@ -74,7 +74,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
     # |> debug
   end
 
-  def do_handle_params(%{"tab" => tab} = params, _url, socket)
+  def do_handle_params(%{"tab" => tab} = _params, _url, socket)
       when tab in ["posts", "timeline"] do
     {:noreply,
      socket

@@ -1,6 +1,6 @@
 defmodule Bonfire.Tags.Acts.Tag do
   alias Bonfire.Epics
-  alias Bonfire.Epics.Act
+  # alias Bonfire.Epics.Act
   alias Bonfire.Epics.Epic
 
   alias Bonfire.Social.Tags
