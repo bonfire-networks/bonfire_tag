@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 defmodule Bonfire.Tag.TextContent.Formatter do
   alias Bonfire.Common.Config
-  alias Bonfire.Common.Utils
+  # alias Bonfire.Common.Utils
   alias Bonfire.Tag.Tags
   import Untangle
 
@@ -57,7 +57,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
   def escape_mention_handler("@" <> nickname = mention, buffer, _, _) do
     case Tags.maybe_lookup_tag(nickname, "@") do
-      {:ok, tag} ->
+      {:ok, _tag} ->
         # escape markdown characters with `\\`
         # (we don't want something like @user__name to be parsed by markdown)
         String.replace(mention, @markdown_characters_regex, "\\\\\\1")
@@ -152,18 +152,13 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     {link, %{acc | mentions: MapSet.put(acc.mentions, {display_name, tag_object})}}
   end
 
-  defp tag_link(type, url, display_name, content_type \\ "text/html")
-
-  defp tag_link(type, url, display_name, nil),
-    do: tag_link(type, url, display_name, "text/html")
-
   defp tag_link(type, url, display_name, "text/markdown") do
     if String.starts_with?(display_name, type),
       do: "[#{display_name}](#{url})",
       else: "[#{type}#{display_name}](#{url})"
   end
 
-  defp tag_link("#", url, tag, "text/html") do
+  defp tag_link("#", url, tag, _html) do
     Phoenix.HTML.Tag.content_tag(:a, "##{tag}",
       class: "hashtag",
       "data-tag": tag,
@@ -173,9 +168,9 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     |> Phoenix.HTML.safe_to_string()
   end
 
-  defp tag_link(type, url, display_name, "text/html") do
-    info(type, "type")
-    info(display_name, "display_name")
+  defp tag_link(type, url, display_name, _html) do
+    debug(type, "type")
+    debug(display_name, "display_name")
 
     Phoenix.HTML.Tag.content_tag(
       :span,
@@ -196,13 +191,13 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     "[#{display_url}](#{href})"
   end
 
-  defp render_link(display_url, attrs, _) do
+  defp render_link(display_url, attrs, _html) do
     Linkify.Builder.format_url(attrs, display_url)
   end
 
-  @doc """
-  Escapes a special characters in mention names (not used right now)
-  """
+  # @doc """
+  # Escapes a special characters in mention names (not used right now)
+  # """
   # def mentions_escape(text, options \\ []) do
   #   options =
   #     Keyword.merge(options,

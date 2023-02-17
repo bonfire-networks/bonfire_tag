@@ -63,7 +63,7 @@ defmodule Bonfire.Tag.Tags do
     Cache.reset(&query_list_trending/2, [in_last_x_days, limit])
   end
 
-  defp query_list_trending(in_last_x_days \\ 30, limit \\ 10) do
+  defp query_list_trending(in_last_x_days, limit) do
     # todo: configurable
     exclude = [Bonfire.Data.Identity.User.__pointers__(:table_id)]
 

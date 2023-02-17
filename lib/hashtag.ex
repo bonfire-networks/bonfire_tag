@@ -4,7 +4,7 @@ defmodule Bonfire.Tag.Hashtag do
     table_id: "7HASHTAG1SPART0FF01KS0N0MY",
     source: "bonfire_tag_hashtag"
 
-  @hashtag_table "bonfire_tag_hashtag"
+  # @hashtag_table "bonfire_tag_hashtag"
 
   alias Bonfire.Tag.Hashtag
   # alias Pointers.Changesets
