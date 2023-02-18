@@ -181,7 +181,7 @@ defmodule Bonfire.Tag.Tags do
       maybe_tag(
         user,
         obj,
-        Bonfire.Tag.TextContent.Process.object_text_content(obj),
+        Bonfire.Social.PostContents.all_text_content(obj),
         boost_category_mentions?
       )
 
