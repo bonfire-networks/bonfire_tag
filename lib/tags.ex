@@ -100,7 +100,7 @@ defmodule Bonfire.Tag.Tags do
       debug("try get_by_url_ap_id_or_username")
 
       with {:ok, federated_object_or_character} <-
-             Bonfire.Federate.ActivityPub.Federator.AdapterUtils.get_by_url_ap_id_or_username(
+             Bonfire.Federate.ActivityPub.AdapterUtils.get_by_url_ap_id_or_username(
                id_or_username_or_url
              ) do
         debug("federated_object_or_character: #{inspect(federated_object_or_character)}")
