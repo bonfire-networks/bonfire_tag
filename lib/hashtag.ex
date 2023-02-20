@@ -48,6 +48,7 @@ defmodule Bonfire.Tag.Hashtag do
 end
 
 defmodule Bonfire.Tag.Hashtag.Migration do
+  @moduledoc false
   use Ecto.Migration
   import Pointers.Migration
   alias Bonfire.Tag.Hashtag
