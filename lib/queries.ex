@@ -114,7 +114,12 @@ defmodule Bonfire.Tag.Queries do
   end
 
   def filter(q, {:name, name}) when is_binary(name) do
-    where(q, [a], a.name == ^name)
+    where(
+      q,
+      [a],
+      # a.name == ^name
+      ilike(a.name, ^name)
+    )
   end
 
   def filter(q, {:name, name}) when is_list(name) do

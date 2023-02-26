@@ -15,7 +15,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
     ])
   end
 
-  defp mounted(%{"id" => id}, _session, socket) do
+  defp mounted(%{"id" => id} = _params, _session, socket) do
     # debug(id, "id")
 
     with {:ok, tag} <- Bonfire.Tag.Tags.get(id) do
@@ -23,7 +23,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
         socket,
         tag,
         e(tag, :profile, :name, nil) || e(tag, :post_content, :name, nil) || e(tag, :name, nil) ||
-          e(tag, :named, :name, nil) || l("404")
+          e(tag, :named, :name, nil) || l("Tag")
       )
     else
       {:error, :not_found} -> mounted(%{"hashtag" => id}, nil, socket)
@@ -33,9 +33,13 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
   defp mounted(%{"hashtag" => hashtag}, _session, socket) do
     debug(hashtag, "hashtag")
 
-    with {:ok, tag} <-
-           Bonfire.Tag.Tags.one([name: hashtag], pointable: Bonfire.Tag.Hashtag) do
-      ok_assigns(socket, tag, "#{e(tag, :name, hashtag)}")
+    if is_ulid?(hashtag) do
+      mounted(%{"id" => hashtag}, nil, socket)
+    else
+      with {:ok, tag} <-
+             Bonfire.Tag.Tags.one([name: hashtag], pointable: Bonfire.Tag.Hashtag) do
+        ok_assigns(socket, tag, "#{e(tag, :name, hashtag)}")
+      end
     end
   end
 
