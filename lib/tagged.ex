@@ -2,6 +2,7 @@ defmodule Bonfire.Tag.Tagged do
   import Ecto.Query, only: [from: 2]
   import Bonfire.Common.Config, only: [repo: 0]
   use Ecto.Schema
+  import Untangle
 
   use Pointers.Mixin,
     otp_app: :bonfire_tag,
@@ -26,12 +27,16 @@ defmodule Bonfire.Tag.Tagged do
   def changeset(struct, params \\ %{})
 
   def changeset(struct, %_{id: tag_id} = _object) do
+    debug(tag_id, "tag_id")
+
     struct
     |> Ecto.Changeset.cast(%{tag_id: tag_id}, @cast)
     |> Ecto.Changeset.validate_required(@required)
   end
 
   def changeset(struct, params) do
+    debug(params, "params")
+
     struct
     |> Ecto.Changeset.cast(params, @cast)
     |> Ecto.Changeset.validate_required(@required)
