@@ -61,8 +61,7 @@ defmodule Bonfire.Tags.Acts.Tag do
         categories_auto_boost =
           Utils.e(changeset, :changes, :post_content, :changes, :mentions, [])
           |> Tags.maybe_boostable_categories(current_user, ...)
-
-        # |> maybe_debug(epic, act, ..., "categories_auto_boost")
+          |> maybe_debug(epic, act, ..., "categories_auto_boost")
 
         maybe_debug(epic, act, "tags", "Casting")
 
