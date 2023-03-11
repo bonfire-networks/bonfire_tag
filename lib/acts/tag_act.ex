@@ -65,6 +65,24 @@ defmodule Bonfire.Tags.Acts.Tag do
 
         maybe_debug(epic, act, "tags", "Casting")
 
+        # only put in first mentioned category
+        category = List.first(categories_auto_boost)
+
+        changeset =
+          if not is_nil(category) do
+            with {:error, _} <-
+                   Utils.maybe_apply(Bonfire.Classify.Tree, :put_tree, [
+                     changeset,
+                     Utils.e(category, :tree, :custodian, nil) ||
+                       Utils.e(category, :tree, :custodian_id, nil),
+                     category
+                   ]) do
+              changeset
+            end
+          else
+            changeset
+          end
+
         changeset
         |> Tags.cast(attrs, current_user, boundary)
         |> Epic.assign(epic, on, ...)
