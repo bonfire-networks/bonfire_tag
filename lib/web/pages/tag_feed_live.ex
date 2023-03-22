@@ -1,21 +1,9 @@
 defmodule Bonfire.Tag.Web.TagFeedLive do
   use Bonfire.UI.Common.Web, :surface_live_view
 
-  alias Bonfire.UI.Me.LivePlugs
+  on_mount {LivePlugs, [Bonfire.UI.Me.LivePlugs.LoadCurrentUser]}
 
-  def mount(params, session, socket) do
-    live_plug(params, session, socket, [
-      LivePlugs.LoadCurrentAccount,
-      LivePlugs.LoadCurrentUser,
-      # LivePlugs.LoadCurrentUserCircles,
-      Bonfire.UI.Common.LivePlugs.StaticChanged,
-      Bonfire.UI.Common.LivePlugs.Csrf,
-      Bonfire.UI.Common.LivePlugs.Locale,
-      &mounted/3
-    ])
-  end
-
-  defp mounted(%{"id" => id} = _params, _session, socket) do
+  def mount(%{"id" => id} = _params, _session, socket) do
     # debug(id, "id")
 
     with {:ok, tag} <- Bonfire.Tag.Tags.get(id) do
@@ -26,15 +14,15 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
           e(tag, :named, :name, nil) || l("Tag")
       )
     else
-      {:error, :not_found} -> mounted(%{"hashtag" => id}, nil, socket)
+      {:error, :not_found} -> mount(%{"hashtag" => id}, nil, socket)
     end
   end
 
-  defp mounted(%{"hashtag" => hashtag}, _session, socket) do
+  def mount(%{"hashtag" => hashtag}, _session, socket) do
     debug(hashtag, "hashtag")
 
     if is_ulid?(hashtag) do
-      mounted(%{"id" => hashtag}, nil, socket)
+      mount(%{"id" => hashtag}, nil, socket)
     else
       with {:ok, tag} <-
              Bonfire.Tag.Tags.one([name: hashtag], pointable: Bonfire.Tag.Hashtag) do
