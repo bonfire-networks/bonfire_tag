@@ -26,7 +26,14 @@ defmodule Bonfire.Tag.TextContent.Process do
         content_type
       )
       when is_binary(text) do
-    options = [mentions_format: :full, user: user]
+    validate_domains = Config.get(:env) == :prod
+
+    options = [
+      mentions_format: :full,
+      user: user,
+      validate_hostname: validate_domains,
+      validate_tld: validate_domains
+    ]
 
     content_type =
       content_type(content_type)
@@ -34,6 +41,7 @@ defmodule Bonfire.Tag.TextContent.Process do
 
     # |> Bonfire.Social.PostContents.prepare_text() # FIXME: make modular
     format_input(text, content_type, options)
+    |> debug("ran through Linkify")
 
     # |> maybe_add_attachments(attachments, attachment_links)
     # |> maybe_add_nsfw_tag(data)
@@ -62,10 +70,10 @@ defmodule Bonfire.Tag.TextContent.Process do
   @doc """
   Formatting text to plain text, HTML, or markdown
   """
-  def format_input(text, format \\ "text/plain", options \\ [])
+  defp format_input(text, format \\ "text/plain", options \\ [])
 
   # doc """ Formatting text to plain text. """
-  def format_input(text, "text/plain" = content_type, options) do
+  defp format_input(text, "text/plain" = content_type, options) do
     text
     |> html_escape(content_type)
     |> String.replace("&amp;", "&")
@@ -74,7 +82,7 @@ defmodule Bonfire.Tag.TextContent.Process do
   end
 
   # doc """ Formatting text to html. """
-  def format_input(text, "text/html" = content_type, options) do
+  defp format_input(text, "text/html" = content_type, options) do
     text
     |> html_escape(content_type)
     |> String.replace("&amp;", "&")
@@ -82,7 +90,7 @@ defmodule Bonfire.Tag.TextContent.Process do
   end
 
   # doc """ Formatting text to markdown. FIXME """
-  def format_input(text, "text/markdown" = content_type, options) do
+  defp format_input(text, "text/markdown" = content_type, options) do
     text
     # |> Formatter.mentions_escape(options)
     # |> Earmark.as_html()
