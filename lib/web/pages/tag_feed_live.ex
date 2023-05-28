@@ -71,7 +71,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
     {:noreply,
      socket
      |> assign(
-       Bonfire.Social.Feeds.LiveHandler.feed_assigns_maybe_async(
+       Bonfire.Social.Feeds.LiveHandler.feed_default_assigns(
          {"feed:profile:timeline",
           Bonfire.Tag.Tagged.q_with_tag(ulid(e(socket.assigns, :tag, nil)))},
          socket
