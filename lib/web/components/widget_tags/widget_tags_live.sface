@@ -38,7 +38,7 @@
             </li>
           {#match other}
             <li class="">
-              <LiveRedirect to={path(other |> debug("pathos"))}>
+              <LiveRedirect to={path(other)}>
                 <div class="flex flex-row items-center">
                   <div class="flex flex-col items-start flex-1 gap-0 text-left">
                     <div
