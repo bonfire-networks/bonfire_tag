@@ -39,7 +39,6 @@ defmodule Bonfire.Tag.TextContent.Process do
       content_type(content_type)
       |> info("content_type")
 
-    # |> Bonfire.Social.PostContents.prepare_text() # FIXME: make modular
     format_input(text, content_type, options)
     |> debug("ran through Linkify")
 

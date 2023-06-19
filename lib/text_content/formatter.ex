@@ -19,7 +19,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   @spec linkify(String.t(), keyword()) ::
           {String.t(), [{String.t(), User.t()}], [{String.t(), String.t()}]}
   def linkify(text, options \\ []) do
-    options = linkify_opts() ++ options
+    options = linkify_opts(has_codeblock?(text)) ++ options
 
     if options[:safe_mention] && Regex.named_captures(@safe_mention_regex, text) do
       %{"mentions" => mentions, "rest" => rest} = Regex.named_captures(@safe_mention_regex, text)
@@ -41,10 +41,14 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     end
   end
 
-  defp linkify_opts do
+  defp has_codeblock?(text) do
+    String.split(text, "`", parts: 3) == 3 || String.split(text, "```", parts: 3) == 3
+  end
+
+  defp linkify_opts(has_codeblock \\ false) do
     Config.get(Bonfire.Tag.TextContent.Formatter, []) ++
       [
-        url_handler: &url_handler/3,
+        url_handler: if(has_codeblock, do: &url_handler/3, else: &nothing_handler/3),
         hashtag: true,
         hashtag_handler: &tag_handler/4,
         mention: true,
@@ -73,6 +77,10 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
   def escape_mention_handler("+" <> _nickname = mention, _buffer, _, _) do
     String.replace(mention, @markdown_characters_regex, "\\\\\\1")
+  end
+
+  def nothing_handler(text, opts, acc) do
+    {text, acc}
   end
 
   def url_handler(url, opts, acc) do
