@@ -68,15 +68,16 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
 
   def do_handle_params(%{"tab" => tab} = _params, _url, socket)
       when tab in ["posts", "timeline"] do
+    # FIXME!
     {:noreply,
      socket
      |> assign(
        Bonfire.Social.Feeds.LiveHandler.feed_default_assigns(
-         {"feed:profile:timeline",
+         {"feed_profile_timeline",
           Bonfire.Tag.Tagged.q_with_tag(ulid(e(socket.assigns, :tag, nil)))},
          socket
        )
-       |> debug("feed_assigns_maybe_async")
+       |> debug("tag_feed_assigns_maybe_async")
      )
      |> assign(
        selected_tab: tab(tab),
