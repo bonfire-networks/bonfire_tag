@@ -6,7 +6,7 @@
 >
   <ul
     :if={!Bonfire.Me.Settings.get([:ui, :show_trending_tags, :disabled], nil, @__context__)}
-    class="menu menu-sm"
+    class="menu menu-lg mt-3 p-0 px-1"
   >
     {#if length(
         Bonfire.Tag.Tags.list_trending(
