@@ -58,7 +58,7 @@
         {#else}
           <div class="flex flex-col items-center p-3 space-y-2 place-content-center">
             <img
-              :if={!Settings.get([:ui, :compact], false, @__context__)}
+              :if={!@__context__[:ui_compact]}
               src={Config.get([:ui, :theme, :instance_icon], nil)}
               class="w-12 h-full grayscale"
             />
