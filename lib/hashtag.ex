@@ -40,7 +40,7 @@ defmodule Bonfire.Tag.Hashtag do
 
     repo().insert(
       changeset,
-      on_conflict: [set: [name: get_field(changeset, :name)]],
+      on_conflict: [set: [name: Pointers.Changesets.get_field(changeset, :name)]],
       conflict_target: :name,
       returning: true
     )
