@@ -8,7 +8,7 @@
       :if={!Bonfire.Me.Settings.get([:ui, :show_trending_tags, :disabled], nil, @__context__)}
       widget_title={@widget_title || l("Trending topics")}
       class="relative w-full mx-auto rounded-xl bg-base-100"
-      title_class="mx-5 py-3  pb-2 text-lg font-bold tracking-wide"
+      title_class="mx-5 py-3  text-base-content/90 pb-2 text-lg font-bold tracking-wide"
     >
       <ul
         :if={!Bonfire.Me.Settings.get([:ui, :show_trending_tags, :disabled], nil, @__context__)}
@@ -25,7 +25,7 @@
                         <div
                           style="overflow-wrap: anywhere;
                       white-space: inherit;"
-                          class="text-sm font-bold truncate text-base-content line-clamp-1"
+                          class="text-sm font-bold truncate text-base-content/90 line-clamp-1"
                         >
                           #{hashtag.name}
                         </div>
@@ -43,7 +43,7 @@
                         <div
                           style="overflow-wrap: anywhere;
                       white-space: inherit;"
-                          class="text-sm font-bold truncate text-base-content line-clamp-1"
+                          class="text-sm font-bold truncate text-base-content/90 line-clamp-1"
                         >
                           {e(other, :name, nil) || e(other, :profile, :name, nil) || e(other, :character, :username, nil) ||
                             e(other, :named, :name, nil) || e(other, :id, nil)}
