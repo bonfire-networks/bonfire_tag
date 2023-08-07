@@ -48,7 +48,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   defp linkify_opts(has_codeblock \\ false) do
     Config.get(Bonfire.Tag.TextContent.Formatter, []) ++
       [
-        url_handler: if(has_codeblock, do: &url_handler/3, else: &nothing_handler/3),
+        url_handler: if(has_codeblock, do: &nothing_handler/3, else: &url_handler/3),
         hashtag: true,
         hashtag_handler: &tag_handler/4,
         mention: true,
