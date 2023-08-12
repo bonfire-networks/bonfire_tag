@@ -26,7 +26,8 @@ defmodule Bonfire.Tag.TextContent.Process do
         content_type
       )
       when is_binary(text) do
-    validate_domains = Config.get(:env) == :prod
+    # Config.get(:env) == :prod
+    validate_domains = System.get_env("SKIP_LINK_DOMAINS_VALIDATION") not in ["1", "true"]
 
     options = [
       mentions_format: :full,
