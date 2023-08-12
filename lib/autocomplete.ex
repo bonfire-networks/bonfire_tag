@@ -4,7 +4,7 @@ defmodule Bonfire.Tag.Autocomplete do
   alias Bonfire.Tag.Tags
   import Untangle
   alias Enums
-
+  use Bonfire.Common.Repo
   # TODO: put in config
   @tag_terminator " "
   @tags_seperator " "
@@ -105,6 +105,7 @@ defmodule Bonfire.Tag.Autocomplete do
   def tag_lookup_process(tag_search, hits, prefix, consumer) do
     # debug(search["hits"])
     hits
+    |> repo().maybe_preload(profile: [:icon])
     |> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer))
     |> Enums.filter_empty([])
   end
@@ -114,7 +115,9 @@ defmodule Bonfire.Tag.Autocomplete do
     if !is_nil(hit["username"]) or !is_nil(hit["id"]) do
       hit
       |> Map.merge(%{display: tag_suggestion_display(hit, tag_search)})
+      |> Map.merge(%{icon: Media.avatar_url(hit) || e(hit, "icon", nil)})
       |> Map.merge(%{tag_as: e(hit, "username", e(hit, "id", ""))})
+
     end
   end
 
