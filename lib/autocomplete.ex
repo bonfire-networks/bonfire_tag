@@ -4,7 +4,8 @@ defmodule Bonfire.Tag.Autocomplete do
   alias Bonfire.Tag.Tags
   import Untangle
   alias Enums
-  use Bonfire.Common.Repo
+  import Bonfire.Common.Config, only: [repo: 0]
+
   # TODO: put in config
   @tag_terminator " "
   @tags_seperator " "
@@ -44,13 +45,15 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def api_tag_lookup_public(tag_search, prefix, consumer, index_type) do
-    tag_lookup_public(tag_search, index_type)
-    |> tag_lookup_process(tag_search, ..., prefix, consumer)
+    tag_lookup_public(tag_search, index_type, prefix, consumer)
   end
 
-  def tag_lookup_public(tag_search, index_type) do
-    maybe_search(tag_search, index_type) ||
+  def tag_lookup_public(tag_search, index_type, prefix \\ nil, consumer \\ nil) do
+    maybe_search(tag_search, index_type, prefix, consumer) ||
       maybe_find_tags(tag_search, index_type)
+      |> repo().maybe_preload(profile: [:icon])
+      |> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer))
+      |> Enums.filter_empty([])
   end
 
   def maybe_find_tags(tag_search, index_type) do
@@ -76,7 +79,7 @@ defmodule Bonfire.Tag.Autocomplete do
     end
   end
 
-  def maybe_search(tag_search, facets \\ nil) do
+  def maybe_search(tag_search, facets \\ nil, prefix \\ nil, consumer \\ nil) do
     # debug(searched: tag_search)
     # debug(facets: facets)
 
@@ -93,7 +96,7 @@ defmodule Bonfire.Tag.Autocomplete do
 
       if(is_list(search) and length(search) > 0) do
         # search["hits"]
-        Enum.map(search, &tag_hit_prepare(&1, tag_search))
+        Enum.map(search, &tag_hit_prepare(&1, tag_search, prefix, consumer))
         |> Enums.filter_empty([])
         |> input_to_atoms()
 
@@ -102,72 +105,25 @@ defmodule Bonfire.Tag.Autocomplete do
     end
   end
 
-  def tag_lookup_process(tag_search, hits, prefix, consumer) do
-    # debug(search["hits"])
-    hits
-    |> repo().maybe_preload(profile: [:icon])
-    |> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer))
-    |> Enums.filter_empty([])
-  end
+  # def tag_hit_prepare(hit, tag_search) do
+  #   debug(hit)
+  #   # FIXME: exclude empties by filtering Meili instead?
+  #   case e(hit, "username", nil) || e(hit, "id", "") || e(hit, :character, :username, nil) do
+  #     nil -> nil
+  #     username ->
+  #     hit
+  #     |> Map.merge(%{display: tag_suggestion_display(hit, tag_search, username)})
+  #     |> Map.merge(%{icon: Media.avatar_url(hit) || e(hit, "icon", nil)})
+  #     |> Map.merge(%{tag_as: username})
+  #   end
+  # end
 
-  def tag_hit_prepare(hit, tag_search) do
-    # FIXME: do this by filtering Meili instead?
-    if !is_nil(hit["username"]) or !is_nil(hit["id"]) do
-      hit
-      |> Map.merge(%{display: tag_suggestion_display(hit, tag_search)})
-      |> Map.merge(%{icon: Media.avatar_url(hit) || e(hit, "icon", nil)})
-      |> Map.merge(%{tag_as: e(hit, "username", e(hit, "id", ""))})
-
-    end
-  end
-
-  def tag_hit_prepare(object, _tag_search, prefix, consumer) do
-    # debug(hit)
-
-    hit =
-      stringify_keys(object, true)
-      |> debug()
-
-    username = hit["username"] || hit["character"]["username"]
-
-    # FIXME: do this by filtering Meili instead?
-    if Text.strlen(username) do
-      # "link" => e(hit, "canonical_url", URIs.canonical_url(object))
-      tag_add_field(
-        %{
-          "name" =>
-            e(
-              hit,
-              "name_crumbs",
-              e(hit, "profile", "name", e(hit, "name", e(hit, "username", nil)))
-            )
-        },
-        consumer,
-        prefix,
-        username || e(hit, "id", "")
-      )
-    end
-  end
-
-  def tag_add_field(hit, "tag_as", _prefix, as) do
-    Map.merge(hit, %{tag_as: as})
-  end
-
-  def tag_add_field(hit, consumer, prefix, as)
-      when consumer in ["ck5", "quill"] do
-    if String.at(as, 0) == prefix do
-      Map.merge(hit, %{"id" => to_string(as)})
-    else
-      Map.merge(hit, %{"id" => prefix <> to_string(as)})
-    end
-  end
-
-  # def tag_suggestion_display(hit, tag_search) do
-  #   name = e(hit, "name_crumbs", e(hit, "name", e(hit, "username", nil)))
+  # def tag_suggestion_display(hit, tag_search, username \\ nil) do
+  #   name = e(hit, "name_crumbs", nil) || e(hit, "name", nil) || username || e(hit, "username", nil)
 
   #   if !is_nil(name) and name =~ tag_search do
   #     split = String.split(name, tag_search, parts: 2, trim: false)
-  #     debug(split)
+  #     # debug(split)
   #     [head | tail] = split
 
   #     List.to_string([head, "<span>", tag_search, "</span>", tail])
@@ -175,6 +131,44 @@ defmodule Bonfire.Tag.Autocomplete do
   #     name
   #   end
   # end
+
+  def tag_hit_prepare(hit, _tag_search, prefix, consumer) do
+    debug(hit)
+
+    username = e(hit, "username", nil) || e(hit, :character, :username, nil) || e(hit, "id", nil)
+
+    # FIXME: do this by filtering Meili instead?
+    if not is_nil(username) and username != "" do
+      # "link" => e(hit, "canonical_url", URIs.canonical_url(object))
+      tag_add_field(
+        %{
+          name:
+            e(
+              hit,
+              "name_crumbs",
+              nil
+            ) || e(hit, :profile, :name, nil) || e(hit, "name", nil) || username,
+          icon: Media.avatar_url(hit) || e(hit, "icon", nil)
+        },
+        consumer,
+        prefix,
+        username
+      )
+    end
+  end
+
+  def tag_add_field(hit, "tag_as", _prefix, username) do
+    Map.merge(hit, %{tag_as: username})
+  end
+
+  def tag_add_field(hit, consumer, prefix, username)
+      when consumer in ["ck5", "quill"] do
+    if String.at(username, 0) == prefix do
+      Map.merge(hit, %{id: username})
+    else
+      Map.merge(hit, %{id: "#{prefix}#{username}"})
+    end
+  end
 
   def find_all_tags(content) do
     # debug(prefixes: @prefixes)
@@ -301,20 +295,6 @@ defmodule Bonfire.Tag.Autocomplete do
       if String.length(typed) do
         typed
       end
-    end
-  end
-
-  def tag_suggestion_display(hit, tag_search) do
-    name = e(hit, "name_crumbs", e(hit, "name", e(hit, "username", nil)))
-
-    if !is_nil(name) and name =~ tag_search do
-      split = String.split(name, tag_search, parts: 2, trim: false)
-      # debug(split)
-      [head | tail] = split
-
-      List.to_string([head, "<span>", tag_search, "</span>", tail])
-    else
-      name
     end
   end
 end
