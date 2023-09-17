@@ -11,7 +11,7 @@
     >
       <ul
         :if={!Bonfire.Me.Settings.get([:ui, :show_trending_tags, :disabled], nil, @__context__)}
-        class="menu menu-lg p-0"
+        class="menu p-0"
       >
         {#if trending != []}
           {#for tag <- trending}
@@ -24,7 +24,7 @@
                         <div
                           style="overflow-wrap: anywhere;
                       white-space: inherit;"
-                          class="text-sm font-bold truncate text-base-content/90 line-clamp-1"
+                          class="text-sm font-medium truncate line-clamp-1"
                         >
                           #{hashtag.name}
                         </div>
