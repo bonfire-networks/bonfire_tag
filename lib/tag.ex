@@ -3,6 +3,7 @@ defmodule Bonfire.Tag do
   import Bonfire.Common.Config, only: [repo: 0]
   alias Ecto.Changeset
   import Untangle
+  alias Pointers.Changesets
 
   @doc """
   Add things (Pointer objects) to a tag. You usually want to add tags to a thing instead, see `thing_tags_changeset`
@@ -11,13 +12,13 @@ defmodule Bonfire.Tag do
         %{} = tag,
         things
       ) do
-    debug(things, "things")
+    debug(things, "things to tag")
 
     tag
     |> repo().maybe_preload(:tagged)
-    |> Changeset.change()
+    # |> Changeset.change()
     # Set the association
-    |> Changeset.put_assoc(:tagged, things)
+    |> Changesets.put_assoc(:tagged, things)
   end
 
   @doc """
@@ -25,16 +26,40 @@ defmodule Bonfire.Tag do
   """
 
   def thing_tags_changeset(
-        %{} = thing,
+        %{id: _thing_id} = thing,
         tags
       ) do
-    debug(tags, "tags")
-
+    debug(tags, "tags to add to thing")
+    # FIXME...
     thing
     |> repo().maybe_preload(:tags)
     |> Changeset.change()
     # Set the association
     |> Changeset.put_assoc(:tags, tags)
+
+    # |> Map.put(:tags, tags)
+    # |> Changesets.cast_assoc(:tags, tags)
+  end
+
+  def thing_tags_insert(
+        %{id: thing_id} = _thing,
+        tags
+      ) do
+    debug(tags, "tags to add to thing")
+
+    {num, _} =
+      repo().insert_all(
+        Bonfire.Tag.Tagged,
+        tags
+        |> List.wrap()
+        |> Enum.map(fn
+          %{id: tag_id} ->
+            %{id: thing_id, tag_id: tag_id}
+        end)
+        |> debug()
+      )
+
+    {:ok, num}
   end
 
   @behaviour Bonfire.Common.SchemaModule

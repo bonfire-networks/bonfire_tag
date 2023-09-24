@@ -226,9 +226,10 @@ defmodule Bonfire.Tag.Tags do
     if pointer do
       tags =
         Enum.map(tags, &tag_preprocess(user, &1))
-        |> debug("tags")
         |> Enum.reject(&is_nil/1)
         |> Enum.uniq_by(& &1.id)
+
+      # |> debug("tags")
 
       # |> debug("tags")
       with {:ok, _tagged} <- thing_tags_save(pointer, tags) |> debug("saved") do
@@ -248,7 +249,7 @@ defmodule Bonfire.Tag.Tags do
   defp tag_preprocess(_, tag) when is_nil(tag) or tag == "", do: nil
 
   defp tag_preprocess(_user, {:error, e}) do
-    warn("Tags: invalid tag: #{inspect(e)}")
+    error(e, "Tags: invalid tag")
     nil
   end
 
@@ -261,7 +262,7 @@ defmodule Bonfire.Tag.Tags do
     do: get(tag) |> ok_unwrap(nil) |> thing_to_pointer()
 
   defp tag_preprocess(_user, tag) do
-    error("Tags.tag_preprocess: didn't recognise this as a tag: #{inspect(tag)} ")
+    error(tag, "Tags.tag_preprocess: didn't recognise this as a tag")
 
     nil
   end
@@ -274,9 +275,11 @@ defmodule Bonfire.Tag.Tags do
        when is_list(tags) and length(tags) > 0 do
     tags
     # |> debug("tags")
-    |> Bonfire.Tag.thing_tags_changeset(thing, ...)
+    |> Bonfire.Tag.thing_tags_insert(thing, ...)
+
+    # |> Bonfire.Tag.thing_tags_changeset(thing, ...)
     # |> debug("changeset")
-    |> repo().transact_with(fn -> repo().update(..., on_conflict: :nothing) end)
+    # |> repo().transact_with(fn -> repo().update(..., on_conflict: :nothing) end)
   end
 
   defp thing_tags_save(thing, _tags), do: {:ok, thing}
