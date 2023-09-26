@@ -1,6 +1,6 @@
 <main data-id="tag" data-tag-id={id(@tag)} class="">
   <section class="flex flex-col w-full gap-3 mx-auto">
-    <!-- <Bonfire.UI.Common.PageTitleLive page_title={l("Results for ") <> @page_title} /> -->
+    {!-- <Bonfire.UI.Common.PageTitleLive page_title={l("Results for ") <> @page_title} /> --}
     <Dynamic.Component
       module={Config.get([:ui, :tag, :sections, tab(@selected_tab)], Bonfire.UI.Social.ProfileTimelineLive)}
       user={@tag}
