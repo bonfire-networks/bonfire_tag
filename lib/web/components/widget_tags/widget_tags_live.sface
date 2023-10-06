@@ -1,7 +1,7 @@
-{#case Bonfire.Me.Settings.get([:ui, :show_trending_tags, :disabled], nil, @__context__) != true and
+{#case Bonfire.Common.Settings.get([:ui, :show_trending_tags, :disabled], nil, @__context__) != true and
     Bonfire.Tag.Tags.list_trending(
-      Bonfire.Me.Settings.get([:ui, :show_trending_tags, :for_last_x_days], 30, @__context__),
-      Bonfire.Me.Settings.get([:ui, :show_trending_tags, :limit], 10, @__context__)
+      Bonfire.Common.Settings.get([:ui, :show_trending_tags, :for_last_x_days], 30, @__context__),
+      Bonfire.Common.Settings.get([:ui, :show_trending_tags, :limit], 10, @__context__)
     )}
   {#match trending when is_list(trending)}
     <Bonfire.UI.Common.WidgetBlockLive
@@ -10,7 +10,7 @@
       title_class="mx-5 py-3  text-base-content/90 pb-2 text-lg font-bold tracking-wide"
     >
       <ul
-        :if={!Bonfire.Me.Settings.get([:ui, :show_trending_tags, :disabled], nil, @__context__)}
+        :if={!Bonfire.Common.Settings.get([:ui, :show_trending_tags, :disabled], nil, @__context__)}
         class="menu p-0"
       >
         {#if trending != []}
