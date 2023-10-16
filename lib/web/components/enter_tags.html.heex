@@ -7,8 +7,9 @@
     placeholder="Enter one or more tags or categories..."
   />
 </div>
-<%= live_component(
-  Bonfire.Tag.Web.Component.TagAutocomplete,
-  id: @id <> "_tag_results",
-  tag_target: @id <> "_tags"
-) %>
+
+<.live_component
+  module={Bonfire.Tag.Web.Component.TagAutocomplete}
+  id={"#{@id}_tag_results"}
+  tag_target={"#{@id}_tags"}
+/>
