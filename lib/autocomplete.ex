@@ -121,7 +121,7 @@ defmodule Bonfire.Tag.Autocomplete do
   # def tag_suggestion_display(hit, tag_search, username \\ nil) do
   #   name = e(hit, "name_crumbs", nil) || e(hit, "name", nil) || username || e(hit, "username", nil)
 
-  #   if !is_nil(name) and name =~ tag_search do
+  #   if not is_nil(name) and name =~ tag_search do
   #     split = String.split(name, tag_search, parts: 2, trim: false)
   #     # debug(split)
   #     [head | tail] = split
