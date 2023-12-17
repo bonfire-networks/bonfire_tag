@@ -79,10 +79,10 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
        |> debug("tag_feed_assigns_maybe_async")
      )
      |> assign(
-       selected_tab: tab(tab),
+       selected_tab: tab(tab)
        #  page_title: e(socket.assigns, :name, nil),
        #  page_title: "#{e(socket.assigns, :name, nil)} #{tab(tab)}")
-       page_header_icon: "mingcute:hashtag-fill"
+       #  page_header_icon: "mingcute:hashtag-fill"
      )}
   end
 
