@@ -36,7 +36,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
      assign(
        socket,
        page: "tag",
-       page_title: name,
+       page_title: "#" <> name,
        object_type: nil,
        feed: [],
        hide_tabs: true,
@@ -45,7 +45,6 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
        tag: tag,
        canonical_url: canonical_url(tag),
        name: name,
-       page_title: name,
        nav_items: Bonfire.Common.ExtensionModule.default_nav(:bonfire_ui_social),
        sidebar_widgets: [
          users: [
@@ -81,7 +80,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
      )
      |> assign(
        selected_tab: tab(tab),
-       page_title: e(socket.assigns, :name, nil),
+       #  page_title: e(socket.assigns, :name, nil),
        #  page_title: "#{e(socket.assigns, :name, nil)} #{tab(tab)}")
        page_header_icon: "mingcute:hashtag-fill"
      )}
