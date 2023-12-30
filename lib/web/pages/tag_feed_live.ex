@@ -21,13 +21,20 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
   def mount(%{"hashtag" => hashtag}, _session, socket) do
     debug(hashtag, "hashtag")
 
-    if is_ulid?(hashtag) do
-      mount(%{"id" => hashtag}, nil, socket)
-    else
-      with {:ok, tag} <-
-             Bonfire.Tag.Tags.one([name: hashtag], pointable: Bonfire.Tag.Hashtag) do
-        ok_assigns(socket, tag, "#{e(tag, :name, hashtag)}")
-      end
+    cond do
+      not extension_enabled?(:bonfire_tag, socket) ->
+        {:ok,
+         socket
+         |> redirect_to("/search?s=#{hashtag}")}
+
+      is_ulid?(hashtag) ->
+        mount(%{"id" => hashtag}, nil, socket)
+
+      true ->
+        with {:ok, tag} <-
+               Bonfire.Tag.Tags.one([name: hashtag], pointable: Bonfire.Tag.Hashtag) do
+          ok_assigns(socket, tag, "#{e(tag, :name, hashtag)}")
+        end
     end
   end
 

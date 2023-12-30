@@ -70,13 +70,21 @@ defmodule Bonfire.Tags.Acts.Tag do
 
         changeset =
           if not is_nil(category) do
+            custodian =
+              Utils.e(category, :tree, :custodian, nil) ||
+                Utils.e(category, :tree, :custodian_id, nil)
+
             with {:error, _} <-
-                   Utils.maybe_apply(Bonfire.Classify.Tree, :put_tree, [
-                     changeset,
-                     Utils.e(category, :tree, :custodian, nil) ||
-                       Utils.e(category, :tree, :custodian_id, nil),
-                     category
-                   ]) do
+                   Utils.maybe_apply(
+                     Bonfire.Classify.Tree,
+                     :put_tree,
+                     [
+                       changeset,
+                       custodian,
+                       category
+                     ],
+                     custodian
+                   ) do
               changeset
             end
           else
