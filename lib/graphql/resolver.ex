@@ -138,7 +138,7 @@ if Code.ensure_loaded?(Bonfire.API.GraphQL) do
     #     when is_nil(name) and not is_nil(context_id) do
 
     #   # TODO: optimise so it doesn't repeat these queries (for context and summary fields)
-    #   with {:ok, context} <- Bonfire.Common.Pointers.get(context_id, current_user: user) do
+    #   with {:ok, context} <- Bonfire.Common.Needle.get(context_id, current_user: user) do
     #     name = if Map.has_key?(context, :name), do: context.name
     #     {:ok, name}
     #   end
@@ -161,7 +161,7 @@ if Code.ensure_loaded?(Bonfire.API.GraphQL) do
     #     when is_nil(summary) and not is_nil(context_id) do
 
     #   # TODO: optimise so it doesn't repeat these queries (for context and summary fields)
-    #   with {:ok, context} <- Bonfire.Common.Pointers.get(context_id, current_user: user) do
+    #   with {:ok, context} <- Bonfire.Common.Needle.get(context_id, current_user: user) do
     #     summary = if Map.has_key?(context, :summary), do: context.summary
     #     {:ok, summary}
     #   end

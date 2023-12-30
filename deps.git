@@ -1,7 +1,5 @@
-arrows = "https://github.com/bonfire-networks/arrows#main"
 bonfire_common = "https://github.com/bonfire-networks/bonfire_common#main"
 bonfire_epics = "https://github.com/bonfire-networks/bonfire_epics#main"
 bonfire_ui_common = "https://github.com/bonfire-networks/bonfire_ui_common#main"
 # bonfire_web_phoenix = "https://github.com/bonfire-networks/bonfire_web_phoenix#main"
-pointers = "https://github.com/bonfire-networks/pointers#main"
 linkify = "https://github.com/bonfire-networks/linkify#master"

@@ -1,5 +1,5 @@
 defmodule Bonfire.Tag.Hashtag do
-  use Pointers.Pointable,
+  use Needle.Pointable,
     otp_app: :bonfire_tag,
     table_id: "7HASHTAG1SPART0FF01KS0N0MY",
     source: "bonfire_tag_hashtag"
@@ -7,7 +7,7 @@ defmodule Bonfire.Tag.Hashtag do
   # @hashtag_table "bonfire_tag_hashtag"
 
   alias Bonfire.Tag.Hashtag
-  # alias Pointers.Changesets
+  # alias Needle.Changesets
   import Ecto.Changeset
   # import Ecto.Query
   import Bonfire.Common.Config, only: [repo: 0]
@@ -40,7 +40,7 @@ defmodule Bonfire.Tag.Hashtag do
 
     repo().insert(
       changeset,
-      on_conflict: [set: [name: Pointers.Changesets.get_field(changeset, :name)]],
+      on_conflict: [set: [name: Needle.Changesets.get_field(changeset, :name)]],
       conflict_target: :name,
       returning: true
     )
@@ -50,16 +50,16 @@ end
 defmodule Bonfire.Tag.Hashtag.Migration do
   @moduledoc false
   use Ecto.Migration
-  import Pointers.Migration
+  import Needle.Migration
   alias Bonfire.Tag.Hashtag
 
   @hashtag_table "bonfire_tag_hashtag"
 
   defp make_hashtag_table(exprs) do
     quote do
-      require Pointers.Migration
+      require Needle.Migration
 
-      Pointers.Migration.create_pointable_table Bonfire.Tag.Hashtag do
+      Needle.Migration.create_pointable_table Bonfire.Tag.Hashtag do
         Ecto.Migration.add(:name, :string)
         unquote_splicing(exprs)
       end

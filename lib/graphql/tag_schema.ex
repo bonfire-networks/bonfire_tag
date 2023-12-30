@@ -15,7 +15,7 @@ if Bonfire.Common.Extend.module_enabled?(Bonfire.API.GraphQL) do
     end
 
     object :tag_mutations do
-      @desc "Tag a thing (using a Pointer) with one or more Tags (or Categories, or even Pointers to anything that can become tag)"
+      @desc "Tag a thing (using a Pointer) with one or more Tags (or Categories, or even Needle to anything that can become tag)"
       field :tag, :boolean do
         arg(:thing, non_null(:string))
         arg(:tags, non_null(list_of(:string)))

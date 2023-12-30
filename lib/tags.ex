@@ -5,10 +5,10 @@ defmodule Bonfire.Tag.Tags do
   import Bonfire.Common.Config, only: [repo: 0]
   # alias Bonfire.Common.Types
 
-  # warning: do not move after we alias Pointers
-  alias Pointers.Pointer
+  # warning: do not move after we alias Needle
+  alias Needle.Pointer
   # warning: do not move before we alias Pointer
-  alias Bonfire.Common.Pointers
+  alias Bonfire.Common.Needle
   # alias Bonfire.Me.Characters
   alias Bonfire.Tag.Queries
 
@@ -91,7 +91,7 @@ defmodule Bonfire.Tag.Tags do
     <~> if is_ulid?(id_or_username_or_url) do
       debug("try by ID")
 
-      Pointers.one(id_or_username_or_url,
+      Needle.one(id_or_username_or_url,
         current_user: current_user,
         skip_boundary_check: true
       )
@@ -191,7 +191,7 @@ defmodule Bonfire.Tag.Tags do
   # end
 
   @doc """
-  tag existing thing with one or multiple Tags, Pointers, or anything that can be made into a tag
+  tag existing thing with one or multiple Tags, Needle, or anything that can be made into a tag
   """
   # def tag_something(user, thing, tags) when is_struct(thing) do
   #   with {:ok, tagged} <- do_tag_thing(user, thing, tags) do
@@ -285,11 +285,11 @@ defmodule Bonfire.Tag.Tags do
   defp thing_tags_save(thing, _tags), do: {:ok, thing}
 
   defp thing_to_pointer({:ok, thing}), do: thing_to_pointer(thing)
-  defp thing_to_pointer(%{} = thing), do: Pointers.maybe_forge(thing)
+  defp thing_to_pointer(%{} = thing), do: Needle.maybe_forge(thing)
 
   defp thing_to_pointer(pointer_id) when is_binary(pointer_id),
     do:
-      Pointers.one(id: pointer_id, skip_boundary_check: true)
+      Needle.one(id: pointer_id, skip_boundary_check: true)
       |> thing_to_pointer()
 
   defp thing_to_pointer(other) do

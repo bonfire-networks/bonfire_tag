@@ -4,13 +4,13 @@ defmodule Bonfire.Tag.Tagged do
   use Ecto.Schema
   import Untangle
 
-  use Pointers.Mixin,
+  use Needle.Mixin,
     otp_app: :bonfire_tag,
     source: "bonfire_tagged"
 
   alias Bonfire.Common.Utils
   alias Bonfire.Common.Types
-  alias Pointers.Pointer
+  alias Needle.Pointer
 
   mixin_schema do
     belongs_to(:tag, Pointer)
@@ -62,7 +62,7 @@ defmodule Bonfire.Tag.Tagged do
         [tag: [:profile, :geolocation, :category, :character]]
       ])
 
-    Map.put(tagged, :thing, Bonfire.Common.Pointers.get(Utils.e(tagged, :pointer, nil)))
+    Map.put(tagged, :thing, Bonfire.Common.Needle.get(Utils.e(tagged, :pointer, nil)))
   end
 
   @doc """

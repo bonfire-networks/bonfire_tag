@@ -1,7 +1,7 @@
 defmodule Bonfire.Tag.Migrations do
   @moduledoc false
   import Ecto.Migration
-  import Pointers.Migration
+  import Needle.Migration
 
   # alias Bonfire.Tag.Tagged
   # alias Bonfire.Data.Social.Hashtag

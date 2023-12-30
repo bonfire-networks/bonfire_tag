@@ -3,7 +3,7 @@ defmodule Bonfire.Tag do
   import Bonfire.Common.Config, only: [repo: 0]
   alias Ecto.Changeset
   import Untangle
-  alias Pointers.Changesets
+  alias Needle.Changesets
 
   @doc """
   Add things (Pointer objects) to a tag. You usually want to add tags to a thing instead, see `thing_tags_changeset`

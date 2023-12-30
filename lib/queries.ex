@@ -2,7 +2,7 @@
 defmodule Bonfire.Tag.Queries do
   import Ecto.Query
 
-  alias Pointers.Pointer, as: Tag
+  alias Needle.Pointer, as: Tag
   alias Bonfire.Tag.Tagged
   alias Bonfire.Common.Utils
   alias Bonfire.Common.Types
