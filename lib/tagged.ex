@@ -62,7 +62,7 @@ defmodule Bonfire.Tag.Tagged do
         [tag: [:profile, :geolocation, :category, :character]]
       ])
 
-    Map.put(tagged, :thing, Bonfire.Common.Needle.get(Utils.e(tagged, :pointer, nil)))
+    Map.put(tagged, :thing, Bonfire.Common.Needles.get(Utils.e(tagged, :pointer, nil)))
   end
 
   @doc """
