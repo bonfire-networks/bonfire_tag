@@ -90,6 +90,7 @@ defmodule Bonfire.Tag.Autocomplete do
       )
 
       # search = Bonfire.Search.search(tag_search, opts, false, facets) |> e("hits")
+      # TODO: pass current_user in opts for boundaries
       search =
         Bonfire.Search.search_by_type(tag_search, facets)
         |> debug()
