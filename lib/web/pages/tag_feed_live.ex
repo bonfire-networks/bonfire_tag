@@ -32,7 +32,8 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
 
       true ->
         with {:ok, tag} <-
-               Bonfire.Tag.Tags.one([name: hashtag], pointable: Bonfire.Tag.Hashtag) do
+               Bonfire.Tag.Tags.one([name: hashtag], pointable: Bonfire.Data.Identity.Named) do
+          #  |> repo().maybe_preload(:named) do
           ok_assigns(socket, tag, "#{e(tag, :name, hashtag)}")
         end
     end

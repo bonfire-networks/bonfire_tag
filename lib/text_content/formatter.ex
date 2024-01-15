@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 defmodule Bonfire.Tag.TextContent.Formatter do
   alias Bonfire.Common.Config
-  # alias Bonfire.Common.Utils
+  alias Bonfire.Common.Utils
   alias Bonfire.Tag.Tags
   import Untangle
 
@@ -99,8 +99,8 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   def tag_handler("#" <> tag = tag_text, buffer, opts, acc) do
-    with {:ok, hashtag} <- Bonfire.Tag.Hashtag.get_or_create_by_name(tag) do
-      tag = hashtag.name
+    with {:ok, hashtag} <- Bonfire.Tag.Tags.get_or_create_hashtag(tag) do
+      tag = Utils.e(hashtag, :named, :name, nil) || tag
       url = Bonfire.Common.URIs.base_url() <> "/hashtag/#{tag}"
       link = tag_link("#", url, tag, Map.get(opts, :content_type))
 

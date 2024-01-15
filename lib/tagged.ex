@@ -1,6 +1,6 @@
 defmodule Bonfire.Tag.Tagged do
   import Ecto.Query, only: [from: 2]
-  import Bonfire.Common.Config, only: [repo: 0]
+  use Bonfire.Common.Repo
   use Ecto.Schema
   import Untangle
 
@@ -72,7 +72,7 @@ defmodule Bonfire.Tag.Tagged do
 
   def q_with_tag(tag_id) do
     from(va in Bonfire.Tag.Tagged,
-      where: [tag_id: ^tag_id],
+      where: va.tag_id in ^Types.ulids(tag_id),
       order_by: [desc: va.inserted_at]
     )
   end
@@ -114,6 +114,21 @@ defmodule Bonfire.Tag.Tagged do
 
   def with_type(types) do
     repo().many(q_with_type(types))
+  end
+
+  def search_query(text, opts) do
+    case Bonfire.Tag.Tags.search_hashtag(text, opts) do
+      [] ->
+        opts[:query] || nil
+
+      hashtags ->
+        (opts[:query] || Pointer)
+        |> proload([:tagged])
+        |> or_where(
+          [tagged: t],
+          t.tag_id in ^Types.ulids(hashtags)
+        )
+    end
   end
 
   def all(), do: repo().many(Bonfire.Tag.Tagged)

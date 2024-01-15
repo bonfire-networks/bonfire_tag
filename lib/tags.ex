@@ -2,7 +2,7 @@
 defmodule Bonfire.Tag.Tags do
   use Arrows
   use Bonfire.Common.Utils
-  import Bonfire.Common.Config, only: [repo: 0]
+  use Bonfire.Common.Repo
   # alias Bonfire.Common.Types
 
   # warning: do not move after we alias Needle
@@ -13,6 +13,7 @@ defmodule Bonfire.Tag.Tags do
   alias Bonfire.Tag.Queries
 
   alias Bonfire.Tag.Tagged
+  alias Bonfire.Tag.Hashtag
 
   @doc """
   Retrieves a single tag by arbitrary filters.
@@ -48,6 +49,56 @@ defmodule Bonfire.Tag.Tags do
       else: many(autocomplete: id, type: types)
   end
 
+  def get_hashtag(name) do
+    Hashtag.normalize_name(name)
+    |> do_get_hashtag()
+  end
+
+  defp do_get_hashtag(name) do
+    repo().single(
+      Hashtag
+      |> proload(:named)
+      |> where([named: named], named.name == ^name)
+    )
+  end
+
+  def search_hashtag(text, opts \\ [])
+
+  def search_hashtag(text, opts) do
+    repo().many(search_hashtag_query(text, opts))
+  end
+
+  def search_hashtag_query(text, opts) do
+    text = Hashtag.normalize_name(text)
+
+    (opts[:query] || Hashtag)
+    |> proload([:named])
+    |> or_where(
+      [named: n],
+      ilike(n.name, ^"#{text}%") or ilike(n.name, ^"_#{text}%")
+    )
+    |> prepend_order_by([named: n], [
+      {:desc, fragment("? % ?", ^text, n.name)}
+    ])
+  end
+
+  def get_or_create_hashtag(name) do
+    name = Hashtag.normalize_name(name)
+
+    case do_get_hashtag(name) do
+      {:ok, hashtag} ->
+        {:ok, hashtag}
+
+      {:error, :not_found} ->
+        Hashtag.changeset(%{named: %{name: name}})
+        |> repo().insert(
+          # on_conflict: [set: [name: Needle.Changesets.get_field(changeset, :name)]],
+          # conflict_target: :name,
+          returning: true
+        )
+    end
+  end
+
   # 1 hour # TODO: configurable
   @default_cache_ttl 1_000 * 60 * 60
 
@@ -72,7 +123,7 @@ defmodule Bonfire.Tag.Tags do
     |> Queries.list_trending(exclude, limit)
     |> repo().all()
     |> Enum.map(fn tag -> struct(Tagged, tag) end)
-    |> repo().maybe_preload(tag: [:profile, :character])
+    |> repo().maybe_preload(tag: [:profile, :character, :named])
     |> repo().maybe_preload(:tag, skip_boundary_check: true)
 
     # |> debug

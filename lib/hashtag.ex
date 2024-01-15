@@ -1,30 +1,38 @@
 defmodule Bonfire.Tag.Hashtag do
-  use Needle.Pointable,
+  use Needle.Virtual,
     otp_app: :bonfire_tag,
     table_id: "7HASHTAG1SPART0FF01KS0N0MY",
-    source: "bonfire_tag_hashtag"
-
-  # @hashtag_table "bonfire_tag_hashtag"
+    source: "bonfire_hashtag"
 
   alias Bonfire.Tag.Hashtag
+  alias Bonfire.Data.Identity.Named
   # alias Needle.Changesets
   import Ecto.Changeset
-  # import Ecto.Query
-  import Bonfire.Common.Config, only: [repo: 0]
 
-  pointable_schema do
+  virtual_schema do
     # TODO: use the Named mixin instead?
-    field(:name, :string)
+    # field(:name, :string)
+    has_one(:named, Named, foreign_key: :id, references: :id)
   end
 
   def changeset(hashtag \\ %Hashtag{}, params)
 
-  def changeset(%Hashtag{} = struct, params) do
-    struct
-    |> cast(params, [:name])
-    |> update_change(:name, &normalize_name/1)
-    |> validate_required([:name])
-    |> unique_constraint(:name)
+  def changeset(cs, %{name: name}) do
+    changeset(cs, %{named: %{name: name}})
+  end
+
+  def changeset(cs, name) when is_binary(name) do
+    changeset(cs, %{named: %{name: name}})
+  end
+
+  def changeset(cs, %{named: %{name: name}} = params) when is_binary(name) do
+    cs
+    |> cast(params, [])
+    |> cast_assoc(:named,
+      with: fn cs, params ->
+        Named.changeset(cs, params, normalize_fn: &normalize_name/1)
+      end
+    )
   end
 
   def normalize_name(name) do
@@ -34,17 +42,6 @@ defmodule Bonfire.Tag.Hashtag do
     |> String.trim()
     |> String.replace(" ", "_")
   end
-
-  def get_or_create_by_name(name) do
-    changeset = changeset(%Hashtag{}, %{name: name})
-
-    repo().insert(
-      changeset,
-      on_conflict: [set: [name: Needle.Changesets.get_field(changeset, :name)]],
-      conflict_target: :name,
-      returning: true
-    )
-  end
 end
 
 defmodule Bonfire.Tag.Hashtag.Migration do
@@ -52,57 +49,53 @@ defmodule Bonfire.Tag.Hashtag.Migration do
   use Ecto.Migration
   import Needle.Migration
   alias Bonfire.Tag.Hashtag
+  @old_hashtag_table "bonfire_tag_hashtag"
+  @hashtag_view "bonfire_hashtag"
+  @named_mixin "bonfire_data_social_named"
 
-  @hashtag_table "bonfire_tag_hashtag"
+  # def migrate_hashtag(), do: migrate_virtual(Hashtag)
 
-  defp make_hashtag_table(exprs) do
-    quote do
-      require Needle.Migration
+  def maybe_migrate_old_table(opts \\ []) do
+    execute """
+    do $$
+    begin
 
-      Needle.Migration.create_pointable_table Bonfire.Tag.Hashtag do
-        Ecto.Migration.add(:name, :string)
-        unquote_splicing(exprs)
-      end
-    end
-  end
+    if exists (
+      select 1 
+      from information_schema.columns 
+      where table_name='#{@old_hashtag_table}'
+      and column_name='name'
+      -- AND NOT attisdropped 
+    )
 
-  defmacro create_hashtag_table, do: make_hashtag_table([])
-  defmacro create_hashtag_table(do: body), do: make_hashtag_table(body)
+    then
 
-  def drop_hashtag_table(), do: drop_pointable_table(Hashtag)
+    insert into #{@named_mixin}(id, name) 
+        select id, name from #{@old_hashtag_table}
+          ON CONFLICT DO NOTHING ;
 
-  defp make_name_index(opts) do
-    quote do
-      Ecto.Migration.create_if_not_exists(
-        Ecto.Migration.unique_index(
-          unquote(@hashtag_table),
-          [:name],
-          unquote(opts)
-        )
-      )
-    end
-  end
+    insert into #{@hashtag_view}(id) 
+        select id from #{@old_hashtag_table}
+          ON CONFLICT DO NOTHING ;
 
-  defmacro create_name_index(opts \\ [])
-  defmacro create_name_index(opts), do: make_name_index(opts)
+    end if;
 
-  # drop_name_index/{0,1}
+    end $$
+    """
 
-  def drop_name_index(opts \\ []) do
-    drop_if_exists(unique_index(@hashtag_table, [:name], opts))
+    # drop_if_exists table(@old_hashtag_table)
   end
 
   defp maa(:up) do
     quote do
-      unquote(make_hashtag_table([]))
-      unquote(make_name_index([]))
+      migrate_virtual(Bonfire.Tag.Hashtag)
+      Bonfire.Tag.Hashtag.Migration.maybe_migrate_old_table()
     end
   end
 
   defp maa(:down) do
     quote do
-      Bonfire.Tag.Hashtag.Migration.drop_name_index()
-      Bonfire.Tag.Hashtag.Migration.drop_hashtag_table()
+      migrate_virtual(Bonfire.Tag.Hashtag)
     end
   end
 
