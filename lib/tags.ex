@@ -194,6 +194,65 @@ defmodule Bonfire.Tag.Tags do
 
   ### Functions for tagging things ###
 
+  @doc "For using on changesets (eg in epics)"
+  def cast(changeset, attrs, creator, opts) do
+    # with true <- module_enabled?(Bonfire.Tag, creator),
+    # tag any mentions that were found in the text and injected into the changeset by PostContents (NOTE: this doesn't necessarily mean they should be included in boundaries or notified)
+    # tag any hashtags that were found in the text and injected into the changeset by PostContents
+    # TODO: what fields to look for should be defined by the caller ^
+    with tags when is_list(tags) and length(tags) > 0 <-
+           (e(changeset, :changes, :post_content, :changes, :mentions, []) ++
+              e(changeset, :changes, :post_content, :changes, :hashtags, []) ++
+              e(attrs, :tags, []))
+           |> Enum.map(fn
+             %{} = obj ->
+               obj
+
+             id when is_binary(id) ->
+               if Types.is_ulid?(id), do: %{tag_id: id}
+
+             other ->
+               warn(other, "unsupported")
+               nil
+           end)
+           |> filter_empty([])
+           |> Enums.uniq_by_id()
+           #  |> tags_preloads(opts)
+           |> debug("cast tags") do
+      changeset
+      |> maybe_put_tree_parent(opts[:put_tree_parent], creator)
+      |> Changeset.cast(%{tagged: tags}, [])
+      |> debug("before cast assoc")
+      |> Changeset.cast_assoc(:tagged, with: &Bonfire.Tag.Tagged.changeset/2)
+    else
+      _ -> changeset
+    end
+    |> debug("changeset with :tagged")
+  end
+
+  def maybe_put_tree_parent(changeset, category, creator)
+      when is_map(category) or is_binary(category) do
+    custodian =
+      Utils.e(category, :tree, :custodian, nil) ||
+        Utils.e(category, :tree, :custodian_id, nil) || creator
+
+    with {:error, _} <-
+           Utils.maybe_apply(
+             Bonfire.Classify.Tree,
+             :put_tree,
+             [
+               changeset,
+               custodian,
+               category
+             ],
+             custodian
+           ) do
+      changeset
+    end
+  end
+
+  def maybe_put_tree_parent(changeset, _, _), do: changeset
+
   @doc """
   Maybe tag something
   """
@@ -249,17 +308,23 @@ defmodule Bonfire.Tag.Tags do
   #     {:ok, Map.put(thing, :tags, Map.get(tagged, :tags, []))}
   #   end
   # end
-  def tag_something(user, thing, tags, boost_category_mentions? \\ true) do
+  def tag_something(user, thing, tags, boost_or_label_category_tags? \\ true) do
     with {:ok, thing} <- do_tag_thing(user, thing, tags) do
-      if boost_category_mentions? &&
+      if boost_or_label_category_tags? &&
            module_enabled?(Bonfire.Social.Tags, user) do
-        debug("Bonfire.Tag: try to boost mentions to the category's feed, as permitted")
+        tags = e(thing, :tags, nil) || tags
 
-        Bonfire.Social.Tags.maybe_auto_boost(
-          user,
-          e(thing, :tags, nil) || tags,
-          thing
-        )
+        debug(tags, "Bonfire.Tag: try to boost mentions to the category's feed, as permitted")
+
+        if boost_or_label_category_tags? == :skip_boundary_check do
+          Bonfire.Social.Tags.auto_boost(tags, thing)
+        else
+          Bonfire.Social.Tags.maybe_auto_boost(
+            user,
+            tags,
+            thing
+          )
+        end
       end
 
       {:ok, thing}
@@ -326,7 +391,7 @@ defmodule Bonfire.Tag.Tags do
        when is_list(tags) and length(tags) > 0 do
     tags
     # |> debug("tags")
-    |> Bonfire.Tag.thing_tags_insert(thing, ...)
+    |> Bonfire.Tag.Tagged.thing_tags_insert(thing, ...)
 
     # |> Bonfire.Tag.thing_tags_changeset(thing, ...)
     # |> debug("changeset")

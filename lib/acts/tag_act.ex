@@ -1,9 +1,8 @@
-defmodule Bonfire.Tags.Acts.Tag do
+defmodule Bonfire.Tag.Acts.Tag do
   alias Bonfire.Epics
   # alias Bonfire.Epics.Act
   alias Bonfire.Epics.Epic
 
-  alias Bonfire.Social.Tags
   alias Bonfire.Common.Utils
   alias Ecto.Changeset
   import Epics
@@ -54,45 +53,22 @@ defmodule Bonfire.Tags.Acts.Tag do
         epic
 
       changeset.action in [:insert, :upsert] ->
-        boundary = epic.assigns[:options][:boundary]
+        # boundary = epic.assigns[:options][:boundary] # TODO?
         attrs_key = Keyword.get(act.options, :attrs, :post_attrs)
         attrs = Keyword.get(epic.assigns[:options], attrs_key, %{})
 
         categories_auto_boost =
           Utils.e(changeset, :changes, :post_content, :changes, :mentions, [])
-          |> Tags.maybe_boostable_categories(current_user, ...)
+          |> Bonfire.Social.Tags.maybe_boostable_categories(current_user, ...)
           |> maybe_debug(epic, act, ..., "categories_auto_boost")
 
         maybe_debug(epic, act, "tags", "Casting")
 
-        # only put in first mentioned category
-        category = List.first(categories_auto_boost)
-
-        changeset =
-          if not is_nil(category) do
-            custodian =
-              Utils.e(category, :tree, :custodian, nil) ||
-                Utils.e(category, :tree, :custodian_id, nil)
-
-            with {:error, _} <-
-                   Utils.maybe_apply(
-                     Bonfire.Classify.Tree,
-                     :put_tree,
-                     [
-                       changeset,
-                       custodian,
-                       category
-                     ],
-                     custodian
-                   ) do
-              changeset
-            end
-          else
-            changeset
-          end
-
         changeset
-        |> Tags.cast(attrs, current_user, boundary)
+        |> Bonfire.Tag.Tags.cast(attrs, current_user,
+          put_tree_parent: List.first(categories_auto_boost)
+        )
+        # only add as "published in" in first mentioned category ^
         |> Epic.assign(epic, on, ...)
         |> Epic.assign(..., :categories_auto_boost, categories_auto_boost)
 

@@ -41,27 +41,6 @@ defmodule Bonfire.Tag do
     # |> Changesets.cast_assoc(:tags, tags)
   end
 
-  def thing_tags_insert(
-        %{id: thing_id} = _thing,
-        tags
-      ) do
-    debug(tags, "tags to add to thing")
-
-    {num, _} =
-      repo().insert_all(
-        Bonfire.Tag.Tagged,
-        tags
-        |> List.wrap()
-        |> Enum.map(fn
-          %{id: tag_id} ->
-            %{id: thing_id, tag_id: tag_id}
-        end)
-        |> debug()
-      )
-
-    {:ok, num}
-  end
-
   @behaviour Bonfire.Common.SchemaModule
   def context_module, do: Bonfire.Tag.Tags
   def query_module, do: Bonfire.Tag.Queries

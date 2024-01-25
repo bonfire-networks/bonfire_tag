@@ -1,4 +1,6 @@
 defmodule Bonfire.Tag.Tagged do
+  @moduledoc "A mixin used for adding tags to an object"
+
   import Ecto.Query, only: [from: 2]
   use Bonfire.Common.Repo
   use Ecto.Schema
@@ -40,6 +42,27 @@ defmodule Bonfire.Tag.Tagged do
     struct
     |> Ecto.Changeset.cast(params, @cast)
     |> Ecto.Changeset.validate_required(@required)
+  end
+
+  def thing_tags_insert(
+        %{id: thing_id} = _thing,
+        tags
+      ) do
+    debug(tags, "tags to add to thing")
+
+    {num, _} =
+      repo().insert_all(
+        __MODULE__,
+        tags
+        |> List.wrap()
+        |> Enum.map(fn
+          %{id: tag_id} ->
+            %{id: thing_id, tag_id: tag_id}
+        end)
+        |> debug()
+      )
+
+    {:ok, num}
   end
 
   @doc """
