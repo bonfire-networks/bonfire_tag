@@ -1,4 +1,4 @@
-defmodule Bonfire.Repo.Migrations.Tag  do
+defmodule Bonfire.Repo.Migrations.Tag do
   @moduledoc false
   use Ecto.Migration
 
