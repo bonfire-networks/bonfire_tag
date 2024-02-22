@@ -19,7 +19,7 @@
             {#case e(tag, :tag, nil)}
               {#match %Bonfire.Tag.Hashtag{named: %{name: name}} = _hashtag}
                 <li data-role="hashtag" class="rounded-none">
-                  <LiveRedirect class="rounded-none" to={~p"/hashtag/" <> name}>
+                  <LinkLive class="rounded-none" to={~p"/hashtag/" <> name}>
                     <div class="flex flex-row items-center">
                       <div class="flex flex-col items-start flex-1 gap-0 text-left">
                         <div
@@ -33,11 +33,11 @@
                       </div>
                       {!-- <div><#Icon outline="DotsHorizontal" class="w-5 h-5 text-base-content text-opacity-60" /></div> --}
                     </div>
-                  </LiveRedirect>
+                  </LinkLive>
                 </li>
               {#match other}
                 <li data-role="other">
-                  <LiveRedirect class="rounded-none" to={path(other)}>
+                  <LinkLive class="rounded-none" to={path(other)}>
                     <div class="flex flex-row items-center">
                       <div class="flex flex-col items-start flex-1 gap-0 text-left">
                         <div
@@ -51,7 +51,7 @@
                         <div class="text-xs font-light text-base-content text-opacity-80">{e(tag, :count, 0)} {l("activities")}</div>
                       </div>
                     </div>
-                  </LiveRedirect>
+                  </LinkLive>
                 </li>
             {/case}
           {/for}
