@@ -73,7 +73,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
     # |> debug
   end
 
-  def do_handle_params(%{"tab" => tab} = _params, _url, socket)
+  def handle_params(%{"tab" => tab} = _params, _url, socket)
       when tab in ["posts", "timeline"] do
     # FIXME!
     {:noreply,
@@ -94,39 +94,12 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
      )}
   end
 
-  def do_handle_params(params, _url, socket) do
+  def handle_params(params, _url, socket) do
     # default tab
-    do_handle_params(
+    handle_params(
       Map.merge(params || %{}, %{"tab" => "timeline"}),
       nil,
       socket
     )
   end
-
-  def handle_params(params, uri, socket),
-    do:
-      Bonfire.UI.Common.LiveHandlers.handle_params(
-        params,
-        uri,
-        socket,
-        __MODULE__,
-        &do_handle_params/3
-      )
-
-  def handle_info(info, socket),
-    do: Bonfire.UI.Common.LiveHandlers.handle_info(info, socket, __MODULE__)
-
-  def handle_event(
-        action,
-        attrs,
-        socket
-      ),
-      do:
-        Bonfire.UI.Common.LiveHandlers.handle_event(
-          action,
-          attrs,
-          socket,
-          __MODULE__
-          # &do_handle_event/3
-        )
 end
