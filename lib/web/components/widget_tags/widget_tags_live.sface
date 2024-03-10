@@ -10,10 +10,7 @@
       class="relative w-full mx-auto rounded-xl bg-base-content/5"
       title_class="mx-4 py-3  text-base-content/90 pb-2 text-lg font-bold tracking-wide"
     >
-      <ul
-        :if={!Bonfire.Common.Settings.get([:ui, :show_trending_tags, :disabled], nil, @__context__)}
-        class="menu p-0"
-      >
+      <ul class="menu p-0">
         {#if trending != []}
           {#for tag <- trending}
             {#case e(tag, :tag, nil)}
