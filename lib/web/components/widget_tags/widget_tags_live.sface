@@ -7,7 +7,7 @@
   {#match trending when is_list(trending)}
     <Bonfire.UI.Common.WidgetBlockLive
       widget_title={@widget_title || l("Trending topics")}
-      class="relative w-full mx-auto rounded-xl bg-base-content/5"
+      class={@wrapper_class || "relative w-full mx-auto rounded-xl bg-base-content/5"}
       title_class="mx-4 py-3  text-base-content/90 pb-2 text-lg font-bold tracking-wide"
     >
       <ul class="menu p-0">
