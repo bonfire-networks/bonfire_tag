@@ -29,7 +29,7 @@ defmodule Bonfire.Tag.MixProject do
           {:bonfire_api_graphql,
            git: "https://github.com/bonfire-networks/bonfire_api_graphql",
            branch: "main",
-           optional: true}
+           optional: true, runtime: false}
         ])
     ]
   end
