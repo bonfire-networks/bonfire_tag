@@ -2,6 +2,15 @@ defmodule Bonfire.Tag.LiveHandler do
   use Bonfire.UI.Common.Web, :live_handler
   use Bonfire.Common.Repo
 
+  declare_extension("Tag",
+    icon: "ci:label",
+    emoji: "🏷️",
+    description:
+      l(
+        "Tag content, whether that's with simple hashtags or with other extensions such as Classify, Topics, Groups..."
+      )
+  )
+
   # def handle_event("new", attrs, socket) do
   #   new(attrs, socket)
   # end
