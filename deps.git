@@ -1,5 +1,6 @@
 bonfire_common = "https://github.com/bonfire-networks/bonfire_common"
 bonfire_epics = "https://github.com/bonfire-networks/bonfire_epics"
 bonfire_ui_common = "https://github.com/bonfire-networks/bonfire_ui_common"
+
 # bonfire_web_phoenix = "https://github.com/bonfire-networks/bonfire_web_phoenix"
 linkify = "https://github.com/bonfire-networks/linkify"
