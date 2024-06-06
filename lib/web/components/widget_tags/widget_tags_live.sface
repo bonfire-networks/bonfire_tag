@@ -2,12 +2,12 @@
     Bonfire.Tag.Tags.list_trending(
       Bonfire.Common.Settings.get([:ui, :show_trending_tags, :for_last_x_days], 30, @__context__),
       Bonfire.Common.Settings.get([:ui, :show_trending_tags, :limit], 10, @__context__)
-    )
-    |> debug("sddssdsd")}
+    )}
   {#match trending when is_list(trending)}
     <Bonfire.UI.Common.WidgetBlockLive
       widget_title={@widget_title || l("Trending topics")}
-      class={@wrapper_class || "relative w-full mx-auto rounded-xl bg-base-content/5"}
+      class={@wrapper_class ||
+        "relative w-full mx-auto rounded-xl shadow-sm bg-base-100 border border-base-content/10"}
       title_class="mx-4 py-3  text-base-content/90 pb-2 text-lg font-bold tracking-wide"
     >
       <ul class="menu p-0">
