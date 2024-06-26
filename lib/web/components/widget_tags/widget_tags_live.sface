@@ -26,7 +26,7 @@
                         >
                           #{name}
                         </div>
-                        <div class="text-xs font-light text-base-content text-opacity-80">{e(tag, :count, 0)} {l("activities")}</div>
+                        <div class="text-xs font-light text-base-content/70">{e(tag, :count, 0)} {l("activities")}</div>
                       </div>
                       {!-- <div><#Icon outline="DotsHorizontal" class="w-5 h-5 text-base-content text-opacity-60" /></div> --}
                     </div>
@@ -40,12 +40,12 @@
                         <div
                           style="overflow-wrap: anywhere;
                       white-space: inherit;"
-                          class="text-sm font-bold truncate text-base-content/90 line-clamp-1"
+                          class="text-sm font-medium truncate line-clamp-1"
                         >
                           {e(other, :name, nil) || e(other, :profile, :name, nil) || e(other, :character, :username, nil) ||
                             e(other, :named, :name, nil) || e(other, :id, nil)}
                         </div>
-                        <div class="text-xs font-light text-base-content text-opacity-80">{e(tag, :count, 0)} {l("activities")}</div>
+                        <div class="text-xs font-light text-base-content/70">{e(tag, :count, 0)} {l("activities")}</div>
                       </div>
                     </div>
                   </LinkLive>

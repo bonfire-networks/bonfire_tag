@@ -44,6 +44,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
      assign(
        socket,
        page: "tag",
+       back: true,
        page_title: "#" <> name,
        object_type: nil,
        feed: [],
