@@ -7,7 +7,7 @@
     <Bonfire.UI.Common.WidgetBlockLive
       widget_title={@widget_title || l("Trending topics")}
       class={@wrapper_class ||
-        "relative w-full mx-auto rounded-xl shadow-sm bg-base-100 border border-base-content/10"}
+        "relative w-full mx-auto rounded-xl border border-base-content/10"}
       title_class="mx-4 py-3  text-base-content/90 pb-2 text-lg font-bold tracking-wide"
     >
       <ul class="menu p-0">
