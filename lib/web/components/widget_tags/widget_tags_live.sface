@@ -1,68 +1,74 @@
 {#case Bonfire.Common.Settings.get([:ui, :show_trending_tags, :disabled], nil, @__context__) != true and
-    Bonfire.Tag.Tags.list_trending(
-      Bonfire.Common.Settings.get([:ui, :show_trending_tags, :for_last_x_days], 30, @__context__),
-      Bonfire.Common.Settings.get([:ui, :show_trending_tags, :limit], 10, @__context__)
-    )}
-  {#match trending when is_list(trending)}
-    <Bonfire.UI.Common.WidgetBlockLive
-      widget_title={@widget_title || l("Trending topics")}
-      class={@wrapper_class ||
-        "relative w-full mx-auto rounded-xl border border-base-content/10"}
-      title_class="mx-4 py-3  text-base-content/90 pb-2 text-lg font-bold tracking-wide"
-    >
-      <ul class="menu p-0">
-        {#if trending != []}
-          {#for tag <- trending}
-            {#case e(tag, :tag, nil)}
-              {#match %Bonfire.Tag.Hashtag{named: %{name: name}} = _hashtag}
-                <li data-role="hashtag" class="rounded-none">
-                  <LinkLive class="rounded-none" to={~p"/hashtag/" <> name}>
-                    <div class="flex flex-row items-center">
-                      <div class="flex flex-col items-start flex-1 gap-0 text-left">
-                        <div
-                          style="overflow-wrap: anywhere;
+    {Bonfire.Common.Settings.get([:ui, :show_trending_tags, :for_last_x_days], 30, @__context__),
+     Bonfire.Common.Settings.get([:ui, :show_trending_tags, :limit], 10, @__context__)}}
+  {#match {for_last_x_days, limit}}
+    {#case Bonfire.Tag.Tags.list_trending(
+        for_last_x_days,
+        limit
+      )}
+      {#match trending when is_list(trending)}
+        <Bonfire.UI.Common.WidgetBlockLive
+          widget_title={@widget_title || l("Trending topics")}
+          class={@wrapper_class ||
+            "relative w-full mx-auto rounded-xl border border-base-content/10"}
+          title_class="mx-4 py-3  text-base-content/90 pb-2 text-lg font-bold tracking-wide"
+        >
+          {!-- TODO: add a button for admins to recalculate manually using `Bonfire.Tag.Tags.list_trending_reset(for_last_x_days,
+      limit)` --}
+          <ul class="menu p-0">
+            {#if trending != []}
+              {#for tag <- trending}
+                {#case e(tag, :tag, nil)}
+                  {#match %Bonfire.Tag.Hashtag{named: %{name: name}} = _hashtag}
+                    <li data-role="hashtag" class="rounded-none">
+                      <LinkLive class="rounded-none" to={~p"/hashtag/" <> name}>
+                        <div class="flex flex-row items-center">
+                          <div class="flex flex-col items-start flex-1 gap-0 text-left">
+                            <div
+                              style="overflow-wrap: anywhere;
                           white-space: inherit;"
-                          class="text-sm font-medium truncate line-clamp-1"
-                        >
-                          #{name}
+                              class="text-sm font-medium truncate line-clamp-1"
+                            >
+                              #{name}
+                            </div>
+                            <div class="text-xs font-light text-base-content/70">{e(tag, :count, 0)} {lp("activity", "activities", e(tag, :count, 0))}</div>
+                          </div>
+                          {!-- <div><#Icon outline="DotsHorizontal" class="w-5 h-5 text-base-content text-opacity-60" /></div> --}
                         </div>
-                        <div class="text-xs font-light text-base-content/70">{e(tag, :count, 0)} {l("activities")}</div>
-                      </div>
-                      {!-- <div><#Icon outline="DotsHorizontal" class="w-5 h-5 text-base-content text-opacity-60" /></div> --}
-                    </div>
-                  </LinkLive>
-                </li>
-              {#match other}
-                <li data-role="other">
-                  <LinkLive class="rounded-none" to={path(other)}>
-                    <div class="flex flex-row items-center">
-                      <div class="flex flex-col items-start flex-1 gap-0 text-left">
-                        <div
-                          style="overflow-wrap: anywhere;
+                      </LinkLive>
+                    </li>
+                  {#match other}
+                    <li data-role="other">
+                      <LinkLive class="rounded-none" to={path(other)}>
+                        <div class="flex flex-row items-center">
+                          <div class="flex flex-col items-start flex-1 gap-0 text-left">
+                            <div
+                              style="overflow-wrap: anywhere;
                       white-space: inherit;"
-                          class="text-sm font-medium truncate line-clamp-1"
-                        >
-                          {e(other, :name, nil) || e(other, :profile, :name, nil) || e(other, :character, :username, nil) ||
-                            e(other, :named, :name, nil) || e(other, :id, nil)}
+                              class="text-sm font-medium truncate line-clamp-1"
+                            >
+                              {e(other, :name, nil) || e(other, :profile, :name, nil) || e(other, :character, :username, nil) ||
+                                e(other, :named, :name, nil) || e(other, :id, nil)}
+                            </div>
+                            <div class="text-xs font-light text-base-content/70">{e(tag, :count, 0)} {lp("activity", "activities", e(tag, :count, 0))}</div>
+                          </div>
                         </div>
-                        <div class="text-xs font-light text-base-content/70">{e(tag, :count, 0)} {l("activities")}</div>
-                      </div>
-                    </div>
-                  </LinkLive>
-                </li>
-            {/case}
-          {/for}
-        {#else}
-          <div class="flex flex-col items-center p-3 space-y-2 place-content-center">
-            <img
-              :if={!@__context__[:ui_compact]}
-              src={Config.get([:ui, :theme, :instance_icon], nil)}
-              class="w-12 h-full grayscale"
-            />
-            <span class="text-sm text-base-content text-opacity-70">{l("No trending tags found")}</span>
-          </div>
-        {/if}
-      </ul>
-    </Bonfire.UI.Common.WidgetBlockLive>
-  {#match _}
+                      </LinkLive>
+                    </li>
+                {/case}
+              {/for}
+            {#else}
+              <div class="flex flex-col items-center p-3 space-y-2 place-content-center">
+                <img
+                  :if={!@__context__[:ui_compact]}
+                  src={Config.get([:ui, :theme, :instance_icon], nil)}
+                  class="w-12 h-full grayscale"
+                />
+                <span class="text-sm text-base-content text-opacity-70">{l("Nothing trending at the moment")}</span>
+              </div>
+            {/if}
+          </ul>
+        </Bonfire.UI.Common.WidgetBlockLive>
+      {#match _}
+    {/case}
 {/case}
