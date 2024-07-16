@@ -291,7 +291,7 @@ defmodule Bonfire.Tag.Tags do
       maybe_tag(
         user,
         obj,
-        Bonfire.Social.PostContents.all_text_content(obj),
+        Common.Utils.maybe_apply(Bonfire.Social.PostContents, :all_text_content, [obj]),
         boost_category_mentions?
       )
 
@@ -317,13 +317,9 @@ defmodule Bonfire.Tag.Tags do
         debug(tags, "Bonfire.Tag: try to boost mentions to the category's feed, as permitted")
 
         if boost_or_label_category_tags? == :skip_boundary_check do
-          Bonfire.Social.Tags.auto_boost(tags, thing)
+          Common.Utils.maybe_apply(Bonfire.Social.Tags, :auto_boost, [tags, thing])
         else
-          Bonfire.Social.Tags.maybe_auto_boost(
-            user,
-            tags,
-            thing
-          )
+          Common.Utils.maybe_apply(Bonfire.Social.Tags, :maybe_auto_boost, [user, tags, thing])
         end
       end
 

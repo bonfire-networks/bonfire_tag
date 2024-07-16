@@ -79,7 +79,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     String.replace(mention, @markdown_characters_regex, "\\\\\\1")
   end
 
-  def nothing_handler(text, opts, acc) do
+  def nothing_handler(text, _opts, acc) do
     {text, acc}
   end
 
@@ -149,11 +149,13 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   defp mention_process(prefix, tag_object, acc, content_type, _opts) do
     url =
       if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters),
-        do: Bonfire.Me.Characters.character_url(tag_object)
+        do:
+          Common.Utils.maybe_apply(Bonfire.Me.Characters, :character_url, [tag_object])
 
     display_name =
       if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters),
-        do: Bonfire.Me.Characters.display_username(tag_object, false, nil, prefix)
+        do:
+          Common.Utils.maybe_apply(Bonfire.Me.Characters, :display_username, [tag_object, false, nil, prefix])
 
     link = tag_link(prefix, url, display_name, content_type)
 

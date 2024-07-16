@@ -55,26 +55,26 @@ defmodule Bonfire.Tag.Hashtag.Migration do
 
   # def migrate_hashtag(), do: migrate_virtual(Hashtag)
 
-  def maybe_migrate_old_table(opts \\ []) do
+  def maybe_migrate_old_table(_opts \\ []) do
     execute """
     do $$
     begin
 
     if exists (
-      select 1 
-      from information_schema.columns 
+      select 1
+      from information_schema.columns
       where table_name='#{@old_hashtag_table}'
       and column_name='name'
-      -- AND NOT attisdropped 
+      -- AND NOT attisdropped
     )
 
     then
 
-    insert into #{@named_mixin}(id, name) 
+    insert into #{@named_mixin}(id, name)
         select id, name from #{@old_hashtag_table}
           ON CONFLICT DO NOTHING ;
 
-    insert into #{@hashtag_view}(id) 
+    insert into #{@hashtag_view}(id)
         select id from #{@old_hashtag_table}
           ON CONFLICT DO NOTHING ;
 
