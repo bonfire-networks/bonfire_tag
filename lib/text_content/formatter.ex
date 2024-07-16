@@ -149,13 +149,17 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   defp mention_process(prefix, tag_object, acc, content_type, _opts) do
     url =
       if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters),
-        do:
-          Common.Utils.maybe_apply(Bonfire.Me.Characters, :character_url, [tag_object])
+        do: Common.Utils.maybe_apply(Bonfire.Me.Characters, :character_url, [tag_object])
 
     display_name =
       if Bonfire.Common.Extend.extension_enabled?(Bonfire.Me.Characters),
         do:
-          Common.Utils.maybe_apply(Bonfire.Me.Characters, :display_username, [tag_object, false, nil, prefix])
+          Common.Utils.maybe_apply(Bonfire.Me.Characters, :display_username, [
+            tag_object,
+            false,
+            nil,
+            prefix
+          ])
 
     link = tag_link(prefix, url, display_name, content_type)
 
