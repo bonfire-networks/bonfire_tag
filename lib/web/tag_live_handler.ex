@@ -33,7 +33,7 @@ defmodule Bonfire.Tag.LiveHandler do
     with {:ok, _} <-
            maybe_tag(
              current_user_required!(socket),
-             e(params, "id", nil) || e(socket.assigns, :object, nil),
+             e(params, "tag_id", nil) || e(socket.assigns, :object, nil),
              tags
            ) do
       Bonfire.UI.Common.OpenModalLive.close()

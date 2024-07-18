@@ -92,7 +92,7 @@ defmodule Bonfire.Tag.Autocomplete do
       # search = Bonfire.Search.search(tag_search, opts, false, facets) |> e("hits")
       # TODO: pass current_user in opts for boundaries
       search =
-        Common.Utils.maybe_apply(Bonfire.Search, :search_by_type, [tag_search, facets])
+        Bonfire.Common.Utils.maybe_apply(Bonfire.Search, :search_by_type, [tag_search, facets])
         |> debug()
 
       if(is_list(search) and length(search) > 0) do

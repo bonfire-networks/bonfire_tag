@@ -23,7 +23,7 @@ defmodule Bonfire.Tags.Acts.AutoBoost do
           maybe_debug(epic, act, on, "Skipping: no activity at")
 
         %{object: %{id: _} = object} ->
-          Common.Utils.maybe_apply(Bonfire.Social.Tags, :auto_boost, [
+          Bonfire.Common.Utils.maybe_apply(Bonfire.Social.Tags, :auto_boost, [
             categories_auto_boost,
             object
           ])
@@ -31,7 +31,7 @@ defmodule Bonfire.Tags.Acts.AutoBoost do
           epic
 
         object ->
-          Common.Utils.maybe_apply(Bonfire.Social.Tags, :auto_boost, [
+          Bonfire.Common.Utils.maybe_apply(Bonfire.Social.Tags, :auto_boost, [
             categories_auto_boost,
             object
           ])
