@@ -1,4 +1,14 @@
 defmodule Bonfire.Tag.Acts.Tag do
+  @moduledoc """
+  An act that optionally tags an object. 
+
+  Epic Options:
+    * ...
+
+  Act Options:
+    * `:on` - key to find changeset, required.
+  """
+
   alias Bonfire.Epics
   # alias Bonfire.Epics.Act
   alias Bonfire.Epics.Epic
@@ -65,7 +75,7 @@ defmodule Bonfire.Tag.Acts.Tag do
         maybe_debug(epic, act, "tags", "Casting")
 
         changeset
-        |> Bonfire.Tag.Tags.cast(attrs, current_user,
+        |> Bonfire.Tag.cast(attrs, current_user,
           put_tree_parent: List.first(categories_auto_boost)
         )
         # only add as "published in" in first mentioned category ^

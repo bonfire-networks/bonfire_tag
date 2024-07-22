@@ -5,7 +5,7 @@
 defmodule Bonfire.Tag.TextContent.Formatter do
   alias Bonfire.Common.Config
   alias Bonfire.Common.Utils
-  alias Bonfire.Tag.Tags
+  alias Bonfire.Tag
   import Untangle
 
   @safe_mention_regex ~r/^(\s*(?<mentions>([@|&amp;|\+].+?\s+){1,})+)(?<rest>.*)/s
@@ -60,7 +60,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   def escape_mention_handler("@" <> nickname = mention, buffer, _, _) do
-    case Tags.maybe_lookup_tag(nickname, "@") do
+    case Tag.maybe_lookup_tag(nickname, "@") do
       {:ok, _tag} ->
         # escape markdown characters with `\\`
         # (we don't want something like @user__name to be parsed by markdown)
@@ -99,7 +99,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   def tag_handler("#" <> tag = tag_text, buffer, opts, acc) do
-    with {:ok, hashtag} <- Bonfire.Tag.Tags.get_or_create_hashtag(tag) do
+    with {:ok, hashtag} <- Bonfire.Tag.get_or_create_hashtag(tag) do
       tag = Utils.e(hashtag, :named, :name, nil) || tag
       url = Bonfire.Common.URIs.base_url() <> "/hashtag/#{tag}"
       link = tag_link("#", url, tag, Map.get(opts, :content_type))
@@ -129,7 +129,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   defp tag_handler(type, nickname, buffer, opts, acc) do
-    case Tags.maybe_lookup_tag(nickname, type) do
+    case Tag.maybe_lookup_tag(nickname, type) do
       {:ok, tag_object} ->
         mention_process(
           type,

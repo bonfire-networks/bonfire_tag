@@ -2,7 +2,7 @@
     {Bonfire.Common.Settings.get([:ui, :show_trending_tags, :for_last_x_days], 30, @__context__),
      Bonfire.Common.Settings.get([:ui, :show_trending_tags, :limit], 10, @__context__)}}
   {#match {for_last_x_days, limit}}
-    {#case Bonfire.Tag.Tags.list_trending(
+    {#case Bonfire.Tag.list_trending(
         for_last_x_days,
         limit
       )}
@@ -13,7 +13,7 @@
             "relative w-full mx-auto rounded-xl border border-base-content/10"}
           title_class="mx-4 py-3  text-base-content/90 pb-2 text-lg font-bold tracking-wide"
         >
-          {!-- TODO: add a button for admins to recalculate manually using `Bonfire.Tag.Tags.list_trending_reset(for_last_x_days,
+          {!-- TODO: add a button for admins to recalculate manually using `Bonfire.Tag.list_trending_reset(for_last_x_days,
       limit)` --}
           <ul class="menu p-0">
             {#if trending != []}

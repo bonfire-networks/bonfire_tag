@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 defmodule Bonfire.Tag.Queries do
+  @moduledoc "Queries for `Bonfire.Tag`"
   import Ecto.Query
 
   alias Needle.Pointer, as: Tag

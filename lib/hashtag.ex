@@ -1,4 +1,6 @@
 defmodule Bonfire.Tag.Hashtag do
+  @moduledoc "A virtual schema used for hashtags"
+
   use Needle.Virtual,
     otp_app: :bonfire_tag,
     table_id: "7HASHTAG1SPART0FF01KS0N0MY",

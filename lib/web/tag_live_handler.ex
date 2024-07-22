@@ -16,13 +16,13 @@ defmodule Bonfire.Tag.LiveHandler do
   # end
 
   def maybe_tag(creator, object, tags, mentions_are_private? \\ false) do
-    # if module_enabled?(Bonfire.Tag.Tags, creator) do
+    # if module_enabled?(Bonfire.Tag, creator) do
     boost_category_tags? = !mentions_are_private?
 
-    Bonfire.Tag.Tags.maybe_tag(creator, object, tags, boost_category_tags?)
+    Bonfire.Tag.maybe_tag(creator, object, tags, boost_category_tags?)
     |> debug()
 
-    # ~> maybe_boostable_categories(creator, e(..., :tags, [])) # done in Bonfire.Tag.Tags instead
+    # ~> maybe_boostable_categories(creator, e(..., :tags, [])) # done in Bonfire.Tag instead
     # ~> auto_boost(..., object)
     # else
     #   error("No tagging extension enabled.")

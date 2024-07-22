@@ -17,7 +17,7 @@ if Code.ensure_loaded?(Bonfire.API.GraphQL) do
     # ResolvePages,
     # ResolveRootPage
     alias Bonfire.Tag
-    alias Bonfire.Tag.Tags
+    alias Bonfire.Tag
 
     import Untangle
 
@@ -119,7 +119,7 @@ if Code.ensure_loaded?(Bonfire.API.GraphQL) do
 
     def tag_something(%{thing: thing_id, tags: tags}, info) do
       with {:ok, me} <- GraphQL.current_user_or_not_logged_in(info),
-           {:ok, _tagged} = Bonfire.Tag.Tags.tag_something(me, thing_id, tags) do
+           {:ok, _tagged} = Bonfire.Tag.tag_something(me, thing_id, tags) do
         {:ok, true}
       end
     end

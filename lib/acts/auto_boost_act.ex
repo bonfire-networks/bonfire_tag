@@ -1,4 +1,14 @@
 defmodule Bonfire.Tags.Acts.AutoBoost do
+  @moduledoc """
+  An act that optionally boosts an activity as a category. This is a way to auto-post in a category/group when tagged (and the author has permission).
+
+  Epic Options:
+    * ...
+
+  Act Options:
+    * `:on` - key to find changeset, required.
+  """
+
   use Bonfire.Common.Utils
   alias Bonfire.Epics
   # alias Bonfire.Epics.Act

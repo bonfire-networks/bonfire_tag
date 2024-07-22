@@ -1,7 +1,9 @@
 defmodule Bonfire.Tag.Autocomplete do
+  @moduledoc "Functions to lookup and autocomplete tag names"
+
   use Bonfire.Common.Utils
   # alias Bonfire.Common.URIs
-  alias Bonfire.Tag.Tags
+  alias Bonfire.Tag
   import Untangle
   alias Enums
   import Bonfire.Common.Config, only: [repo: 0]
@@ -57,7 +59,7 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def maybe_find_tags(tag_search, index_type) do
-    with {:ok, tags} <- Tags.maybe_find_tags(nil, tag_search, index_type) do
+    with {:ok, tags} <- Tag.maybe_find_tags(nil, tag_search, index_type) do
       tags
     end
   end
@@ -215,7 +217,7 @@ defmodule Bonfire.Tag.Autocomplete do
 
   def try_all_prefixes(content) do
     if is_ulid?(content) do
-      [Tags.maybe_find_tag(nil, content)]
+      [Tag.maybe_find_tag(nil, content)]
     else
       # FIXME! optimise this
       Enum.map(@prefixes, &try_tag_search(&1, content))

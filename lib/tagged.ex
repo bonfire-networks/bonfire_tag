@@ -1,5 +1,5 @@
 defmodule Bonfire.Tag.Tagged do
-  @moduledoc "A mixin used for adding tags to an object"
+  @moduledoc "A mixin used for associating tags with an object"
 
   import Ecto.Query, only: [from: 2]
   use Bonfire.Common.Repo
@@ -140,7 +140,7 @@ defmodule Bonfire.Tag.Tagged do
   end
 
   def search_query(text, opts) do
-    case Bonfire.Tag.Tags.search_hashtag(text, opts) do
+    case Bonfire.Tag.search_hashtag(text, opts) do
       [] ->
         opts[:query] || nil
 
