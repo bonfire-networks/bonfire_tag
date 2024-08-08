@@ -90,7 +90,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
     link = render_link(display_url, Map.new(attrs), Map.get(opts, :content_type))
 
-    # with {:ok, meta} <- Furlex.unfurl(url) do
+    # with {:ok, meta} <- Unfurl.unfurl(url) do
     #   {link, %{acc | urls: MapSet.put(acc.urls, {url, meta})}}
     # else none ->
     #   warn(url, "process URL")
