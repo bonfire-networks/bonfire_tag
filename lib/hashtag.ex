@@ -12,8 +12,6 @@ defmodule Bonfire.Tag.Hashtag do
   import Ecto.Changeset
 
   virtual_schema do
-    # TODO: use the Named mixin instead?
-    # field(:name, :string)
     has_one(:named, Named, foreign_key: :id, references: :id)
   end
 
