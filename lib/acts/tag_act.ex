@@ -15,6 +15,7 @@ defmodule Bonfire.Tag.Acts.Tag do
 
   alias Bonfire.Common.Utils
   alias Ecto.Changeset
+  use Bonfire.Common.E
   import Epics
   use Arrows
 
@@ -68,7 +69,7 @@ defmodule Bonfire.Tag.Acts.Tag do
         attrs = Keyword.get(epic.assigns[:options], attrs_key, %{})
 
         categories_auto_boost =
-          Utils.e(changeset, :changes, :post_content, :changes, :mentions, [])
+          e(changeset, :changes, :post_content, :changes, :mentions, [])
           |> Bonfire.Social.Tags.maybe_boostable_categories(current_user, ...)
           |> maybe_debug(epic, act, ..., "categories_auto_boost")
 

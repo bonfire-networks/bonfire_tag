@@ -45,7 +45,7 @@ if Code.ensure_loaded?(Bonfire.API.GraphQL) do
       tag = repo().maybe_preload(tag, :tagged)
       # pointers = for %{id: tid} <- tag.tagged, do: tid
       pointers =
-        Utils.e(tag, :tagged, %{})
+        e(tag, :tagged, %{})
         |> Enum.map(fn a -> a.id end)
 
       # |> Map.new()

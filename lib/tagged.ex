@@ -5,6 +5,7 @@ defmodule Bonfire.Tag.Tagged do
   use Bonfire.Common.Repo
   use Ecto.Schema
   import Untangle
+  use Bonfire.Common.E
 
   use Needle.Mixin,
     otp_app: :bonfire_tag,
@@ -85,7 +86,7 @@ defmodule Bonfire.Tag.Tagged do
         [tag: [:profile, :geolocation, :category, :character]]
       ])
 
-    Map.put(tagged, :thing, Bonfire.Common.Needles.get(Utils.e(tagged, :pointer, nil)))
+    Map.put(tagged, :thing, Bonfire.Common.Needles.get(e(tagged, :pointer, nil)))
   end
 
   @doc """

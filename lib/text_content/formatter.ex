@@ -7,6 +7,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   alias Bonfire.Common.Utils
   alias Bonfire.Tag
   import Untangle
+  use Bonfire.Common.E
 
   @safe_mention_regex ~r/^(\s*(?<mentions>([@|&amp;|\+].+?\s+){1,})+)(?<rest>.*)/s
   @markdown_characters_regex ~r/(`|\*|_|{|}|[|]|\(|\)|#|\+|-|\.|!)/
@@ -100,7 +101,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
   def tag_handler("#" <> tag = tag_text, buffer, opts, acc) do
     with {:ok, hashtag} <- Bonfire.Tag.get_or_create_hashtag(tag) do
-      tag = Utils.e(hashtag, :named, :name, nil) || tag
+      tag = e(hashtag, :named, :name, nil) || tag
       url = Bonfire.Common.URIs.base_url() <> "/hashtag/#{tag}"
       link = tag_link("#", url, tag, Map.get(opts, :content_type))
 

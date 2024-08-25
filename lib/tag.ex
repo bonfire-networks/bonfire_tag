@@ -244,8 +244,8 @@ defmodule Bonfire.Tag do
   def maybe_put_tree_parent(changeset, category, creator)
       when is_map(category) or is_binary(category) do
     custodian =
-      Utils.e(category, :tree, :custodian, nil) ||
-        Utils.e(category, :tree, :custodian_id, nil) || creator
+      e(category, :tree, :custodian, nil) ||
+        e(category, :tree, :custodian_id, nil) || creator
 
     with {:error, _} <-
            Utils.maybe_apply(
