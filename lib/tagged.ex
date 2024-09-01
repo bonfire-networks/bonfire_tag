@@ -52,7 +52,7 @@ defmodule Bonfire.Tag.Tagged do
     debug(tags, "tags to add to thing")
 
     {num, _} =
-      repo().insert_all(
+      repo().upsert_all(
         __MODULE__,
         tags
         |> List.wrap()
@@ -60,7 +60,8 @@ defmodule Bonfire.Tag.Tagged do
           %{id: tag_id} ->
             %{id: thing_id, tag_id: tag_id}
         end)
-        |> debug()
+        |> debug(),
+        [:id, :tag_id]
       )
 
     {:ok, num}
