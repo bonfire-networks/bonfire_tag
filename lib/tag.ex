@@ -112,26 +112,36 @@ defmodule Bonfire.Tag do
 
   # 1 hour # TODO: configurable
   @default_cache_ttl 1_000 * 60 * 60
+  @default_in_last_x_days 30
+  @default_limit 10
 
-  def list_trending(in_last_x_days \\ 30, limit \\ 10) do
-    Cache.maybe_apply_cached(&query_list_trending/2, [in_last_x_days, limit],
+  def list_trending(in_last_x_days \\ @default_in_last_x_days, limit \\ @default_limit) do
+    Cache.maybe_apply_cached(&list_trending_without_cache/2, [in_last_x_days, limit],
       ttl: @default_cache_ttl
     )
 
-    # Cache.maybe_apply_cached({__MODULE__, :query_list_trending}, [in_last_x_days, limit], ttl: @default_cache_ttl)
+    # Cache.maybe_apply_cached({__MODULE__, :list_trending_without_cache}, [in_last_x_days, limit], ttl: @default_cache_ttl)
   end
 
-  def list_trending_reset(in_last_x_days \\ 30, limit \\ 10) do
-    Cache.reset(&query_list_trending/2, [in_last_x_days, limit])
+  def list_trending_reset(in_last_x_days \\ @default_in_last_x_days, limit \\ @default_limit) do
+    Cache.reset(&list_trending_without_cache/2, [in_last_x_days, limit])
   end
 
-  defp query_list_trending(in_last_x_days, limit) do
+  def list_trending_without_cache(
+        in_last_x_days \\ @default_in_last_x_days,
+        limit \\ @default_limit
+      ) do
     # todo: configurable
-    exclude = [Bonfire.Data.Identity.User.__pointers__(:table_id)]
+    exclude_types = [Bonfire.Data.Identity.User]
+    exclude_ids = maybe_apply(Bonfire.Label.ContentLabels, :built_in_ids, [], fallback_return: [])
 
     DateTime.now!("Etc/UTC")
     |> DateTime.add(-in_last_x_days * 24 * 60 * 60, :second)
-    |> Queries.list_trending(exclude, limit)
+    |> Queries.list_trending(
+      exclude_tables_ids: Enum.map(exclude_types, & &1.__pointers__(:table_id)),
+      exclude_ids: exclude_ids,
+      limit: limit
+    )
     |> repo().all()
     |> Enum.map(fn tag -> struct(Tagged, tag) end)
     |> repo().maybe_preload(tag: [:profile, :character, :named])
