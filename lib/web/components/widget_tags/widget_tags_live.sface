@@ -10,7 +10,7 @@
         <Bonfire.UI.Common.WidgetBlockLive
           widget_title={@widget_title || l("Trending topics")}
           class={@wrapper_class ||
-            "relative w-full mx-auto rounded-xl border border-base-content/10"}
+            "relative w-full mx-auto rounded-xl border border-base-content/20"}
           title_class="mx-4 py-3  text-base-content/90 pb-2 text-lg font-bold tracking-wide"
         >
           {!-- TODO: add a button for admins to recalculate manually using `Bonfire.Tag.list_trending_reset(for_last_x_days,
