@@ -27,7 +27,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
          socket
          |> redirect_to("/search?s=#{hashtag}")}
 
-      is_ulid?(hashtag) ->
+      is_uid?(hashtag) ->
         mount(%{"id" => hashtag}, nil, socket)
 
       true ->
@@ -82,7 +82,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
      |> assign(
        Bonfire.Social.Feeds.LiveHandler.feed_default_assigns(
          {"feed_profile_timeline",
-          Bonfire.Tag.Tagged.q_with_tag(ulid(e(socket.assigns, :tag, nil)))},
+          Bonfire.Tag.Tagged.q_with_tag(uid(e(socket.assigns, :tag, nil)))},
          socket
        )
        |> debug("tag_feed_assigns_maybe_async")

@@ -45,7 +45,7 @@ defmodule Bonfire.Tag do
     do: {:ok, repo().many(Queries.query(e(opts, :pointable, Pointer), filters))}
 
   def get(id, opts \\ []) do
-    if is_ulid?(id),
+    if is_uid?(id),
       do: one([id: id], opts),
       else: one([username: id], opts)
 
@@ -54,7 +54,7 @@ defmodule Bonfire.Tag do
   end
 
   def find(id, types \\ nil) do
-    if is_ulid?(id),
+    if is_uid?(id),
       do: one(id: id, type: types),
       # TODO: lookup Peered with canonical_uri if id is a URL
       else: many(autocomplete: id, type: types)
@@ -160,7 +160,7 @@ defmodule Bonfire.Tag do
     debug(id_or_username_or_url)
     # check if tag already exists
     get(id_or_username_or_url)
-    <~> if is_ulid?(id_or_username_or_url) do
+    <~> if is_uid?(id_or_username_or_url) do
       debug("try by ID")
 
       Needles.one(id_or_username_or_url,
@@ -230,7 +230,7 @@ defmodule Bonfire.Tag do
                obj
 
              id when is_binary(id) ->
-               if Types.is_ulid?(id), do: %{tag_id: id}
+               if Types.is_uid?(id), do: %{tag_id: id}
 
              other ->
                warn(other, "unsupported")

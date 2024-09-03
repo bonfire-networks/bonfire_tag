@@ -4,11 +4,11 @@
   form_opts={%{"phx-submit" => "Bonfire.Tag:tag"}}
   :let={autocomplete: autocomplete}
 >
-  <input type="hidden" name="tag_id" value={ulid(@object)}>
+  <input type="hidden" name="tag_id" value={uid(@object)}>
   <!-- <input type="hidden" name="type" value="Bonfire.Classify.Category" /> -->
   <select data-phx-autocomplete="Bonfire.Tag:autocomplete" class="hidden tagify">
     {#for cat <- autocomplete || []}
-      <option class="" value={ulid(cat)}>{e(cat, :profile, :name, nil)}</option>
+      <option class="" value={uid(cat)}>{e(cat, :profile, :name, nil)}</option>
     {/for}
   </select>
   <div class="flex-1" id={:tag_topics}>

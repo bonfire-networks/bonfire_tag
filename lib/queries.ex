@@ -97,7 +97,7 @@ defmodule Bonfire.Tag.Queries do
       List.wrap(types)
       |> Enum.map(&Utils.maybe_apply(&1, :__pointers__, :table_id))
 
-    where(q, [tag], tag.table_id in ^Types.ulids(table_ids))
+    where(q, [tag], tag.table_id in ^Types.uids(table_ids))
   end
 
   def filter(q, {:username, username}) when is_binary(username) do
@@ -173,8 +173,8 @@ defmodule Bonfire.Tag.Queries do
       # left_join: object in assoc(tagged, :pointer),
       group_by: tagged.tag_id,
       select: %{tag_id: tagged.tag_id, count: count(tagged.id)},
-      where: tag.id not in ^Types.ulids(opts[:exclude_ids]),
-      where: tag.table_id not in ^Types.ulids(opts[:exclude_table_ids]),
+      where: tag.id not in ^Types.uids(opts[:exclude_ids]),
+      where: tag.table_id not in ^Types.uids(opts[:exclude_table_ids]),
       where: tagged.inserted_at >= ^since_date,
       order_by: [desc: :count],
       limit: ^limit

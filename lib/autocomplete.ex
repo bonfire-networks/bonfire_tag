@@ -216,7 +216,7 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def try_all_prefixes(content) do
-    if is_ulid?(content) do
+    if is_uid?(content) do
       [Tag.maybe_find_tag(nil, content)]
     else
       # FIXME! optimise this

@@ -97,7 +97,7 @@ defmodule Bonfire.Tag.Tagged do
 
   def q_with_tag(tag_id) do
     from(va in Bonfire.Tag.Tagged,
-      where: va.tag_id in ^Types.ulids(tag_id),
+      where: va.tag_id in ^Types.uids(tag_id),
       order_by: [desc: va.inserted_at]
     )
   end
@@ -132,7 +132,7 @@ defmodule Bonfire.Tag.Tagged do
 
     from(va in Bonfire.Tag.Tagged,
       left_join: tag in assoc(va, :tag),
-      where: tag.table_id in ^Types.ulids(table_ids),
+      where: tag.table_id in ^Types.uids(table_ids),
       order_by: [desc: va.inserted_at]
     )
   end
@@ -151,7 +151,7 @@ defmodule Bonfire.Tag.Tagged do
         |> proload([:tagged])
         |> or_where(
           [tagged: t],
-          t.tag_id in ^Types.ulids(hashtags)
+          t.tag_id in ^Types.uids(hashtags)
         )
     end
   end
