@@ -17,45 +17,46 @@
       limit)` --}
           <ul class="menu p-0">
             {#if trending != []}
-              {#for tag <- trending}
-                {#case e(tag, :tag, nil)}
-                  {#match %Bonfire.Tag.Hashtag{named: %{name: name}} = _hashtag}
-                    <li data-role="hashtag" class="rounded-none">
-                      <LinkLive class="rounded-none" to={~p"/hashtag/" <> name}>
-                        <div class="flex flex-row items-center">
-                          <div class="flex flex-col items-start flex-1 gap-0 text-left">
-                            <div
-                              style="overflow-wrap: anywhere;
+              {#for %{tag: tag} = tagged <- trending}
+                {#if Types.object_type(tag) == Bonfire.Tag.Hashtag or
+                    e(tag, :table_id, nil) == "7HASHTAG1SPART0FF01KS0N0MY"}
+                  <!-- FIXME ^ should just use Types.object_type -->
+                  <li data-role="hashtag" class="rounded-none">
+                    <LinkLive class="rounded-none" to={~p"/hashtag/" <> e(tag, :named, :name, "")}>
+                      <div class="flex flex-row items-center">
+                        <div class="flex flex-col items-start flex-1 gap-0 text-left">
+                          <div
+                            style="overflow-wrap: anywhere;
                           white-space: inherit;"
-                              class="text-sm font-medium truncate line-clamp-1"
-                            >
-                              #{name}
-                            </div>
-                            <div class="text-xs font-light text-base-content/70">{e(tag, :count, 0)} {lp("activity", "activities", e(tag, :count, 0))}</div>
+                            class="text-sm font-medium truncate line-clamp-1"
+                          >
+                            #{e(tag, :named, :name, nil)}
                           </div>
-                          {!-- <div><#Icon outline="DotsHorizontal" class="w-5 h-5 text-base-content text-opacity-60" /></div> --}
+                          <div class="text-xs font-light text-base-content/70">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))}</div>
                         </div>
-                      </LinkLive>
-                    </li>
-                  {#match other}
-                    <li data-role="other">
-                      <LinkLive class="rounded-none" to={path(other)}>
-                        <div class="flex flex-row items-center">
-                          <div class="flex flex-col items-start flex-1 gap-0 text-left">
-                            <div
-                              style="overflow-wrap: anywhere;
+                        {!-- <div><#Icon outline="DotsHorizontal" class="w-5 h-5 text-base-content text-opacity-60" /></div> --}
+                      </div>
+                    </LinkLive>
+                  </li>
+                {#else}
+                  <li data-role="other">
+                    <LinkLive class="rounded-none" to={path(tag)}>
+                      <div class="flex flex-row items-center">
+                        <div class="flex flex-col items-start flex-1 gap-0 text-left">
+                          <div
+                            style="overflow-wrap: anywhere;
                       white-space: inherit;"
-                              class="text-sm font-medium truncate line-clamp-1"
-                            >
-                              {e(other, :name, nil) || e(other, :profile, :name, nil) || e(other, :character, :username, nil) ||
-                                e(other, :named, :name, nil) || e(other, :id, nil)}
-                            </div>
-                            <div class="text-xs font-light text-base-content/70">{e(tag, :count, 0)} {lp("activity", "activities", e(tag, :count, 0))}</div>
+                            class="text-sm font-medium truncate line-clamp-1"
+                          >
+                            {e(tag, :name, nil) || e(tag, :profile, :name, nil) || e(tag, :character, :username, nil) ||
+                              e(tag, :named, :name, nil) || e(tag, :id, nil)}
                           </div>
+                          <div class="text-xs font-light text-base-content/70">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))}</div>
                         </div>
-                      </LinkLive>
-                    </li>
-                {/case}
+                      </div>
+                    </LinkLive>
+                  </li>
+                {/if}
               {/for}
             {#else}
               <div class="flex flex-col items-center p-3 space-y-2 place-content-center">

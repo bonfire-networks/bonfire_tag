@@ -135,13 +135,17 @@ defmodule Bonfire.Tag do
     exclude_types = [Bonfire.Data.Identity.User]
     exclude_ids = maybe_apply(Bonfire.Label.ContentLabels, :built_in_ids, [], fallback_return: [])
 
-    DateTime.now!("Etc/UTC")
-    |> DateTime.add(-in_last_x_days * 24 * 60 * 60, :second)
-    |> Queries.list_trending(
-      exclude_tables_ids: Enum.map(exclude_types, & &1.__pointers__(:table_id)),
+    opts = [
+      exclude_table_ids: Enum.map(exclude_types, & &1.__pointers__(:table_id)),
       exclude_ids: exclude_ids,
       limit: limit
-    )
+    ]
+
+    # |> debug()
+
+    DateTime.now!("Etc/UTC")
+    |> DateTime.add(-in_last_x_days * 24 * 60 * 60, :second)
+    |> Queries.list_trending(opts)
     |> repo().all()
     |> Enum.map(fn tag -> struct(Tagged, tag) end)
     |> repo().maybe_preload(tag: [:profile, :character, :named])
