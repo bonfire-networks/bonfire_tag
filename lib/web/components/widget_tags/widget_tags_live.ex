@@ -3,7 +3,7 @@ defmodule Bonfire.Tag.Web.WidgetTagsLive do
   alias Bonfire.Tag
   prop widget_title, :string, default: nil
   prop wrapper_class, :string, default: nil
-  prop only_admin, :boolean, default: false
+  prop always_show_reset_btn, :boolean, default: false
 
   def handle_event(
         "reset_trending",
