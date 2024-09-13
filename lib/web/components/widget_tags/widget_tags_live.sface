@@ -11,10 +11,24 @@
           widget_title={@widget_title || l("Trending topics")}
           class={@wrapper_class ||
             "relative w-full mx-auto rounded-xl border border-base-content/20"}
-          title_class="mx-4 py-3  text-base-content/90 pb-2 text-lg font-bold tracking-wide"
+          title_class="flex gap-3 mx-4 py-3 text-base-content/90 pb-2 text-lg font-bold tracking-wide"
         >
-          {!-- TODO: add a button for admins to recalculate manually using `Bonfire.Tag.list_trending_reset(for_last_x_days,
-      limit)` --}
+          <:action>
+            {#if @always_show_reset_btn || Bonfire.Boundaries.can?(@__context__, :tag, :instance_wide)}
+              <button
+                :on-click="Bonfire.Tag.Web.WidgetTagsLive:reset_trending"
+                phx-value-for_last_x_days={for_last_x_days}
+                phx-value-limit={limit}
+                type="button"
+                class="btn-circle btn-xs btn-ghost ml-auto"
+                title={l("Reset Trending")}
+              >
+                <span class="sr-only">{l("Reset Trending")}</span>
+                <#Icon iconify="material-symbols-light:refresh" class="w-5 h-5" />
+              </button>
+            {/if}
+          </:action>
+
           <ul class="menu p-0">
             {#if trending != []}
               {#for %{tag: tag} = tagged <- trending}
