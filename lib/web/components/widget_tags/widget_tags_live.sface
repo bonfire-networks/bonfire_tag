@@ -86,4 +86,5 @@
         </Bonfire.UI.Common.WidgetBlockLive>
       {#match _}
     {/case}
+  {#match _}
 {/case}
