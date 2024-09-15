@@ -5,7 +5,6 @@ defmodule Bonfire.Tag.PostsTest do
   alias Bonfire.Common.Config
   alias Bonfire.Me.Fake
   import Bonfire.Posts.Fake
-  use Bonfire.Common.Utils
 
   def repo, do: Config.repo()
 
