@@ -218,6 +218,28 @@ defmodule Bonfire.Tag do
   end
 
   ### Functions for tagging things ###
+  def get_mentions_from_changeset(changeset),
+    do: e(changeset, :changes, :post_content, :changes, :mentions, [])
+
+  def get_hashtags_from_changeset(changeset),
+    do: e(changeset, :changes, :post_content, :changes, :hashtags, [])
+
+  def format_tag(%{} = obj), do: obj
+
+  def format_tag(id) when is_binary(id) do
+    if Types.is_uid?(id), do: %{tag_id: id}
+  end
+
+  def format_tag(other) do
+    warn(other, "unsupported")
+    nil
+  end
+
+  def format_tags(tags) do
+    Enum.map(tags, &format_tag/1)
+    |> filter_empty([])
+    |> Enums.uniq_by_id()
+  end
 
   @doc "For using on changesets (eg in epics)"
   def cast(changeset, attrs, creator, opts) do
@@ -226,23 +248,10 @@ defmodule Bonfire.Tag do
     # tag any hashtags that were found in the text and injected into the changeset by PostContents
     # TODO: what fields to look for should be defined by the caller ^
     with tags when is_list(tags) and length(tags) > 0 <-
-           (e(changeset, :changes, :post_content, :changes, :mentions, []) ++
-              e(changeset, :changes, :post_content, :changes, :hashtags, []) ++
+           (get_mentions_from_changeset(changeset) ++
+              get_hashtags_from_changeset(changeset) ++
               e(attrs, :tags, []))
-           |> Enum.map(fn
-             %{} = obj ->
-               obj
-
-             id when is_binary(id) ->
-               if Types.is_uid?(id), do: %{tag_id: id}
-
-             other ->
-               warn(other, "unsupported")
-               nil
-           end)
-           |> filter_empty([])
-           |> Enums.uniq_by_id()
-           #  |> tags_preloads(opts)
+           |> format_tags
            |> debug("cast tags") do
       changeset
       |> maybe_put_tree_parent(opts[:put_tree_parent], creator)
