@@ -24,7 +24,7 @@ defmodule Bonfire.Tag.TagTest do
     {:ok, %{id: tag_id} = tag} = Tag.get_or_create_hashtag("test")
 
     changeset =
-      Tag.cast(Posts.changeset(:create, %{}), %{tags: [tag]}, user, put_tree_parent: false)
+      Tag.cast(Posts.changeset(:create, %{}), %{tags: [tag]}, user)
 
     assert [%{action: :insert, valid?: true, params: %{"tag_id" => tag_id}}] =
              changeset.changes.tagged
