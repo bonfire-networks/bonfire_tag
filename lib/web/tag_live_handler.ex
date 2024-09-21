@@ -33,7 +33,7 @@ defmodule Bonfire.Tag.LiveHandler do
     with {:ok, _} <-
            maybe_tag(
              current_user_required!(socket),
-             e(params, "tag_id", nil) || e(socket.assigns, :object, nil),
+             e(params, "tag_id", nil) || e(assigns(socket), :object, nil),
              tags
            ) do
       Bonfire.UI.Common.OpenModalLive.close()
@@ -54,7 +54,7 @@ defmodule Bonfire.Tag.LiveHandler do
 
     {:noreply,
      assign(socket,
-       autocomplete: (e(socket.assigns, :autocomplete, []) ++ suggestions) |> Enum.uniq()
+       autocomplete: (e(assigns(socket), :autocomplete, []) ++ suggestions) |> Enum.uniq()
      )}
   end
 end
