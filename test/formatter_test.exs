@@ -36,6 +36,27 @@ defmodule Bonfire.Tag.PostsTest do
 
         assert found_content == content_with_mention
       end
+
+      test "using #{prefix}, find only first mention if safe_mention: true, but linkify all" do
+        user_1 = Fake.fake_user!()
+        display_name_1 = "#{unquote(prefix)}#{user_1.character.username}"
+        user_2 = Fake.fake_user!()
+        display_name_2 = "#{unquote(prefix)}#{user_2.character.username}"
+
+        content_with_mentions = "#{display_name_1} say hi to #{display_name_2} "
+
+        assert {linkified_content, [{returned_display_name, %{id: returned_user_id}}], [], []} =
+                 Formatter.linkify(content_with_mentions,
+                   safe_mention: true,
+                   content_type: "text/markdown"
+                 )
+
+        assert linkified_content =~
+                 ~r/^\[#{returned_display_name}\]\(.*\) say hi to \[#{display_name_2}\]\(.*\)/
+
+        assert returned_display_name == display_name_1
+        assert returned_user_id == user_1.id
+      end
     end
   end
 end
