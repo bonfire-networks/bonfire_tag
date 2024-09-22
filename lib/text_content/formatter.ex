@@ -16,6 +16,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   Parses a text and replace plain text links with HTML. Returns a tuple with a result text, mentions, and hashtags.
 
   If the 'safe_mention' option is given, only consecutive mentions at the start the post are actually mentioned.
+
   """
   @spec linkify(String.t(), keyword()) ::
           {String.t(), [{String.t(), User.t()}], [{String.t(), String.t()}]}
@@ -186,7 +187,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   defp tag_link(type, url, display_name, _html) do
     debug(type, "type")
     debug(display_name, "display_name")
-
+    # possibly bugged, is it actually used anywhere?
     Phoenix.HTML.Tag.content_tag(
       :span,
       Phoenix.HTML.Tag.content_tag(
