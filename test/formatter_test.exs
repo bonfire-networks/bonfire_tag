@@ -52,11 +52,21 @@ defmodule Bonfire.Tag.PostsTest do
                  )
 
         assert linkified_content =~
-                 ~r/^\[#{returned_display_name}\]\(.*\) say hi to \[#{display_name_2}\]\(.*\)/
+                 ~r/^\[#{String.replace(returned_display_name, "+", "\\+")}\]\(.*\) say hi to \[#{String.replace(display_name_2, "+", "\\+")}\]\(.*\)/
 
         assert returned_display_name == display_name_1
         assert returned_user_id == user_1.id
       end
+    end
+
+    test "find tag and linkify it" do
+      {linkified_text, [], [{"#taggie", tag}], []} =
+        Formatter.linkify("what a nice #taggie",
+          content_type: "text/markdown"
+        )
+
+      assert linkified_text =~ "what a nice [#taggie]("
+      assert tag.named.name == "taggie"
     end
   end
 end
