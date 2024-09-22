@@ -23,5 +23,15 @@ defmodule Bonfire.Tag.PostsTest do
       assert returned_display_name == "@#{username}"
       assert returned_user_id == user.id
     end
+
+    test "find no mention if the user doesn't exist" do
+      content_with_mention = "hi @missing_user"
+
+      assert {content_with_mention, [], [], []} =
+               Formatter.linkify(content_with_mention,
+                 safe_mention: false,
+                 content_type: "text/markdown"
+               )
+    end
   end
 end
