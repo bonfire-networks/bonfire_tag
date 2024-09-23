@@ -68,5 +68,23 @@ defmodule Bonfire.Tag.PostsTest do
       assert linkified_text =~ "what a nice [#taggie]("
       assert tag.named.name == "taggie"
     end
+
+    test "not linkify a URL inside a code block" do
+      {linkified_text, [], [], []} =
+        Formatter.linkify("\`https://google.com\`",
+          content_type: "text/markdown"
+        )
+
+      assert linkified_text == "\`https://google.com\`"
+    end
+
+    test "linkify a URL outside a code block" do
+      {linkified_text, [], [], [{"https://google.com", "https://google.com"}]} =
+        Formatter.linkify("\`some code\` https://google.com",
+          content_type: "text/markdown"
+        )
+
+      assert linkified_text == "\`some code\` [google.com](https://google.com)"
+    end
   end
 end
