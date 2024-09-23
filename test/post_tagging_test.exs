@@ -59,4 +59,16 @@ defmodule Bonfire.Tag.PostsTest do
     assert name == tagged_username
     assert post.post_content.html_body =~ "[@#{name}](/character/#{name})"
   end
+
+  test "Tag.cast should add a Tagged entry to the changeset" do
+    user = Fake.fake_user!()
+
+    {:ok, %{id: tag_id} = tag} = Tag.get_or_create_hashtag("test")
+
+    changeset =
+      Tag.cast(Posts.changeset(:create, %{}), %{tags: [tag]}, user)
+
+    assert [%{action: :insert, valid?: true, params: %{"tag_id" => tag_id}}] =
+             changeset.changes.tagged
+  end
 end

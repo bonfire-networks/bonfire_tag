@@ -17,16 +17,4 @@ defmodule Bonfire.Tag.TagTest do
     {:ok, tag_2} = Tag.get_or_create_hashtag("test")
     assert tag_1.id == tag_2.id
   end
-
-  test "Tag.cast should add a Tagged entry to the changeset" do
-    user = Fake.fake_user!()
-
-    {:ok, %{id: tag_id} = tag} = Tag.get_or_create_hashtag("test")
-
-    changeset =
-      Tag.cast(Posts.changeset(:create, %{}), %{tags: [tag]}, user)
-
-    assert [%{action: :insert, valid?: true, params: %{"tag_id" => tag_id}}] =
-             changeset.changes.tagged
-  end
 end

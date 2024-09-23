@@ -218,8 +218,11 @@ defmodule Bonfire.Tag do
   end
 
   ### Functions for tagging things ###
-  def get_mentions_from_changeset(changeset),
-    do: e(changeset, :changes, :post_content, :changes, :mentions, [])
+
+  def get_mentions_from_changeset(%{changes: %{post_content: %{changes: %{mentions: mentions}}}}),
+    do: mentions || []
+
+  def get_mentions_from_changeset(_), do: []
 
   def get_hashtags_from_changeset(changeset),
     do: e(changeset, :changes, :post_content, :changes, :hashtags, [])
@@ -242,7 +245,7 @@ defmodule Bonfire.Tag do
   end
 
   @doc "For using on changesets (eg in epics)"
-  def cast(changeset, attrs, creator, opts \\ %{}) do
+  def cast(changeset, attrs, creator, opts \\ []) do
     # with true <- module_enabled?(Bonfire.Tag, creator),
     # tag any mentions that were found in the text and injected into the changeset by PostContents (NOTE: this doesn't necessarily mean they should be included in boundaries or notified)
     # tag any hashtags that were found in the text and injected into the changeset by PostContents
