@@ -71,20 +71,21 @@ defmodule Bonfire.Tag.PostsTest do
 
     test "not linkify a URL inside a code block" do
       {linkified_text, [], [], []} =
-        Formatter.linkify("\`https://google.com\`",
+        Formatter.linkify("\`https://google.com\` some text",
           content_type: "text/markdown"
         )
 
-      assert linkified_text == "\`https://google.com\`"
+      assert linkified_text == "\`https://google.com\` some text"
     end
 
     test "linkify a URL outside a code block" do
       {linkified_text, [], [], [{"https://google.com", "https://google.com"}]} =
-        Formatter.linkify("\`some code\` https://google.com",
+        Formatter.linkify("\`some code\` https://google.com \`some other code\'",
           content_type: "text/markdown"
         )
 
-      assert linkified_text == "\`some code\` [google.com](https://google.com)"
+      assert linkified_text ==
+               "\`some code\` [google.com](https://google.com) \`some other code\'"
     end
   end
 end

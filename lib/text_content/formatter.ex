@@ -21,7 +21,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   @spec linkify(String.t(), keyword()) ::
           {String.t(), [{String.t(), User.t()}], [{String.t(), String.t()}]}
   def linkify(text, options \\ []) do
-    options = linkify_opts(has_codeblock?(text)) ++ options
+    options = linkify_opts() ++ options
 
     if options[:safe_mention] && Regex.named_captures(@safe_mention_regex, text) do
       %{"mentions" => mentions, "rest" => rest} = Regex.named_captures(@safe_mention_regex, text)
@@ -43,14 +43,10 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     end
   end
 
-  defp has_codeblock?(text) do
-    String.split(text, "`", parts: 3) == 3 || String.split(text, "```", parts: 3) == 3
-  end
-
-  defp linkify_opts(has_codeblock \\ false) do
+  defp linkify_opts() do
     Config.get(Bonfire.Tag.TextContent.Formatter, []) ++
       [
-        url_handler: if(has_codeblock, do: &nothing_handler/3, else: &url_handler/3),
+        url_handler: &url_handler/3,
         hashtag: true,
         hashtag_handler: &tag_handler/4,
         mention: true,
