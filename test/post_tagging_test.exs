@@ -66,12 +66,12 @@ if Code.ensure_loaded?(Bonfire.Posts) do
     test "Tag.cast should add a Tagged entry to the changeset" do
       user = Fake.fake_user!()
 
-      {:ok, %{id: tag_id} = tag} = Tag.get_or_create_hashtag("test")
+      {:ok, %{id: _} = tag} = Tag.get_or_create_hashtag("test")
 
       changeset =
         Tag.cast(Posts.changeset(:create, %{}), %{tags: [tag]}, user)
 
-      assert [%{action: :insert, valid?: true, params: %{"tag_id" => tag_id}}] =
+      assert [%{action: :insert, valid?: true, params: %{"tag_id" => _}}] =
                changeset.changes.tagged
     end
   end
