@@ -9,6 +9,18 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   import Untangle
   use Bonfire.Common.E
 
+  # should support:
+  # @user
+  # @user@example.com
+  # @user@example.com:4000
+  # @user@localhost:4000
+  # &Community
+  # &Community@instance.tld
+  # +CategoryTag
+  # +CategoryTag@instance.tld
+  @match_mention ~r/^(?<prefix>[@&\+])(?<user>[a-zA-Z\d_-]+)(@(?<host>[^@]+))?$/
+  # @match_mention ~r"^[@&\+][a-zA-Z\d_-]+@[a-zA-Z0-9_-](?:[a-zA-Z0-9-:]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-:]{0,61}[a-zA-Z0-9])?)*|[@&\+][a-zA-Z\d_-]+"u
+  # @match_mention ~r"([@&\+][a-zA-Z\d_-]+@[a-zA-Z0-9:._-]+)*|([@&\+][a-zA-Z\d_-]+)*"u
   @safe_mention_regex ~r/^(\s*(?<mentions>([@|&amp;|\+].+?\s+){1,})+)(?<rest>.*)/s
   @markdown_characters_regex ~r/(`|\*|_|{|}|[|]|\(|\)|#|\+|-|\.|!)/
 
@@ -51,6 +63,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
         hashtag_handler: &tag_handler/4,
         mention: true,
         mention_handler: &tag_handler/4,
+        mention_regex: @match_mention,
         email: true,
         strip_prefix: true,
         truncate: 30

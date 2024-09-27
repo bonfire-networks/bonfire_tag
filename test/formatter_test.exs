@@ -71,7 +71,7 @@ defmodule Bonfire.Tag.FormatterTest do
 
     for codeblock_delimiter <- ["`", "\n```\n"] do
       test "using #{codeblock_delimiter}, not linkify a URL inside a code block" do
-        del = unquote(codeblock_delimiter) |> IO.inspect()
+        del = unquote(codeblock_delimiter)
 
         {linkified_text, [], [], []} =
           Formatter.linkify("#{del}https://google.com#{del} some text",
@@ -79,6 +79,13 @@ defmodule Bonfire.Tag.FormatterTest do
           )
 
         assert linkified_text == "#{del}https://google.com#{del} some text"
+
+        {linkified_text, [], [], []} =
+          Formatter.linkify("#{del}before https://google.com after#{del} some text",
+            content_type: "text/markdown"
+          )
+
+        assert linkified_text == "#{del}before https://google.com after#{del} some text"
       end
 
       test "using #{codeblock_delimiter}, linkify a URL outside a code block" do
