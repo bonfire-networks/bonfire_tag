@@ -70,26 +70,6 @@ defmodule Bonfire.Tag.TextContent.Formatter do
       ]
   end
 
-  def escape_mention_handler("@" <> nickname = mention, buffer, _, _) do
-    case Tag.maybe_lookup_tag(nickname, "@") do
-      {:ok, _tag} ->
-        # escape markdown characters with `\\`
-        # (we don't want something like @user__name to be parsed by markdown)
-        String.replace(mention, @markdown_characters_regex, "\\\\\\1")
-
-      _ ->
-        buffer
-    end
-  end
-
-  def escape_mention_handler("&" <> _nickname = mention, _buffer, _, _) do
-    String.replace(mention, @markdown_characters_regex, "\\\\\\1")
-  end
-
-  def escape_mention_handler("+" <> _nickname = mention, _buffer, _, _) do
-    String.replace(mention, @markdown_characters_regex, "\\\\\\1")
-  end
-
   def nothing_handler(text, _opts, acc) do
     {text, acc}
   end
@@ -101,12 +81,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
     link = render_link(display_url, Map.new(attrs), Map.get(opts, :content_type))
 
-    # with {:ok, meta} <- Unfurl.unfurl(url) do
-    #   {link, %{acc | urls: MapSet.put(acc.urls, {url, meta})}}
-    # else none ->
-    #   warn(url, "process URL")
     {link, %{acc | urls: MapSet.put(acc.urls, {url, url})}}
-    # end
   end
 
   def tag_handler("#" <> tag = tag_text, buffer, opts, acc) do
@@ -219,24 +194,4 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   defp render_link(display_url, attrs, _html) do
     Linkify.Builder.format_url(attrs, display_url)
   end
-
-  # @doc """
-  # Escapes a special characters in mention names (not used right now)
-  # """
-  # def mentions_escape(text, options \\ []) do
-  #   options =
-  #     Keyword.merge(options,
-  #       mention: true,
-  #       url: false,
-  #       mention_handler: &Bonfire.Tag.TextContent.Formatter.escape_mention_handler/4
-  #     )
-
-  #   if options[:safe_mention] && Regex.named_captures(@safe_mention_regex, text) do
-  #     %{"mentions" => mentions, "rest" => rest} = Regex.named_captures(@safe_mention_regex, text)
-
-  #     Linkify.link(mentions, options) <> Linkify.link(rest, options)
-  #   else
-  #     Linkify.link(text, options)
-  #   end
-  # end
 end
