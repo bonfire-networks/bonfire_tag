@@ -117,10 +117,10 @@ defmodule Bonfire.Tag do
 
   def list_trending(in_last_x_days \\ @default_in_last_x_days, limit \\ @default_limit) do
     Cache.maybe_apply_cached(&list_trending_without_cache/2, [in_last_x_days, limit],
-      ttl: @default_cache_ttl
+      expire: @default_cache_ttl
     )
 
-    # Cache.maybe_apply_cached({__MODULE__, :list_trending_without_cache}, [in_last_x_days, limit], ttl: @default_cache_ttl)
+    # Cache.maybe_apply_cached({__MODULE__, :list_trending_without_cache}, [in_last_x_days, limit], expire: @default_cache_ttl)
   end
 
   def list_trending_reset(in_last_x_days \\ @default_in_last_x_days, limit \\ @default_limit) do

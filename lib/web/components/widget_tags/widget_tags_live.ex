@@ -12,7 +12,14 @@ defmodule Bonfire.Tag.Web.WidgetTagsLive do
       ) do
     Tag.list_trending_reset(String.to_integer(for_last_x_days), String.to_integer(limit))
 
-    debug("reset trending tags")
-    socket
+    debug("")
+
+    {:noreply,
+     socket
+     #  TODO: how to update them without reloading or making this a stateful component
+     |> assign_flash(
+       :info,
+       l("Trending tags have been reset.") <> " You need to reload to see updated tags, if any."
+     )}
   end
 end
