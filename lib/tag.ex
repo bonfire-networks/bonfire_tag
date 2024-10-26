@@ -254,18 +254,20 @@ defmodule Bonfire.Tag do
            (get_mentions_from_changeset(changeset) ++
               get_hashtags_from_changeset(changeset) ++
               e(attrs, :tags, []))
-           |> format_tags
-           |> debug("cast tags") do
+           |> format_tags()
+           |> IO.inspect(label: "cast tags") do
       changeset
       # does this really have to happen here? Could it be decoupled?
       |> maybe_put_tree_parent(opts[:put_tree_parent], creator)
       |> Changeset.cast(%{tagged: tags}, [])
       |> debug("before cast assoc")
       |> Changeset.cast_assoc(:tagged, with: &Bonfire.Tag.Tagged.changeset/2)
+      |> debug("changeset with :tagged")
     else
-      _ -> changeset
+      _ ->
+        debug("not casting any tags")
+        changeset
     end
-    |> debug("changeset with :tagged")
   end
 
   def maybe_put_tree_parent(changeset, category, creator)

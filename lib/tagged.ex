@@ -29,8 +29,14 @@ defmodule Bonfire.Tag.Tagged do
 
   def changeset(struct, params \\ %{})
 
+  def changeset(%Needle.Pointer{id: nil}, params) do
+    # workaround weird bug
+    changeset(%Bonfire.Tag.Tagged{}, params)
+  end
+
   def changeset(struct, %_{id: tag_id} = _object) do
-    debug(tag_id, "tag_id")
+    IO.inspect(struct, label: "struct")
+    IO.inspect(tag_id, label: "tag_id")
 
     struct
     |> Ecto.Changeset.cast(%{tag_id: tag_id}, @cast)
@@ -38,6 +44,7 @@ defmodule Bonfire.Tag.Tagged do
   end
 
   def changeset(struct, params) do
+    debug(struct, "struct")
     debug(params, "params")
 
     struct
