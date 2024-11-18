@@ -492,6 +492,7 @@ defmodule Bonfire.Tag do
     # debug(indexing_object_format: object)
     %{
       "id" => object.id,
+      "index_type" => Types.module_to_str(Tag),
       "name" => object.profile.name,
       "summary" => object.profile.summary
 
