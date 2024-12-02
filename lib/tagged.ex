@@ -35,8 +35,8 @@ defmodule Bonfire.Tag.Tagged do
   end
 
   def changeset(struct, %_{id: tag_id} = _object) do
-    IO.inspect(struct, label: "struct")
-    IO.inspect(tag_id, label: "tag_id")
+    debug(struct, "struct")
+    debug(tag_id, "tag_id")
 
     struct
     |> Ecto.Changeset.cast(%{tag_id: tag_id}, @cast)
