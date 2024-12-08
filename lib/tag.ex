@@ -491,14 +491,13 @@ defmodule Bonfire.Tag do
   def indexing_object_format(object) do
     # debug(indexing_object_format: object)
     %{
-      "id" => object.id,
+      "id" => id(object),
       "index_type" => Types.module_to_str(Tag),
-      "name" => object.profile.name,
-      "summary" => object.profile.summary
-
+      "name" => indexing_object_format_name(object),
+      "summary" => e(object, :profile, :summary, nil)
       # TODO: add url/username
     }
   end
 
-  def indexing_object_format_name(object), do: object.profile.name
+  def indexing_object_format_name(object), do: e(object, :profile, :name, nil)
 end
