@@ -132,11 +132,11 @@ defmodule Bonfire.Tag do
         limit \\ @default_limit
       ) do
     # todo: configurable
-    exclude_types = [Bonfire.Data.Identity.User]
+    exclude_object_types = [Bonfire.Data.Identity.User]
     exclude_ids = maybe_apply(Bonfire.Label.ContentLabels, :built_in_ids, [], fallback_return: [])
 
     opts = [
-      exclude_table_ids: Enum.map(exclude_types, & &1.__pointers__(:table_id)),
+      exclude_table_ids: Enum.map(exclude_object_types, & &1.__pointers__(:table_id)),
       exclude_ids: exclude_ids,
       limit: limit
     ]
