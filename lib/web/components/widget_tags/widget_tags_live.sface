@@ -29,7 +29,7 @@
             {/if}
           </:action>
 
-          <ul class="menu p-0">
+          <ul class="menu w-full p-0">
             {#if trending != []}
               {#for %{tag: tag} = tagged <- trending}
                 {#if Types.object_type(tag) == Bonfire.Tag.Hashtag or
