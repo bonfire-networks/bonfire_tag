@@ -96,7 +96,7 @@ defmodule Bonfire.Tag.HashtagFeed.Test do
     # Now visit Alice's hashtag feed
     conn
     |> visit("/hashtag/#{alice_hashtag}")
-    |> PhoenixTest.open_browser()
+    # |> PhoenixTest.open_browser()
 
     # Alice's post with her hashtag should appear
     |> assert_has("[data-id=feed] article")
