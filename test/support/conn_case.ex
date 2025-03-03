@@ -26,11 +26,15 @@ defmodule Bonfire.Tag.ConnCase do
       import Bonfire.UI.Common.Testing.Helpers
 
       import Phoenix.LiveViewTest
+
+      import PhoenixTest
+
       # import Bonfire.Tag.ConnCase
       import Bonfire.Tag.Test.ConnHelpers
-      import Bonfire.Tag.Test.FakeHelpers
       alias Bonfire.Tag.Fake
       alias Bonfire.Tag.Web.Router.Helpers, as: Routes
+
+      use Bonfire.Common.Repo
 
       # The default endpoint for testing
       @endpoint Application.compile_env!(:bonfire, :endpoint_module)

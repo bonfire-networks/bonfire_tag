@@ -1,11 +1,13 @@
 <main data-id="tag" data-tag-id={id(@tag)} class="">
   <section class="flex flex-col w-full gap-3 mx-auto">
-    {!-- <Bonfire.UI.Common.PageTitleLive page_title={l("Results for ") <> @page_title} /> --}
-    <StatelessComponent
-      module={Config.get([:ui, :tag, :sections, tab(@selected_tab)], Bonfire.UI.Social.ProfileTimelineLive)}
-      user={@tag}
-      {...assigns}
-    >
-    </StatelessComponent>
+    <StatefulComponent
+      module={maybe_component(Bonfire.UI.Social.FeedLive, @__context__)}
+      id={ComponentID.new(Bonfire.UI.Social.FeedLive, @feed_name, __MODULE__)}
+      feed_filters={@feed_filters}
+      feed_name={@feed_name}
+      feed_title={@feed_title}
+      showing_within={@feed_name}
+      hide_tabs
+    />
   </section>
 </main>

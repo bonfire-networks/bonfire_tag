@@ -43,13 +43,15 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
     {:ok,
      assign(
        socket,
+       feed_name: :hashtag,
+       feed_title: "#" <> name,
+       page_title: "#" <> name,
+       feed_filters: %{hashtag: name},
        page: "tag",
        back: true,
-       page_title: "#" <> name,
        object_type: nil,
        feed: [],
        hide_tabs: true,
-       selected_tab: :timeline,
        #  smart_input_opts: %{text_suggestion: name}, # TODO: new post with tag button instead
        tag: tag,
        canonical_url: canonical_url(tag),
@@ -63,44 +65,5 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
          ]
        ]
      )}
-  end
-
-  def tab(selected_tab) do
-    case maybe_to_atom(selected_tab) do
-      tab when is_atom(tab) -> tab
-      _ -> :timeline
-    end
-
-    # |> debug
-  end
-
-  def handle_params(%{"tab" => tab} = _params, _url, socket)
-      when tab in ["posts", "timeline"] do
-    # FIXME!
-    {:noreply,
-     socket
-     |> assign(
-       Bonfire.Social.Feeds.LiveHandler.feed_default_assigns(
-         {"feed_profile_timeline",
-          Bonfire.Tag.Tagged.q_with_tag(uid(e(assigns(socket), :tag, nil)))},
-         socket
-       )
-       |> debug("tag_feed_assigns_maybe_async")
-     )
-     |> assign(
-       selected_tab: tab(tab)
-       #  page_title: e(assigns(socket), :name, nil),
-       #  page_title: "#{e(assigns(socket), :name, nil)} #{tab(tab)}")
-       #  page_header_icon: "mingcute:hashtag-fill"
-     )}
-  end
-
-  def handle_params(params, _url, socket) do
-    # default tab
-    handle_params(
-      Map.merge(params || %{}, %{"tab" => "timeline"}),
-      nil,
-      socket
-    )
   end
 end
