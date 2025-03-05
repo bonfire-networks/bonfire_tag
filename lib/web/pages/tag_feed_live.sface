@@ -7,7 +7,7 @@
       feed_name={@feed_name}
       feed_title={@feed_title}
       showing_within={@feed_name}
-      hide_tabs
+      hide_filters
     />
   </section>
 </main>
