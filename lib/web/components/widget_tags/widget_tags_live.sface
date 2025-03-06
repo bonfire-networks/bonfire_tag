@@ -20,7 +20,7 @@
                 phx-value-for_last_x_days={for_last_x_days}
                 phx-value-limit={limit}
                 type="button"
-                class="btn-circle btn-xs btn-ghost ml-auto"
+                class="btn btn-circle btn-xs btn-ghost ml-auto"
                 title={l("Reset Trending")}
               >
                 <span class="sr-only">{l("Reset Trending")}</span>
