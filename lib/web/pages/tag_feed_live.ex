@@ -46,7 +46,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
        feed_name: :hashtag,
        feed_title: "#" <> name,
        page_title: "#" <> name,
-       feed_filters: %{hashtag: id(tag)},
+       feed_filters: %{tags: id(tag)},
        page: "tag",
        back: true,
        object_type: nil,
