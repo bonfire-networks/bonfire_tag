@@ -19,34 +19,40 @@ defmodule Bonfire.Tags.Acts.AutoBoost do
     if epic.errors == [] do
       on = Keyword.get(act.options, :on, :activity)
       key = :categories_auto_boost
-      categories_auto_boost = e(epic.assigns, key, [])
+      categories_auto_boost = ed(epic.assigns, key, [])
 
-      maybe_debug(
-        epic,
-        act,
-        categories_auto_boost,
-        "Maybe auto-boosting to categories at assign #{key}"
-      )
+      if categories_auto_boost != [] do
+        maybe_debug(
+          epic,
+          act,
+          categories_auto_boost,
+          "Maybe auto-boosting to categories at assign #{key}"
+        )
 
-      case epic.assigns[on] do
-        nil ->
-          maybe_debug(epic, act, on, "Skipping: no activity at")
+        case epic.assigns[on] do
+          %{object: %{id: _} = object} ->
+            Bonfire.Common.Utils.maybe_apply(Bonfire.Social.Tags, :auto_boost, [
+              categories_auto_boost,
+              object
+            ])
 
-        %{object: %{id: _} = object} ->
-          Bonfire.Common.Utils.maybe_apply(Bonfire.Social.Tags, :auto_boost, [
-            categories_auto_boost,
-            object
-          ])
+            epic
 
-          epic
+          %{} = object ->
+            Bonfire.Common.Utils.maybe_apply(Bonfire.Social.Tags, :auto_boost, [
+              categories_auto_boost,
+              object
+            ])
 
-        object ->
-          Bonfire.Common.Utils.maybe_apply(Bonfire.Social.Tags, :auto_boost, [
-            categories_auto_boost,
-            object
-          ])
+            epic
 
-          epic
+          _ ->
+            maybe_debug(epic, act, on, "Skipping: no activity or object at")
+            epic
+        end
+      else
+        maybe_debug(epic, act, on, "Skipping: no categories at assign #{key}")
+        epic
       end
     else
       maybe_debug(act, length(epic.errors), "Skipping due to errors!")
