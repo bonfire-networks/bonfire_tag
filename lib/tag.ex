@@ -36,14 +36,6 @@ defmodule Bonfire.Tag do
   def one(filters, opts \\ []),
     do: repo().single(Queries.query(e(opts, :pointable, Pointer), filters))
 
-  @doc """
-  Retrieves a list of tags by arbitrary filters.
-  Used by:
-  * Various parts of the codebase that need to query for tags (inc. tests)
-  """
-  def many(filters \\ [], opts \\ []),
-    do: {:ok, repo().many(Queries.query(e(opts, :pointable, Pointer), filters))}
-
   def get(id, opts \\ []) do
     if is_uid?(id),
       do: one([id: id], opts),
@@ -53,6 +45,11 @@ defmodule Bonfire.Tag do
     # TODO: lookup Peered with canonical_uri if id is a URL
   end
 
+  def get_hashtag(name) do
+    Hashtag.normalize_name(name)
+    |> do_get_hashtag()
+  end
+
   def find(id, types \\ nil) do
     if is_uid?(id),
       do: one(id: id, type: types),
@@ -60,10 +57,13 @@ defmodule Bonfire.Tag do
       else: many(autocomplete: id, type: types)
   end
 
-  def get_hashtag(name) do
-    Hashtag.normalize_name(name)
-    |> do_get_hashtag()
-  end
+  @doc """
+  Retrieves a list of tags by arbitrary filters.
+  Used by:
+  * Various parts of the codebase that need to query for tags (inc. tests)
+  """
+  def many(filters \\ [], opts \\ []),
+    do: {:ok, repo().many(Queries.query(e(opts, :pointable, Pointer), filters))}
 
   defp do_get_hashtag(name) do
     repo().single(

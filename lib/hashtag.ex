@@ -37,9 +37,9 @@ defmodule Bonfire.Tag.Hashtag do
 
   def normalize_name(name) do
     name
+    |> String.trim()
     # |> String.downcase()
     |> String.trim_leading("#")
-    |> String.trim()
     |> String.replace(" ", "_")
   end
 end

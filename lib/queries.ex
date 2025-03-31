@@ -3,13 +3,13 @@ defmodule Bonfire.Tag.Queries do
   @moduledoc "Queries for `Bonfire.Tag`"
   import Ecto.Query
 
-  alias Needle.Pointer, as: Tag
+  alias Needle.Pointer
   alias Bonfire.Tag.Tagged
   alias Bonfire.Common.Utils
   alias Bonfire.Common.Types
 
-  def query(Tag) do
-    from(t in Tag,
+  def query(Pointer) do
+    from(t in Pointer,
       as: :tag
 
       # left_join: c in assoc(t, :character),
@@ -18,7 +18,7 @@ defmodule Bonfire.Tag.Queries do
   end
 
   def query(:count) do
-    from(c in Tag, as: :tag)
+    from(c in Pointer, as: :tag)
   end
 
   def query(pointable) when is_atom(pointable) do
@@ -30,7 +30,7 @@ defmodule Bonfire.Tag.Queries do
     )
   end
 
-  def query(filters) when is_list(filters), do: query(Tag, filters)
+  def query(filters) when is_list(filters), do: query(Pointer, filters)
 
   def query(q, filters), do: filter(query(q), filters)
 
