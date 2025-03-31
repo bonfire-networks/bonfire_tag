@@ -64,9 +64,9 @@ if Code.ensure_loaded?(Bonfire.API.GraphQL) do
       # thing = repo().maybe_preload(thing, :tags)
       thing = repo().maybe_preload(thing, tags: [:category, :profile, :character])
 
-      # IO.inspect(tags_edges_thing: thing)
+      # debug(tags_edges_thing: thing)
 
-      # |> IO.inspect()
+      # |> debug()
       tags =
         thing
         |> Map.get(:tags, [])
@@ -92,7 +92,7 @@ if Code.ensure_loaded?(Bonfire.API.GraphQL) do
         }
       )
 
-      # |> IO.inspect
+      # |> debug
     end
 
     def tag_prepare(%{profile: %{name: name}} = tag, page_opts, info)
