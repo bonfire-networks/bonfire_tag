@@ -22,6 +22,8 @@ defmodule Bonfire.Tag.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       # import Bonfire.Tag.DataCase
+
+      @moduletag :backend
     end
   end
 

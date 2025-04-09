@@ -392,7 +392,7 @@ defmodule Bonfire.Tag do
         {:ok, if(is_map(thing), do: thing, else: pointer) |> Map.merge(%{tags: tags})}
       end
 
-      # Bonfire.Common.Repo.maybe_preload(thing, :tags)
+      # repo().maybe_preload(thing, :tags)
     end
   end
 
