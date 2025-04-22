@@ -116,7 +116,9 @@ defmodule Bonfire.Tag do
   @default_limit 10
 
   def list_trending(in_last_x_days \\ @default_in_last_x_days, limit \\ @default_limit) do
-    Cache.maybe_apply_cached(&list_trending_without_cache/2, [in_last_x_days, limit],
+    Cache.maybe_apply_cached(
+      &list_trending_without_cache/2,
+      [in_last_x_days || @default_in_last_x_days, limit || @default_limit],
       expire: @default_cache_ttl
     )
 
@@ -124,7 +126,10 @@ defmodule Bonfire.Tag do
   end
 
   def list_trending_reset(in_last_x_days \\ @default_in_last_x_days, limit \\ @default_limit) do
-    Cache.reset(&list_trending_without_cache/2, [in_last_x_days, limit])
+    Cache.reset(&list_trending_without_cache/2, [
+      in_last_x_days || @default_in_last_x_days,
+      limit || @default_limit
+    ])
   end
 
   def list_trending_without_cache(
@@ -138,13 +143,13 @@ defmodule Bonfire.Tag do
     opts = [
       exclude_table_ids: Enum.map(exclude_object_types, & &1.__pointers__(:table_id)),
       exclude_ids: exclude_ids,
-      limit: limit
+      limit: limit || @default_limit
     ]
 
     # |> debug()
 
     DateTime.now!("Etc/UTC")
-    |> DateTime.add(-in_last_x_days * 24 * 60 * 60, :second)
+    |> DateTime.add(-(in_last_x_days || @default_in_last_x_days) * 24 * 60 * 60, :second)
     |> Queries.list_trending(opts)
     |> repo().all()
     |> Enum.map(fn tag -> struct(Tagged, tag) end)
