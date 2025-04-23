@@ -19,7 +19,7 @@ defmodule Bonfire.Tag.Web.WidgetTagsLive do
      #  TODO: how to update them without reloading or making this a stateful component
      |> assign_flash(
        :info,
-       l("Trending tags have been reset.") <> " You need to reload to see updated tags, if any."
+       l("Trending tags have been reset.") <> l(" You need to reload to see updates, if any.")
      )}
   end
 end
