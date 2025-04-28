@@ -91,7 +91,7 @@ defmodule Bonfire.Tag.HashtagFeed.Test do
     |> assert_has("[data-id=object_body]", text: alice_second_post_content)
 
     # Alice's post with a different hashtag should not appear
-    |> refute_has("[data-id=object_body]", text: alice_hashtag)
+    |> refute_has_or_open_browser("[data-id=object_body]", text: alice_hashtag)
 
     # Now visit Alice's hashtag feed
     conn
@@ -128,7 +128,7 @@ defmodule Bonfire.Tag.HashtagFeed.Test do
     # First visit my profile or the main feed to see the post
     conn
     |> visit("/user")
-    |> assert_has("[data-id=object_body]", text: my_hashtag)
+    |> assert_has_or_open_browser("[data-id=object_body]", text: my_hashtag)
 
     # Now click on the hashtag link within the post
     |> click_link(
