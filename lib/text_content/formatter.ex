@@ -3,7 +3,7 @@
 # Copyright © 2021 Bonfire contributors <https://bonfirenetworks.org/>
 # SPDX-License-Identifier: AGPL-3.0-only
 defmodule Bonfire.Tag.TextContent.Formatter do
-  alias Bonfire.Common.Config
+  use Bonfire.Common.Config
   alias Bonfire.Common.Utils
   alias Bonfire.Tag
   import Untangle

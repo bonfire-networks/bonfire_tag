@@ -5,7 +5,7 @@ if Code.ensure_loaded?(Bonfire.Posts) do
 
     alias Bonfire.Tag
     alias Bonfire.Posts
-    alias Bonfire.Common.Config
+    use Bonfire.Common.Config
     alias Bonfire.Me.Fake
     import Bonfire.Posts.Fake
 

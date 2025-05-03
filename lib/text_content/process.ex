@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 defmodule Bonfire.Tag.TextContent.Process do
   import Untangle
-  alias Bonfire.Common.Config
+  use Bonfire.Common.Config
   alias Bonfire.Tag.TextContent.Formatter
 
   @default_content_type "text/markdown"
