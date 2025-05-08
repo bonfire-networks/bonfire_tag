@@ -3,7 +3,6 @@ defmodule Bonfire.Tag.Web.Component.TagAutocomplete do
 
   import Bonfire.Tag.Autocomplete
 
-  # TODO: put in config
   @tags_seperator " "
 
   def mount(socket) do

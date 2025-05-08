@@ -110,7 +110,7 @@ defmodule Bonfire.Tag do
     end
   end
 
-  # 1 hour # TODO: configurable
+  # 1 hour # NOTE: these are just defaults but the UI checks for overrides in settings
   @default_cache_ttl 1_000 * 60 * 60
   @default_in_last_x_days 30
   @default_limit 10
@@ -136,9 +136,21 @@ defmodule Bonfire.Tag do
         in_last_x_days \\ @default_in_last_x_days,
         limit \\ @default_limit
       ) do
-    # todo: configurable
-    exclude_object_types = [Bonfire.Data.Identity.User]
-    exclude_ids = maybe_apply(Bonfire.Label.ContentLabels, :built_in_ids, [], fallback_return: [])
+    exclude_object_types =
+      Bonfire.Common.Config.get(
+        [Bonfire.Tag, :trending, :exclude_object_types],
+        [Bonfire.Data.Identity.User],
+        name: l("Trending Tags"),
+        description: l("Set object types to exclude.")
+      )
+
+    exclude_ids =
+      Bonfire.Common.Config.get(
+        [Bonfire.Tag, :trending, :exclude_object_types],
+        maybe_apply(Bonfire.Label.ContentLabels, :built_in_ids, [], fallback_return: []),
+        name: l("Trending Tags"),
+        description: l("Set object IDs to exclude.")
+      )
 
     opts = [
       exclude_table_ids: Enum.map(exclude_object_types, & &1.__pointers__(:table_id)),

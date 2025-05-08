@@ -8,13 +8,35 @@ defmodule Bonfire.Tag.Autocomplete do
   alias Enums
   import Bonfire.Common.Config, only: [repo: 0]
 
-  # TODO: put in config
   @tag_terminator " "
   @tags_seperator " "
-  @prefixes ["@", "&", "+"]
-  @taxonomy_prefix "+"
-  @search_index "public"
-  @max_length 50
+  def prefixes,
+    do:
+      Bonfire.Common.Config.get([__MODULE__, :prefixes], ["@", "&", "+"],
+        name: l("Autocomplete for @ mentions and hashtags"),
+        description: l("What prefixes to use")
+      )
+
+  def taxonomy_prefix,
+    do:
+      Bonfire.Common.Config.get([__MODULE__, :prefix_taxonomy], "+",
+        name: l("Autocomplete for @ mentions and hashtags"),
+        description: l("What prefix to use for taxonomy")
+      )
+
+  def search_index,
+    do:
+      Bonfire.Common.Config.get([__MODULE__, :search_index], "public",
+        name: l("Autocomplete for @ mentions and hashtags"),
+        description: l("What search index to lookup")
+      )
+
+  def max_length,
+    do:
+      Bonfire.Common.Config.get([__MODULE__, :max_length], 50,
+        name: l("Autocomplete for @ mentions and hashtags"),
+        description: l("Max length of tags/names to lookup")
+      )
 
   def prefix_index("+" = _prefix) do
     [Bonfire.Classify.Category, Bonfire.Tag]
@@ -89,11 +111,11 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def search_prefix(tag_search, prefix) do
-    search_or_lookup(tag_search, @search_index, prefix_index(prefix))
+    search_or_lookup(tag_search, search_index(), prefix_index(prefix))
   end
 
   def search_type(tag_search, type) do
-    search_or_lookup(tag_search, @search_index, type)
+    search_or_lookup(tag_search, search_index(), type)
   end
 
   def api_tag_lookup_public(tag_search, prefix, consumer, index_type) do
@@ -224,7 +246,7 @@ defmodule Bonfire.Tag.Autocomplete do
   end
 
   def find_all_tags(content) do
-    # debug(prefixes: @prefixes)
+    # debug(prefixes: prefixes())
 
     # FIXME?
     words =
@@ -270,7 +292,7 @@ defmodule Bonfire.Tag.Autocomplete do
       [Tag.maybe_find_tag(nil, content)]
     else
       # FIXME! optimise this
-      Enum.map(@prefixes, &try_tag_search(&1, content))
+      Enum.map(prefixes(), &try_tag_search(&1, content))
       |> Enums.filter_empty([])
     end
   end
@@ -298,7 +320,7 @@ defmodule Bonfire.Tag.Autocomplete do
     tag_search = tag_search_from_tags(content)
 
     if Text.strlen(tag_search) > 0 do
-      tag_search(tag_search, @taxonomy_prefix)
+      tag_search(tag_search, taxonomy_prefix())
     end
   end
 
@@ -324,7 +346,7 @@ defmodule Bonfire.Tag.Autocomplete do
       # debug(tag_search_from_text: parts)
       typed = List.last(parts)
 
-      if String.length(typed) > 0 and String.length(typed) < @max_length and
+      if String.length(typed) > 0 and String.length(typed) < max_length() and
            !(typed =~ @tag_terminator) do
         typed
       end
