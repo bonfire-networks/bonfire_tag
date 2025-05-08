@@ -1,6 +1,18 @@
-{#case Bonfire.Common.Settings.get([:ui, :show_trending_tags, :disabled], nil, @__context__) != true and
-    {Bonfire.Common.Settings.get([:ui, :show_trending_tags, :for_last_x_days], 30, @__context__),
-     Bonfire.Common.Settings.get([:ui, :show_trending_tags, :limit], 10, @__context__)}}
+{#case Bonfire.Common.Settings.get([:ui, :show_trending_tags, :disabled], nil,
+    context: @__context__,
+    name: l("Hide Trending Tags"),
+    description: l("Hide the trending tags widget.")
+  ) != true and
+    {Bonfire.Common.Settings.get([:ui, :show_trending_tags, :for_last_x_days], 30,
+       context: @__context__,
+       name: l("Trending Tags Time Period"),
+       description: l("Number of days to include when calculating trending tags.")
+     ),
+     Bonfire.Common.Settings.get([:ui, :show_trending_tags, :limit], 10,
+       context: @__context__,
+       name: l("Trending Tags Limit"),
+       description: l("Maximum number of trending tags to display.")
+     )}}
   {#match {for_last_x_days, limit}}
     {#case Bonfire.Tag.list_trending(
         for_last_x_days,
