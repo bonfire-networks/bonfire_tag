@@ -8,7 +8,11 @@ defmodule Bonfire.Tag.TextContent.Process do
   alias Bonfire.Tag.TextContent.Formatter
 
   @default_content_type "text/markdown"
-  @link_regex ~r"((?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~%:/?#[\]@!\$&'\(\)\*\+,;=.]+)|[0-9a-z+\-\.]+:[0-9a-z$-_.+!*'(),]+"ui
+
+  # Regex pattern for links defined as a function to comply with Erlang/OTP 28
+  defp link_regex,
+    do:
+      ~r"((?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~%:/?#[\]@!\$&'\(\)\*\+,;=.]+)|[0-9a-z+\-\.]+:[0-9a-z$-_.+!*'(),]+"ui
 
   @doc """
   For use for things like a bio, where we want links but not to actually trigger mentions.
@@ -117,7 +121,7 @@ defmodule Bonfire.Tag.TextContent.Process do
   # end
 
   def html_escape(text, "text/plain") do
-    Regex.split(@link_regex, text, include_captures: true)
+    Regex.split(link_regex(), text, include_captures: true)
     |> Enum.map_every(2, fn chunk ->
       {:safe, part} = Phoenix.HTML.html_escape(chunk)
       part

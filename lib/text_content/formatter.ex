@@ -18,11 +18,12 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   # &Community@instance.tld
   # +CategoryTag
   # +CategoryTag@instance.tld
-  @match_mention ~r/^(?<prefix>[@&\+])(?<user>[a-zA-Z\d_-]+)(@(?<host>[^@]+))?$/
-  # @match_mention ~r"^[@&\+][a-zA-Z\d_-]+@[a-zA-Z0-9_-](?:[a-zA-Z0-9-:]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-:]{0,61}[a-zA-Z0-9])?)*|[@&\+][a-zA-Z\d_-]+"u
-  # @match_mention ~r"([@&\+][a-zA-Z\d_-]+@[a-zA-Z0-9:._-]+)*|([@&\+][a-zA-Z\d_-]+)*"u
-  @safe_mention_regex ~r/^(\s*(?<mentions>([@|&amp;|\+].+?\s+){1,})+)(?<rest>.*)/s
-  @markdown_characters_regex ~r/(`|\*|_|{|}|[|]|\(|\)|#|\+|-|\.|!)/
+  defp match_mention, do: ~r/^(?<prefix>[@&\+])(?<user>[a-zA-Z\d_-]+)(@(?<host>[^@]+))?$/
+
+  # defp match_mention, do: ~r"^[@&\+][a-zA-Z\d_-]+@[a-zA-Z0-9_-](?:[a-zA-Z0-9-:]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-:]{0,61}[a-zA-Z0-9])?)*|[@&\+][a-zA-Z\d_-]+"u
+  # defp match_mention, do: ~r"([@&\+][a-zA-Z\d_-]+@[a-zA-Z0-9:._-]+)*|([@&\+][a-zA-Z\d_-]+)*"u
+  defp safe_mention_regex, do: ~r/^(\s*(?<mentions>([@|&amp;|\+].+?\s+){1,})+)(?<rest>.*)/s
+  defp markdown_characters_regex, do: ~r/(`|\*|_|{|}|[|]|\(|\)|#|\+|-|\.|!)/
 
   @doc """
   Parses a text and replace plain text links with HTML. Returns a tuple with a result text, mentions, and hashtags.
@@ -35,8 +36,8 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   def linkify(text, options \\ []) do
     options = linkify_opts() ++ options
 
-    if options[:safe_mention] && Regex.named_captures(@safe_mention_regex, text) do
-      %{"mentions" => mentions, "rest" => rest} = Regex.named_captures(@safe_mention_regex, text)
+    if options[:safe_mention] && Regex.named_captures(safe_mention_regex(), text) do
+      %{"mentions" => mentions, "rest" => rest} = Regex.named_captures(safe_mention_regex(), text)
 
       acc = %{mentions: MapSet.new(), tags: MapSet.new(), urls: MapSet.new()}
 
@@ -63,7 +64,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
         hashtag_handler: &tag_handler/4,
         mention: true,
         mention_handler: &tag_handler/4,
-        mention_regex: @match_mention,
+        mention_regex: match_mention(),
         email: true,
         strip_prefix: true,
         truncate: 30
