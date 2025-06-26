@@ -1,5 +1,16 @@
 <main data-id="tag" data-tag-id={id(@tag)} class="">
   <section class="flex flex-col w-full gap-3 mx-auto">
+    <link
+      rel="alternate"
+      type="application/atom+xml"
+      href={FeedController.feed_path("atom", @feed_name, %{"tag" => @name})}
+    />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      href={FeedController.feed_path("rss", @feed_name, %{"tag" => @name})}
+    />
+
     <StatefulComponent
       module={maybe_component(Bonfire.UI.Social.FeedLive, @__context__)}
       id={ComponentID.new(Bonfire.UI.Social.FeedLive, @feed_name, __MODULE__)}

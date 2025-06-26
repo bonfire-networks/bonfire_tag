@@ -1,5 +1,6 @@
 defmodule Bonfire.Tag.Web.TagFeedLive do
   use Bonfire.UI.Common.Web, :surface_live_view
+  alias Bonfire.UI.Social.FeedController
 
   on_mount {LivePlugs, [Bonfire.UI.Me.LivePlugs.LoadCurrentUser]}
 
