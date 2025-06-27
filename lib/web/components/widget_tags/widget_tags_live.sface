@@ -44,9 +44,9 @@
           <ul class="menu w-full p-0">
             {#if trending != []}
               {#for %{tag: tag} = tagged <- trending}
-                {#if Types.object_type(tag) == Bonfire.Tag.Hashtag or
-                    e(tag, :table_id, nil) == "7HASHTAG1SPART0FF01KS0N0MY"}
-                  <!-- FIXME ^ should just use Types.object_type -->
+                {#if e(tag, :table_id, nil) == "7HASHTAG1SPART0FF01KS0N0MY" or
+                    Types.object_type(tag) == Bonfire.Tag.Hashtag}
+                  {!-- FIXME ^ should just use Types.object_type ? --}
                   <li data-role="hashtag" class="rounded-none">
                     <LinkLive class="rounded-none" to={~p"/hashtag/" <> e(tag, :named, :name, "")}>
                       <div class="flex flex-row items-center">
@@ -66,7 +66,11 @@
                   </li>
                 {#else}
                   <li data-role="other">
-                    <LinkLive class="rounded-none" to={path(tag)}>
+                    <LinkLive
+                      class="rounded-none"
+                      to={"/tag/#{e(tag, :character, :username, nil) || e(tag, :id, nil) || path(tag)}"}
+                    >
+                      {!-- FIXME ^ should just use path(tag) ? --}
                       <div class="flex flex-row items-center">
                         <div class="flex flex-col items-start flex-1 gap-0 text-left">
                           <div

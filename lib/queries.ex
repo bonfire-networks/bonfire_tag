@@ -174,6 +174,7 @@ defmodule Bonfire.Tag.Queries do
       group_by: tagged.tag_id,
       select: %{tag_id: tagged.tag_id, count: count(tagged.id)},
       where: tag.id not in ^Types.uids(opts[:exclude_ids]),
+      where: tag.table_id in ^Types.uids(opts[:only_table_ids]),
       where: tag.table_id not in ^Types.uids(opts[:exclude_table_ids]),
       where: tagged.inserted_at >= ^since_date,
       order_by: [desc: :count],

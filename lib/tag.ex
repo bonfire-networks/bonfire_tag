@@ -136,6 +136,14 @@ defmodule Bonfire.Tag do
         in_last_x_days \\ @default_in_last_x_days,
         limit \\ @default_limit
       ) do
+    only_table_types =
+      Bonfire.Common.Config.get(
+        [Bonfire.Tag, :trending, :only_table_types],
+        [Bonfire.Tag.Hashtag],
+        name: l("Trending Tags"),
+        description: l("Set object types to include.")
+      )
+
     exclude_object_types =
       Bonfire.Common.Config.get(
         [Bonfire.Tag, :trending, :exclude_object_types],
@@ -146,13 +154,14 @@ defmodule Bonfire.Tag do
 
     exclude_ids =
       Bonfire.Common.Config.get(
-        [Bonfire.Tag, :trending, :exclude_object_types],
+        [Bonfire.Tag, :trending, :exclude_object_ids],
         maybe_apply(Bonfire.Label.ContentLabels, :built_in_ids, [], fallback_return: []),
         name: l("Trending Tags"),
         description: l("Set object IDs to exclude.")
       )
 
     opts = [
+      only_table_ids: Enum.map(only_table_types, & &1.__pointers__(:table_id)),
       exclude_table_ids: Enum.map(exclude_object_types, & &1.__pointers__(:table_id)),
       exclude_ids: exclude_ids,
       limit: limit || @default_limit
