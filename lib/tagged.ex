@@ -74,6 +74,29 @@ defmodule Bonfire.Tag.Tagged do
     {:ok, num}
   end
 
+  def thing_tags_remove(%{id: thing_id} = _thing, tag_ids)
+      when is_list(tag_ids) and tag_ids != [] do
+    {num, _} =
+      from(t in __MODULE__, where: t.id == ^thing_id and t.tag_id in ^tag_ids)
+      |> repo().delete_all()
+
+    {:ok, num}
+  end
+
+  def thing_tags_remove(_thing, []), do: {:ok, 0}
+
+  def thing_tags_remove(thing, tag_id) when not is_list(tag_id) do
+    thing_tags_remove(thing, [tag_id])
+  end
+
+  def thing_tags_clear(%{id: thing_id} = _thing) do
+    {num, _} =
+      from(t in __MODULE__, where: t.id == ^thing_id)
+      |> repo().delete_all()
+
+    {:ok, num}
+  end
+
   @doc """
   Get the latest tag added to a thing
   """

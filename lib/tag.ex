@@ -296,6 +296,35 @@ defmodule Bonfire.Tag do
     end
   end
 
+  def maybe_update_tags(creator, object, attrs) do
+    # Use the already prepared hashtags and mentions from attrs
+    new_hashtags = Map.get(attrs, :hashtags, %{}) |> Map.values()
+    new_mentions = Map.get(attrs, :mentions, %{}) |> Map.values()
+    all_new_tags = new_hashtags ++ new_mentions
+
+    # Compare with current tags to find what needs to be added/removed
+    current_tag_ids = (object.tags || []) |> Enums.ids() |> MapSet.new()
+    new_tag_ids = all_new_tags |> Enums.ids() |> MapSet.new()
+
+    if not MapSet.equal?(current_tag_ids, new_tag_ids) do
+      # Find tags to remove and tags to add
+      tags_to_remove_ids = MapSet.difference(current_tag_ids, new_tag_ids)
+      tags_to_add_ids = MapSet.difference(new_tag_ids, current_tag_ids)
+
+      # Remove tags that are no longer present
+      if not Enum.empty?(tags_to_remove_ids) do
+        Tagged.thing_tags_remove(object, MapSet.to_list(tags_to_remove_ids))
+      end
+
+      # Add only the new tags (we already have them in all_new_tags)
+      if not Enum.empty?(tags_to_add_ids) do
+        tags_to_add = all_new_tags |> Enum.filter(&(id(&1) in tags_to_add_ids))
+        tag_something(creator, object, tags_to_add)
+        # Bonfire.Tag.Tagged.thing_tags_insert(object, tags_to_add)
+      end
+    end
+  end
+
   def maybe_put_tree_parent(changeset, category, creator)
       when is_map(category) or is_binary(category) do
     custodian =
