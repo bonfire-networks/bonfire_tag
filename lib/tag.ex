@@ -318,7 +318,7 @@ defmodule Bonfire.Tag do
 
       # Add only the new tags (we already have them in all_new_tags)
       if not Enum.empty?(tags_to_add_ids) do
-        tags_to_add = all_new_tags |> Enum.filter(&(id(&1) in tags_to_add_ids))
+        tags_to_add = all_new_tags |> Enum.filter(&(Enums.id(&1) in tags_to_add_ids))
         tag_something(creator, object, tags_to_add)
         # Bonfire.Tag.Tagged.thing_tags_insert(object, tags_to_add)
       end
@@ -438,7 +438,7 @@ defmodule Bonfire.Tag do
       tags =
         Enum.map(tags, &tag_preprocess(user, &1))
         |> Enum.reject(&is_nil/1)
-        |> Enum.uniq_by(& &1.id)
+        |> Enum.uniq_by(&Enums.id/1)
 
       # |> debug("tags")
 
@@ -546,7 +546,7 @@ defmodule Bonfire.Tag do
   def indexing_object_format(object) do
     # debug(indexing_object_format: object)
     %{
-      "id" => id(object),
+      "id" => Enums.id(object),
       "index_type" => Types.module_to_str(Tag),
       "name" => indexing_object_format_name(object),
       "summary" => e(object, :profile, :summary, nil)
