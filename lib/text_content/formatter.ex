@@ -65,7 +65,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
         mention: true,
         mention_handler: &tag_handler/4,
         mention_regex: match_mention(),
-        email: true,
+        email: false,
         strip_prefix: true,
         truncate: 30
       ]
