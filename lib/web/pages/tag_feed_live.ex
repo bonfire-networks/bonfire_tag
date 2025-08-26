@@ -52,7 +52,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
        back: true,
        object_type: nil,
        feed: [],
-       hide_filters: true,
+       hide_filters: false,
        #  smart_input_opts: %{text_suggestion: name}, # TODO: new post with tag button instead
        tag: tag,
        canonical_url: canonical_url(tag),
