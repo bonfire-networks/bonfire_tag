@@ -21,13 +21,15 @@ defmodule Bonfire.Tag.TextContent.Process do
   def process(
         user \\ nil,
         text,
-        content_type \\ nil
+        content_type \\ nil,
+        opts \\ []
       )
 
   def process(
         user,
         text,
-        content_type
+        content_type,
+        opts
       )
       when is_binary(text) do
     # Config.get(:env) == :prod
@@ -39,7 +41,9 @@ defmodule Bonfire.Tag.TextContent.Process do
       mentions_format: :full,
       user: user,
       validate_hostname: validate_domains,
-      validate_tld: validate_domains
+      validate_tld: validate_domains,
+      mentions: Keyword.get(opts, :mentions, true),
+      hashtags: Keyword.get(opts, :hashtags, true)
     ]
 
     content_type =
