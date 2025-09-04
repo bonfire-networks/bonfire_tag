@@ -9,15 +9,18 @@ defmodule Bonfire.Tag.Acts.Tag do
     * `:on` - key to find changeset, required.
   """
 
+  use Arrows
+  use Bonfire.Common.E
+  import Untangle
+  import Bonfire.Epics
+
   alias Bonfire.Epics
   # alias Bonfire.Epics.Act
   alias Bonfire.Epics.Epic
 
   alias Bonfire.Common.Utils
+  alias Bonfire.Common.Extend
   alias Ecto.Changeset
-  use Bonfire.Common.E
-  import Epics
-  use Arrows
 
   def run(epic, act) do
     on = Keyword.get(act.options, :on, :post)
@@ -64,9 +67,31 @@ defmodule Bonfire.Tag.Acts.Tag do
         epic
 
       changeset.action in [:insert, :upsert] ->
-        # boundary = epic.assigns[:options][:boundary] # TODO?
+        # boundary = epic.assigns[:options][:boundary] # TODO?
         attrs_key = Keyword.get(act.options, :attrs, :post_attrs)
-        attrs = Keyword.get(epic.assigns[:options], attrs_key, %{})
+
+        attrs =
+          Keyword.get(epic.assigns[:options], attrs_key, %{})
+          |> flood("attrs for tagging")
+
+        quotes_key = Keyword.get(act.options, :quotes, :quotes)
+
+        quotes =
+          (e(attrs, quotes_key, []) ++
+             e(epic.assigns, quotes_key, []) ++
+             Keyword.get(epic.assigns[:options], quotes_key, []))
+          |> flood("possible quotes for tagging")
+
+        # Process quotes through request system
+        {approved_quotes, pending_quotes} =
+          if Extend.module_enabled?(Bonfire.Social.Quotes) and quotes != [] do
+            Bonfire.Social.Quotes.process_quotes(current_user, quotes,
+              boundary: epic.assigns[:options][:boundary]
+            )
+          else
+            {quotes, []}
+          end
+          |> flood("quote processing results")
 
         categories_auto_boost =
           e(changeset, :changes, :post_content, :changes, :mentions, [])
@@ -75,13 +100,18 @@ defmodule Bonfire.Tag.Acts.Tag do
 
         maybe_debug(epic, act, "tags", "Casting")
 
-        changeset
-        |> Bonfire.Tag.cast(attrs, current_user,
+        attrs
+        |> Map.update(:tags, approved_quotes, fn tags ->
+          List.wrap(tags) ++ approved_quotes
+        end)
+        |> Bonfire.Tag.cast(changeset, ..., current_user,
           put_tree_parent: List.first(categories_auto_boost)
         )
         # only add as "published in" in first mentioned category ^
         |> Epic.assign(epic, on, ...)
         |> Epic.assign(..., :categories_auto_boost, categories_auto_boost)
+        # Store for later processing
+        |> Epic.assign(..., :request_quotes, pending_quotes)
 
       changeset.action == :delete ->
         # TODO: deletion

@@ -32,6 +32,9 @@ defmodule Bonfire.Tag.TextContent.Process do
         opts
       )
       when is_binary(text) do
+    # Normalize non-breaking spaces early to avoid linkify parsing issues
+    text = String.replace(text, "\u00A0", " ")
+
     # Config.get(:env) == :prod
     validate_domains =
       System.get_env("SKIP_LINK_DOMAINS_VALIDATION") not in ["1", "true"] and
