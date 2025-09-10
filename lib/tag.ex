@@ -470,7 +470,7 @@ defmodule Bonfire.Tag do
   defp tag_preprocess(user, "&" <> tag), do: tag_preprocess(user, tag)
 
   defp tag_preprocess(_user, tag) when is_binary(tag),
-    do: get(tag) |> ok_unwrap(nil) |> thing_to_pointer()
+    do: get(tag) |> from_ok() |> thing_to_pointer()
 
   defp tag_preprocess(_user, tag) do
     error(tag, "didn't recognise this as a tag")
