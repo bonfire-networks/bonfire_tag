@@ -72,7 +72,7 @@ defmodule Bonfire.Tag.Acts.Tag do
 
         attrs =
           Keyword.get(epic.assigns[:options], attrs_key, %{})
-          |> flood("attrs for tagging")
+          |> debug("attrs for tagging")
 
         quotes_key = Keyword.get(act.options, :quotes, :quotes)
 
@@ -80,7 +80,7 @@ defmodule Bonfire.Tag.Acts.Tag do
           (e(attrs, quotes_key, []) ++
              e(epic.assigns, quotes_key, []) ++
              Keyword.get(epic.assigns[:options], quotes_key, []))
-          |> flood("possible quotes for tagging")
+          |> debug("possible quotes for tagging")
 
         # Process quotes through request system
         {approved_quotes, pending_quotes} =
@@ -91,7 +91,7 @@ defmodule Bonfire.Tag.Acts.Tag do
           else
             {quotes, []}
           end
-          |> flood("quote processing results")
+          |> debug("quote processing results")
 
         categories_auto_boost =
           e(changeset, :changes, :post_content, :changes, :mentions, [])
