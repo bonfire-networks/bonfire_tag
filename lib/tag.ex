@@ -312,9 +312,10 @@ defmodule Bonfire.Tag do
       tags_to_add_ids = MapSet.difference(new_tag_ids, current_tag_ids)
 
       # Remove tags that are no longer present
-      if not Enum.empty?(tags_to_remove_ids) do
-        Tagged.thing_tags_remove(object, MapSet.to_list(tags_to_remove_ids))
-      end
+      remove_result =
+        if not Enum.empty?(tags_to_remove_ids) do
+          Tagged.thing_tags_remove(object, MapSet.to_list(tags_to_remove_ids))
+        end
 
       # Add only the new tags (we already have them in all_new_tags)
       if not Enum.empty?(tags_to_add_ids) do
@@ -322,7 +323,7 @@ defmodule Bonfire.Tag do
         tag_something(creator, object, tags_to_add)
         # Bonfire.Tag.Tagged.thing_tags_insert(object, tags_to_add)
       end
-    end
+    end || {:ok, object}
   end
 
   def maybe_put_tree_parent(changeset, category, creator)
