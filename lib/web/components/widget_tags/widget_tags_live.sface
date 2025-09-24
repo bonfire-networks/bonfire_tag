@@ -36,7 +36,7 @@
                 title={l("Reset Trending")}
               >
                 <span class="sr-only">{l("Reset Trending")}</span>
-                <#Icon iconify="ph:arrow-counter-clockwise-duotone" class="w-5 h-5" />
+                <#Icon iconify="ph:arrow-counter-clockwise-duotone" class="w-4 h-4" />
               </button>
             {/if}
           </:action>
