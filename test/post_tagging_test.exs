@@ -44,6 +44,23 @@ if Code.ensure_loaded?(Bonfire.Posts) do
       assert post.post_content.html_body =~ "[#my_tag](/hashtag/my_tag)"
     end
 
+    test "post starting with hashtag gets tagged at creation" do
+      user = Fake.fake_user!()
+
+      post =
+        fake_post!(user, "public", %{
+          post_content: %{
+            summary: "summary",
+            name: "name",
+            html_body: "#my_tag epic html"
+          }
+        })
+        |> repo().maybe_preload(tagged: [tag: :named])
+
+      assert [%{tag: %{named: %{name: "my_tag"}}}] = post.tagged
+      assert post.post_content.html_body =~ "[#my_tag](/hashtag/my_tag)"
+    end
+
     test "post with mention gets tagged at creation" do
       user = Fake.fake_user!()
       name = user.character.username
