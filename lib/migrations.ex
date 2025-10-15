@@ -11,7 +11,7 @@ defmodule Bonfire.Tag.Migrations do
 
   def up() do
     create_mixin_table(@table_name, primary_key: false) do
-      add(:tag_id, strong_pointer(), null: false, primary_key: true)
+      add_pointer(:tag_id, :strong, Needle.Pointer, null: false, primary_key: true)
       add(:inserted_at, :naive_datetime, default: fragment("now()"))
       add(:updated_at, :naive_datetime)
     end
