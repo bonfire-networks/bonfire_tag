@@ -1,5 +1,5 @@
 defmodule Bonfire.Tag.HashtagFeed.Test do
-  use Bonfire.Tag.ConnCase, async: true
+  use Bonfire.Tag.ConnCase, async: System.get_env("TEST_UI_ASYNC") != "no"
   alias Bonfire.Social.Fake
   alias Bonfire.Posts
 
