@@ -40,11 +40,11 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
     end
   end
 
-  def ok_assigns(socket, tag, name) do
+  def ok_assigns(socket, tag, name, feed_name \\ :hashtag) do
     {:ok,
      assign(
        socket,
-       feed_name: :hashtag,
+       feed_name: feed_name,
        feed_title: "#" <> name,
        page_title: "#" <> name,
        feed_filters: %{tags: id(tag)},
@@ -57,6 +57,20 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
        tag: tag,
        canonical_url: canonical_url(tag),
        name: name,
+       page_header_aside:
+         if feed_name == :hashtag do
+           [
+             {Bonfire.Tag.Web.FollowHashtagButtonLive,
+              [
+                object_id: id(tag),
+                path: path(tag),
+                class: "btn btn-sm btn-primary",
+                container_class: "flex items-center gap-2"
+              ]}
+           ]
+         else
+           []
+         end,
        nav_items: Bonfire.Common.ExtensionModule.default_nav(),
        sidebar_widgets: [
          users: [
