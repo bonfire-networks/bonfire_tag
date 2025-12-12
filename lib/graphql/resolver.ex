@@ -17,7 +17,6 @@ if Code.ensure_loaded?(Bonfire.API.GraphQL) do
     # ResolvePages,
     # ResolveRootPage
     alias Bonfire.Tag
-    alias Bonfire.Tag
 
     import Untangle
 
@@ -35,7 +34,7 @@ if Code.ensure_loaded?(Bonfire.API.GraphQL) do
     ## fetchers
 
     def fetch_tag(_info, id) do
-      Tags.one(id: id)
+      Tag.one(id: id)
     end
 
     @doc """
@@ -123,6 +122,27 @@ if Code.ensure_loaded?(Bonfire.API.GraphQL) do
         {:ok, true}
       end
     end
+
+    def follow_tag(%{name: name}, info) do
+      with {:ok, me} <- GraphQL.current_user_or_not_logged_in(info),
+           {:ok, hashtag} <- Tag.get_or_create_hashtag(name),
+           {:ok, _follow} <-
+             Bonfire.Social.Graph.Follows.follow(me, hashtag, skip_boundary_check: true) do
+        {:ok, hashtag}
+      end
+    end
+
+    def unfollow_tag(%{name: name}, info) do
+      with {:ok, me} <- GraphQL.current_user_or_not_logged_in(info),
+           {:ok, hashtag} <- Tag.get_hashtag(name),
+           _ <- Bonfire.Social.Graph.Follows.unfollow(me, hashtag) do
+        {:ok, hashtag}
+      end
+    end
+
+    def hashtag_name(%{named: %{name: name}}, _, _info), do: {:ok, name}
+    def hashtag_name(%{name: name}, _, _info) when is_binary(name), do: {:ok, name}
+    def hashtag_name(_, _, _), do: {:ok, nil}
 
     ### decorators
 

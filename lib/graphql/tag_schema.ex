@@ -22,6 +22,29 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled and
         arg(:tags, non_null(list_of(:string)))
         resolve(&TagResolver.tag_something/2)
       end
+
+      @desc "Follow a hashtag"
+      field :follow_tag, :hashtag do
+        arg(:name, non_null(:string))
+        resolve(&TagResolver.follow_tag/2)
+      end
+
+      @desc "Unfollow a hashtag"
+      field :unfollow_tag, :hashtag do
+        arg(:name, non_null(:string))
+        resolve(&TagResolver.unfollow_tag/2)
+      end
+    end
+
+    @desc "A hashtag"
+    object :hashtag do
+      @desc "The ID of the hashtag"
+      field(:id, :id)
+
+      @desc "The hashtag name"
+      field :name, :string do
+        resolve(&TagResolver.hashtag_name/3)
+      end
     end
 
     @desc "A tag could be a category or hashtag or user or community or etc"
