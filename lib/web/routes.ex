@@ -24,6 +24,8 @@ defmodule Bonfire.Tag.Web.Routes do
         pipe_through(:browser)
         pipe_through(:user_required)
 
+        live("/hashtags/followed", FollowedTagsLive, as: Bonfire.Tag.FollowedTags)
+
         get("/api/tag/autocomplete/:prefix/:search", API.Autocomplete, :get)
 
         get(

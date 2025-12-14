@@ -1,0 +1,35 @@
+<main data-id="followed-tags" class="">
+  <section class="flex flex-col w-full gap-3">
+    {#if @followed_tags != []}
+      <ul class="menu w-full p-0 bg-base-100">
+        {#for tag <- @followed_tags}
+          <li data-role="followed-hashtag" class="border-b border-base-content/5 last:border-b-0">
+            <div class="flex items-center justify-between gap-2 py-2">
+              <div class="flex items-center gap-5 flex-1">
+                <span><#Icon iconify="ph:hash-duotone" class="w-5 h-5 text-primary" /></span>
+                <LinkLive
+                  class="flex-1 font-medium"
+                  to={~p"/hashtag/" <> e(tag, :named, :name, e(tag, :name, ""))}
+                >
+                  {e(tag, :named, :name, e(tag, :name, ""))}
+                </LinkLive>
+              </div>
+              <Bonfire.Tag.Web.FollowHashtagButtonLive
+                object_id={id(tag)}
+                path={path(tag)}
+                class="btn btn-sm btn-outline border-base-content/30"
+                container_class=""
+              />
+            </div>
+          </li>
+        {/for}
+      </ul>
+    {#else}
+      <div class="flex flex-col items-center p-8 space-y-4 place-content-center bg-base-100">
+        <#Icon iconify="ph:hash-duotone" class="w-12 h-12 text-base-content/30" />
+        <span class="font-medium text-base-content/70">{l("You are not following any hashtags yet.")}</span>
+        <p class="text-sm text-base-content/50">{l("Follow hashtags to see posts using them in your home feed.")}</p>
+      </div>
+    {/if}
+  </section>
+</main>
