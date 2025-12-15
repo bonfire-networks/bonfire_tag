@@ -24,6 +24,12 @@
           </li>
         {/for}
       </ul>
+
+      <Bonfire.UI.Common.LoadMoreLive
+        :if={@page_info}
+        live_handler={__MODULE__}
+        page_info={@page_info}
+      />
     {#else}
       <div class="flex flex-col items-center p-8 space-y-4 place-content-center bg-base-100">
         <#Icon iconify="ph:hash-duotone" class="w-12 h-12 text-base-content/30" />
