@@ -36,6 +36,7 @@ defmodule Bonfire.Tag.Web.FollowedTagsLive do
     result =
       Follows.list_followed(current_user,
         type: Bonfire.Tag.Hashtag,
+        preload: :object,
         paginate: input_to_atoms(attrs)
       )
 
