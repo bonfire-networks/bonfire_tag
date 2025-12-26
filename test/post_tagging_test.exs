@@ -1,17 +1,17 @@
-if Code.ensure_loaded?(Bonfire.Posts) do
-  defmodule Bonfire.Tag.PostsTest do
-    use Bonfire.Tag.DataCase, async: true
-    use Bonfire.Common.Utils
+defmodule Bonfire.Tag.PostsTest do
+  use Bonfire.Tag.DataCase, async: true
+  use Bonfire.Common.Utils
 
-    alias Bonfire.Tag
-    alias Bonfire.Posts
-    use Bonfire.Common.Config
-    alias Bonfire.Me.Fake
-    import Bonfire.Posts.Fake
+  alias Bonfire.Tag
+  alias Bonfire.Posts
+  use Bonfire.Common.Config
+  alias Bonfire.Me.Fake
+  import Bonfire.Posts.Fake
 
-    def repo, do: Config.repo()
+  def repo, do: Config.repo()
 
-    test "post without hashtags contains no tags" do
+  if Code.ensure_loaded?(Bonfire.Posts) do
+    test "post without hashtags returns empty tags" do
       user = Fake.fake_user!()
 
       post =

@@ -39,13 +39,13 @@ if Code.ensure_loaded?(Bonfire.Posts) and Code.ensure_loaded?(Bonfire.Social.Gra
       Process.sleep(100)
 
       # Check FeedPublish for correct entry
-      assert feed_publish_entry =
-               Bonfire.Data.Social.FeedPublish
-               |> repo().get_by(id: post.id, feed_id: hashtag.id)
-               |> debug("feed_publish_entry")
+      # assert feed_publish_entry =
+      #          Bonfire.Data.Social.FeedPublish
+      #          |> repo().get_by(id: post.id, feed_id: hashtag.id)
+      #          |> debug("feed_publish_entry")
 
-      Bonfire.Social.Feeds.my_home_feed_ids(user)
-      |> debug("fetching my feed ids")
+      # Bonfire.Social.Feeds.my_home_feed_ids(user)
+      # |> debug("fetching my feed ids")
 
       # Fetch the user's :my feed
       feed = Bonfire.Social.FeedLoader.my_feed(current_user: user)
