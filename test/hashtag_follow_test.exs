@@ -36,7 +36,7 @@ if Code.ensure_loaded?(Bonfire.Posts) and Code.ensure_loaded?(Bonfire.Social.Gra
         |> debug("the post")
 
       # Give time for triggers/async to complete if needed
-      Process.sleep(100)
+      Process.sleep(500)
 
       # Check FeedPublish for correct entry
       # assert feed_publish_entry =
