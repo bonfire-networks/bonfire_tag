@@ -125,7 +125,7 @@ defmodule Bonfire.Tag do
     # Cache.maybe_apply_cached({__MODULE__, :list_trending_without_cache}, [in_last_x_days, limit], expire: @default_cache_ttl)
   end
 
-  def list_trending_reset(in_last_x_days \\ @default_in_last_x_days, limit \\ @default_limit) do
+  def trending_links_reset(in_last_x_days \\ @default_in_last_x_days, limit \\ @default_limit) do
     Cache.reset(&list_trending_without_cache/2, [
       in_last_x_days || @default_in_last_x_days,
       limit || @default_limit

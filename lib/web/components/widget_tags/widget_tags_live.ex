@@ -10,7 +10,7 @@ defmodule Bonfire.Tag.Web.WidgetTagsLive do
         %{"for_last_x_days" => for_last_x_days, "limit" => limit},
         socket
       ) do
-    Tag.list_trending_reset(String.to_integer(for_last_x_days), String.to_integer(limit))
+    Tag.trending_links_reset(String.to_integer(for_last_x_days), String.to_integer(limit))
 
     debug("")
 
