@@ -32,6 +32,8 @@ defmodule Bonfire.Tag.TextContent.Process do
         opts
       )
       when is_binary(text) do
+    # Decode HTML entities first
+    text = HtmlEntities.decode(text)
     # Normalize non-breaking spaces early to avoid linkify parsing issues
     text = String.replace(text, "\u00A0", " ")
 

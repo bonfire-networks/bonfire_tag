@@ -1,5 +1,5 @@
 if Code.ensure_loaded?(Bonfire.Posts) and Code.ensure_loaded?(Bonfire.Social.Graph.Follows) do
-  defmodule Bonfire.Tag.PostsTest do
+  defmodule Bonfire.Tag.HashtagFollowTest do
     use Bonfire.Tag.DataCase, async: true
     use Bonfire.Common.Utils
 
