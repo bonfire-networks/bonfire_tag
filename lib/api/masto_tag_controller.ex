@@ -17,5 +17,10 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled do
     def follow(conn, params), do: Adapter.follow_tag(params, conn)
     def unfollow(conn, params), do: Adapter.unfollow_tag(params, conn)
     def followed(conn, params), do: Adapter.followed_tags(params, conn)
+
+    # Featured tags endpoints
+    def featured(conn, params), do: Adapter.featured_tags(params, conn)
+    def feature(conn, params), do: Adapter.feature_tag(params, conn)
+    def unfeature(conn, params), do: Adapter.unfeature_tag(params, conn)
   end
 end

@@ -188,5 +188,106 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled do
         assert response["error"] == "Unauthorized"
       end
     end
+
+    describe "GET /api/v1/featured_tags" do
+      test "returns empty list when no featured tags", %{conn: conn} do
+        response =
+          conn
+          |> get("/api/v1/featured_tags")
+          |> json_response(200)
+
+        assert response == []
+      end
+
+      test "returns featured tags after pinning", %{conn: conn, user: user} do
+        {:ok, hashtag} = Tag.get_or_create_hashtag("featured_test")
+
+        {:ok, _pin} =
+          Bonfire.Social.Pins.pin(user, hashtag, nil,
+            skip_boundary_check: true,
+            skip_federation: true
+          )
+
+        response =
+          conn
+          |> get("/api/v1/featured_tags")
+          |> json_response(200)
+
+        assert is_list(response)
+        assert length(response) >= 1
+
+        featured = Enum.find(response, fn t -> t["name"] == "featured_test" end)
+        assert featured
+        assert featured["id"]
+        assert featured["url"]
+        assert Map.has_key?(featured, "statuses_count")
+      end
+
+      test "requires authentication", _context do
+        response =
+          unauthenticated_conn()
+          |> get("/api/v1/featured_tags")
+          |> json_response(401)
+
+        assert response["error"] == "Unauthorized"
+      end
+    end
+
+    describe "POST /api/v1/featured_tags" do
+      test "features a hashtag", %{conn: conn} do
+        response =
+          conn
+          |> post("/api/v1/featured_tags", %{"name" => "newfeature"})
+          |> json_response(200)
+
+        assert response["name"] == "newfeature"
+        assert response["id"]
+        assert response["url"]
+      end
+
+      test "requires authentication", _context do
+        response =
+          unauthenticated_conn()
+          |> post("/api/v1/featured_tags", Jason.encode!(%{"name" => "test"}))
+          |> json_response(401)
+
+        assert response["error"] == "Unauthorized"
+      end
+    end
+
+    describe "DELETE /api/v1/featured_tags/:id" do
+      test "unfeatures a hashtag", %{conn: conn, user: user} do
+        {:ok, hashtag} = Tag.get_or_create_hashtag("to_unfeature")
+
+        {:ok, _pin} =
+          Bonfire.Social.Pins.pin(user, hashtag, nil,
+            skip_boundary_check: true,
+            skip_federation: true
+          )
+
+        conn
+        |> delete("/api/v1/featured_tags/#{hashtag.id}")
+        |> response(200)
+
+        # Verify it's no longer featured
+        response =
+          conn
+          |> get("/api/v1/featured_tags")
+          |> json_response(200)
+
+        refute Enum.any?(response, fn t -> t["name"] == "to_unfeature" end)
+      end
+
+      test "returns 404 for non-existent tag", %{conn: conn} do
+        nonexistent_id = Needle.ULID.generate()
+
+        response =
+          conn
+          |> delete("/api/v1/featured_tags/#{nonexistent_id}")
+          |> json_response(404)
+
+        assert response["error"]
+      end
+    end
   end
 end
