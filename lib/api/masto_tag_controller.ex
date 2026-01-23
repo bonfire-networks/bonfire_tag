@@ -22,5 +22,8 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled do
     def featured(conn, params), do: Adapter.featured_tags(params, conn)
     def feature(conn, params), do: Adapter.feature_tag(params, conn)
     def unfeature(conn, params), do: Adapter.unfeature_tag(params, conn)
+
+    # Get featured tags for a specific account
+    def account_featured_tags(conn, params), do: Adapter.account_featured_tags(params, conn)
   end
 end

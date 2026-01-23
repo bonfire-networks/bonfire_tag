@@ -147,62 +147,81 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled do
 
     @doc "Get user's featured/pinned hashtags"
     def featured_tags(_params, conn) do
-      RestAdapter.with_current_user(conn, fn current_user ->
-        # Get all pins by user and filter to hashtags
-        # Use skip_boundary_check since we're querying our own pins
-        pins =
-          Bonfire.Social.Pins.list_my(
-            current_user: current_user,
-            skip_boundary_check: true
-          )
-
-        featured =
-          pins
-          |> e(:edges, [])
-          |> Enum.map(fn pin -> e(pin, :edge, :object, nil) end)
-          |> Enum.filter(&is_hashtag?/1)
-          |> Enum.map(fn hashtag ->
-            hashtag = repo().maybe_preload(hashtag, :named)
-            Mappers.Tag.from_featured_hashtag(hashtag)
-          end)
-          |> Enum.reject(&is_nil/1)
-
-        RestAdapter.json(conn, featured)
+      RestAdapter.with_current_user(conn, fn user ->
+        RestAdapter.json(conn, get_featured_hashtags(user))
       end)
     end
 
-    @doc "Feature/pin a hashtag"
-    def feature_tag(%{"name" => name}, conn) do
-      RestAdapter.with_current_user(conn, fn user ->
-        with {:ok, hashtag} <- Bonfire.Tag.get_or_create_hashtag(name),
-             # Skip boundary check and federation since hashtags are public objects
-             # and there's no federation handler for pinning hashtags
-             {:ok, _pin} <-
-               Bonfire.Social.Pins.pin(user, hashtag, nil,
-                 skip_boundary_check: true,
-                 skip_federation: true
-               ) do
-          hashtag = repo().maybe_preload(hashtag, :named)
-          RestAdapter.json(conn, Mappers.Tag.from_featured_hashtag(hashtag))
-        else
-          {:error, reason} -> RestAdapter.error_fn({:error, reason}, conn)
-        end
-      end)
+    @doc """
+    Get featured/pinned hashtags for a specific account.
+    Mastodon API: GET /api/v1/accounts/:id/featured_tags
+
+    This is a public endpoint that doesn't require authentication.
+    """
+    def account_featured_tags(%{"id" => user_id}, conn) do
+      case Bonfire.Me.Users.by_id(user_id) do
+        {:ok, target_user} -> RestAdapter.json(conn, get_featured_hashtags(target_user))
+        _ -> RestAdapter.error_fn({:error, :not_found}, conn)
+      end
     end
 
-    @doc "Unfeature/unpin a hashtag"
-    def unfeature_tag(%{"id" => id}, conn) do
-      RestAdapter.with_current_user(conn, fn user ->
-        # Use skip_boundary_check since hashtags are public objects
-        case Bonfire.Common.Needles.get(id, skip_boundary_check: true) do
-          {:ok, hashtag} when not is_nil(hashtag) ->
-            Bonfire.Social.Pins.unpin(user, hashtag)
-            Plug.Conn.send_resp(conn, 200, "")
+    # TODO: Feature/unfeature hashtag endpoints are disabled until Pins.pin supports
+    # skip_federation option. Currently Pins.pin always tries to federate but there's
+    # no federation handler for pins, causing errors. Options to fix:
+    # 1. Add skip_federation support to maybe_federate_and_gift_wrap_activity in integration.ex
+    # 2. Create a dedicated FeaturedHashtag schema that doesn't use Pins
+    # See: https://docs.joinmastodon.org/methods/featured_tags/
 
-          _ ->
-            RestAdapter.error_fn({:error, :not_found}, conn)
-        end
+    # @doc "Feature/pin a hashtag"
+    # def feature_tag(%{"name" => name}, conn) do
+    #   RestAdapter.with_current_user(conn, fn user ->
+    #     with {:ok, hashtag} <- Bonfire.Tag.get_or_create_hashtag(name),
+    #          {:ok, _pin} <-
+    #            Bonfire.Social.Pins.pin(user, hashtag, nil,
+    #              skip_boundary_check: true,
+    #              skip_federation: true
+    #            ) do
+    #       hashtag = repo().maybe_preload(hashtag, :named)
+    #       RestAdapter.json(conn, Mappers.Tag.from_featured_hashtag(hashtag))
+    #     else
+    #       {:error, reason} -> RestAdapter.error_fn({:error, reason}, conn)
+    #     end
+    #   end)
+    # end
+
+    # @doc "Unfeature/unpin a hashtag"
+    # def unfeature_tag(%{"id" => id}, conn) do
+    #   RestAdapter.with_current_user(conn, fn user ->
+    #     case Bonfire.Common.Needles.get(id, skip_boundary_check: true) do
+    #       {:ok, hashtag} when not is_nil(hashtag) ->
+    #         Bonfire.Social.Pins.unpin(user, hashtag)
+    #         Plug.Conn.send_resp(conn, 200, "")
+
+    #       _ ->
+    #         RestAdapter.error_fn({:error, :not_found}, conn)
+    #     end
+    #   end)
+    # end
+
+    def feature_tag(_params, conn) do
+      RestAdapter.error_fn({:error, "Feature tags endpoint is not yet implemented"}, conn)
+    end
+
+    def unfeature_tag(_params, conn) do
+      RestAdapter.error_fn({:error, "Unfeature tags endpoint is not yet implemented"}, conn)
+    end
+
+    # Helper to get featured hashtags for a user
+    defp get_featured_hashtags(user) do
+      Bonfire.Social.Pins.list_my(current_user: user, skip_boundary_check: true)
+      |> e(:edges, [])
+      |> Enum.map(fn pin -> e(pin, :edge, :object, nil) end)
+      |> Enum.filter(&is_hashtag?/1)
+      |> Enum.map(fn hashtag ->
+        hashtag = repo().maybe_preload(hashtag, :named)
+        Mappers.Tag.from_featured_hashtag(hashtag)
       end)
+      |> Enum.reject(&is_nil/1)
     end
 
     defp is_hashtag?(%{__struct__: Bonfire.Tag.Hashtag}), do: true
