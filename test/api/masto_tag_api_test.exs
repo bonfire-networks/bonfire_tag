@@ -217,7 +217,7 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled do
       end
     end
 
-describe "GET /api/v1/accounts/:id/featured_tags" do
+    describe "GET /api/v1/accounts/:id/featured_tags" do
       test "returns featured tags for target user", %{conn: conn} do
         other_account = Fake.fake_account!()
         other_user = Fake.fake_user!(other_account)
@@ -269,7 +269,7 @@ describe "GET /api/v1/accounts/:id/featured_tags" do
         |> json_response(400)
       end
 
-test "returns not implemented error for any id", %{conn: conn} do
+      test "returns not implemented error for any id", %{conn: conn} do
         response =
           conn
           |> delete("/api/v1/featured_tags/#{Needle.ULID.generate()}")
