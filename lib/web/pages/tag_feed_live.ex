@@ -71,7 +71,6 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
          else
            []
          end,
-       nav_items: Bonfire.Common.ExtensionModule.default_nav(),
        sidebar_widgets: [
          users: [
            secondary: [

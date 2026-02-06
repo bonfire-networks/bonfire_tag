@@ -14,8 +14,7 @@ defmodule Bonfire.Tag.Web.FollowedTagsLive do
        page_title: l("Followed Hashtags"),
        followed_tags: followed_tags,
        page_info: page_info,
-       back: true,
-       nav_items: Bonfire.Common.ExtensionModule.default_nav()
+       back: true
      )}
   end
 
