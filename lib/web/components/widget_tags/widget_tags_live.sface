@@ -21,9 +21,7 @@
       {#match trending when is_list(trending)}
         <Bonfire.UI.Common.WidgetBlockLive
           widget_title={@widget_title || l("Trending topics")}
-          class={@wrapper_class ||
-            "relative w-full mx-auto rounded-xl border border-base-content/20"}
-          title_class="flex gap-3 mx-3 py-3 text-base-content/90 pb-2 text-lg font-bold tracking-wide"
+          title_class="flex gap-3 text-base-content/90 pb-2 text-lg font-bold tracking-wide"
         >
           <:action>
             {#if @always_show_reset_btn || Bonfire.Boundaries.can?(@__context__, :tag, :instance_wide)}
@@ -48,7 +46,7 @@
                     Types.object_type(tag) == Bonfire.Tag.Hashtag}
                   {!-- FIXME ^ should just use Types.object_type ? --}
                   <li data-role="hashtag" class="rounded-none">
-                    <LinkLive class="rounded-none" to={~p"/hashtag/" <> e(tag, :named, :name, "")}>
+                    <LinkLive class="rounded-none px-0 mx-0" to={~p"/hashtag/" <> e(tag, :named, :name, "")}>
                       <div class="flex flex-row items-center">
                         <div class="flex flex-col items-start flex-1 gap-0 text-left">
                           <div
