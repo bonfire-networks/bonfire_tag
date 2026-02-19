@@ -110,7 +110,7 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled do
           |> post("/api/v1/tags/anytag/follow")
           |> json_response(401)
 
-        assert response["error"] == "Unauthorized"
+        assert response["error"] == "You need to login first."
       end
     end
 
@@ -142,7 +142,7 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled do
           |> post("/api/v1/tags/anytag/unfollow")
           |> json_response(401)
 
-        assert response["error"] == "Unauthorized"
+        assert response["error"] == "You need to login first."
       end
     end
 
@@ -185,7 +185,7 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled do
           |> get("/api/v1/followed_tags")
           |> json_response(401)
 
-        assert response["error"] == "Unauthorized"
+        assert response["error"] == "You need to login first."
       end
     end
 
@@ -213,7 +213,7 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled do
           |> get("/api/v1/featured_tags")
           |> json_response(401)
 
-        assert response["error"] == "Unauthorized"
+        assert response["error"] == "You need to login first."
       end
     end
 
@@ -258,7 +258,7 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled do
           |> post("/api/v1/featured_tags", Jason.encode!(%{"name" => "test"}))
           |> json_response(401)
 
-        assert response["error"] == "Unauthorized"
+        assert response["error"] == "You need to login first."
       end
     end
 
