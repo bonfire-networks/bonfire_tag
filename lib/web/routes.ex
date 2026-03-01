@@ -9,8 +9,7 @@ defmodule Bonfire.Tag.Web.Routes do
 
         live("/tags/autocomplete", API.Autocomplete)
 
-        live("/tag/:id", TagFeedLive, as: Bonfire.Tag)
-        live("/hashtag/:hashtag", TagFeedLive, as: Bonfire.Tag.Hashtag)
+
       end
 
       # pages you need an account to view
@@ -23,7 +22,8 @@ defmodule Bonfire.Tag.Web.Routes do
       scope "/", Bonfire.Tag.Web do
         pipe_through(:browser)
         pipe_through(:user_required)
-
+        live("/tag/:id", TagFeedLive, as: Bonfire.Tag)
+        live("/hashtag/:hashtag", TagFeedLive, as: Bonfire.Tag.Hashtag)
         live("/hashtags/followed", FollowedTagsLive, as: Bonfire.Tag.FollowedTags)
 
         get("/api/tag/autocomplete/:prefix/:search", API.Autocomplete, :get)
