@@ -34,29 +34,38 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   @spec linkify(String.t(), keyword()) ::
           {String.t(), [{String.t(), User.t()}], [{String.t(), String.t()}]}
   def linkify(text, options \\ []) do
-    # Extract trailing hashtag names so tag_handler can skip rendering them,
-    # but keep them in the text so Linkify still processes them through tag_handler
-    trailing_tag_names = extract_trailing_hashtags(text)
+    {text, trailing_line} = extract_trailing_hashtags(text)
+    options = linkify_opts() ++ options
 
-    options = linkify_opts() ++ options ++ [skip_render_tags: trailing_tag_names]
+    {text, %{mentions: mentions, tags: tags, urls: urls}} = do_linkify(text, options)
+
+    # Process trailing hashtags through Linkify for DB creation, wrapped in one invisible block
+    {text, tags} =
+      if trailing_line != "" do
+        {trailing_text, %{tags: trailing_tags}} = do_linkify(trailing_line, options)
+
+        {text <> "<span class=\"invisible\"> " <> trailing_text <> "</span>",
+         MapSet.union(tags, trailing_tags)}
+      else
+        {text, tags}
+      end
+
+    {text, MapSet.to_list(mentions), MapSet.to_list(tags), MapSet.to_list(urls)}
+  end
+
+  defp do_linkify(text, options) do
+    acc = %{mentions: MapSet.new(), tags: MapSet.new(), urls: MapSet.new()}
 
     if options[:safe_mention] && Regex.named_captures(safe_mention_regex(), text) do
-      %{"mentions" => mentions, "rest" => rest} = Regex.named_captures(safe_mention_regex(), text)
-
-      acc = %{mentions: MapSet.new(), tags: MapSet.new(), urls: MapSet.new()}
+      %{"mentions" => mentions, "rest" => rest} =
+        Regex.named_captures(safe_mention_regex(), text)
 
       {text_mentions, %{mentions: mentions}} = Linkify.link_map(mentions, acc, options)
-
       {text_rest, %{tags: tags, urls: urls}} = Linkify.link_map(rest, acc, options)
 
-      {text_mentions <> text_rest, MapSet.to_list(mentions), MapSet.to_list(tags),
-       MapSet.to_list(urls)}
+      {text_mentions <> text_rest, %{mentions: mentions, tags: tags, urls: urls}}
     else
-      acc = %{mentions: MapSet.new(), tags: MapSet.new(), urls: MapSet.new()}
-
-      {text, %{mentions: mentions, tags: tags, urls: urls}} = Linkify.link_map(text, acc, options)
-
-      {text, MapSet.to_list(mentions), MapSet.to_list(tags), MapSet.to_list(urls)}
+      Linkify.link_map(text, acc, options)
     end
   end
 
@@ -92,20 +101,13 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   def tag_handler("#" <> tag = tag_text, buffer, opts, acc) do
-    skip_render = Map.get(opts, :skip_render_tags, [])
-
     with {:ok, hashtag} <- Bonfire.Tag.get_or_create_hashtag(tag) do
       tag = e(hashtag, :named, :name, nil) || tag
       acc = %{acc | tags: MapSet.put(acc.tags, {"##{tag}", hashtag})}
 
-      if tag in skip_render do
-        # Trailing hashtag: associate but don't render the link
-        {"", acc}
-      else
-        url = Bonfire.Common.URIs.base_url() <> "/hashtag/#{tag}"
-        link = tag_link("#", url, tag, Map.get(opts, :content_type))
-        {link, acc}
-      end
+      url = Bonfire.Common.URIs.base_url() <> "/hashtag/#{tag}"
+      link = tag_link("#", url, tag, Map.get(opts, :content_type))
+      {link, acc}
     else
       none ->
         warn("could not create Hashtag for #{tag_text}, got #{inspect(none)}")
@@ -213,22 +215,17 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   # Regex pattern for trailing hashtag line defined as a function to comply with Erlang/OTP 28
   defp trailing_hashtags_regex, do: ~r/(?:\n|<br\s*\/?>)\s*((?:#[\w]+\s*)+)\s*$/u
 
-  @doc "Detects and strips a trailing line containing only hashtags from text."
+  @doc "Extracts a trailing line of hashtags, returning `{cleaned_text, hashtag_line}`."
   def extract_trailing_hashtags(text) when is_binary(text) do
     case Regex.run(trailing_hashtags_regex(), text) do
-      [_full_match, hashtag_line] ->
-        tag_names =
-          Regex.scan(~r/#([\w]+)/u, hashtag_line)
-          |> Enum.map(fn [_, name] -> name end)
-
-        # cleaned = String.replace(text, full_match, "")
-
-        tag_names
+      [full_match, hashtag_line] ->
+        cleaned = String.trim_trailing(String.replace(text, full_match, ""))
+        {cleaned, hashtag_line}
 
       _ ->
-        []
+        {text, ""}
     end
   end
 
-  def extract_trailing_hashtags(_), do: []
+  def extract_trailing_hashtags(text), do: {text, ""}
 end

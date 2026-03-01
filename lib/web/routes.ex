@@ -8,8 +8,6 @@ defmodule Bonfire.Tag.Web.Routes do
         pipe_through(:browser)
 
         live("/tags/autocomplete", API.Autocomplete)
-
-
       end
 
       # pages you need an account to view

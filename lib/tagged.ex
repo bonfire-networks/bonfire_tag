@@ -1,7 +1,7 @@
 defmodule Bonfire.Tag.Tagged do
   @moduledoc "A mixin used for associating tags with an object"
 
-  import Ecto.Query, only: [from: 2]
+  import Ecto.Query, only: [from: 2, dynamic: 2]
   use Bonfire.Common.Repo
   use Ecto.Schema
   import Untangle
@@ -22,6 +22,19 @@ defmodule Bonfire.Tag.Tagged do
 
     # Added bonus, a join schema will also allow you to set timestamps
     timestamps()
+  end
+
+  @doc """
+  Returns the default preload order for the `many_to_many :tags` association.
+
+  Orders by `inserted_at` on the join table (Tagged) so tags appear in the
+  order they were applied rather than the order the tags were first created.
+
+  Used as MFA in the association definition:
+  `preload_order: {Bonfire.Tag.Tagged, :preload_order, []}`
+  """
+  def preload_order do
+    [asc: dynamic([assoc, join], join.inserted_at)]
   end
 
   @cast [:id, :tag_id]
