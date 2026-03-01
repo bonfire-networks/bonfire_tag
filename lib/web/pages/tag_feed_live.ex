@@ -29,7 +29,15 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
          |> redirect_to("/search?s=#{hashtag}")}
 
       is_uid?(hashtag) ->
-        mount(%{"id" => hashtag}, nil, socket)
+        with {:ok, tag} <- Bonfire.Tag.get(hashtag) do
+          ok_assigns(
+            socket,
+            tag,
+            e(tag, :profile, :name, nil) || e(tag, :post_content, :name, nil) ||
+              e(tag, :name, nil) ||
+              e(tag, :named, :name, nil) || l("Tag")
+          )
+        end
 
       true ->
         with {:ok, tag} <- Bonfire.Tag.get_hashtag(hashtag) do
