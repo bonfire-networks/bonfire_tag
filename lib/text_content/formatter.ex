@@ -34,7 +34,11 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   @spec linkify(String.t(), keyword()) ::
           {String.t(), [{String.t(), User.t()}], [{String.t(), String.t()}]}
   def linkify(text, options \\ []) do
-    options = linkify_opts() ++ options
+    # Extract trailing hashtag names so tag_handler can skip rendering them,
+    # but keep them in the text so Linkify still processes them through tag_handler
+    trailing_tag_names = extract_trailing_hashtags(text)
+
+    options = linkify_opts() ++ options ++ [skip_render_tags: trailing_tag_names]
 
     if options[:safe_mention] && Regex.named_captures(safe_mention_regex(), text) do
       %{"mentions" => mentions, "rest" => rest} = Regex.named_captures(safe_mention_regex(), text)
@@ -88,12 +92,20 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   def tag_handler("#" <> tag = tag_text, buffer, opts, acc) do
+    skip_render = Map.get(opts, :skip_render_tags, [])
+
     with {:ok, hashtag} <- Bonfire.Tag.get_or_create_hashtag(tag) do
       tag = e(hashtag, :named, :name, nil) || tag
-      url = Bonfire.Common.URIs.base_url() <> "/hashtag/#{tag}"
-      link = tag_link("#", url, tag, Map.get(opts, :content_type))
+      acc = %{acc | tags: MapSet.put(acc.tags, {"##{tag}", hashtag})}
 
-      {link, %{acc | tags: MapSet.put(acc.tags, {"##{tag}", hashtag})}}
+      if tag in skip_render do
+        # Trailing hashtag: associate but don't render the link
+        {"", acc}
+      else
+        url = Bonfire.Common.URIs.base_url() <> "/hashtag/#{tag}"
+        link = tag_link("#", url, tag, Map.get(opts, :content_type))
+        {link, acc}
+      end
     else
       none ->
         warn("could not create Hashtag for #{tag_text}, got #{inspect(none)}")
@@ -197,4 +209,26 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   defp render_link(display_url, attrs, _html) do
     Linkify.Builder.format_url(attrs, display_url)
   end
+
+  # Regex pattern for trailing hashtag line defined as a function to comply with Erlang/OTP 28
+  defp trailing_hashtags_regex, do: ~r/(?:\n|<br\s*\/?>)\s*((?:#[\w]+\s*)+)\s*$/u
+
+  @doc "Detects and strips a trailing line containing only hashtags from text."
+  def extract_trailing_hashtags(text) when is_binary(text) do
+    case Regex.run(trailing_hashtags_regex(), text) do
+      [_full_match, hashtag_line] ->
+        tag_names =
+          Regex.scan(~r/#([\w]+)/u, hashtag_line)
+          |> Enum.map(fn [_, name] -> name end)
+
+        # cleaned = String.replace(text, full_match, "")
+
+        tag_names
+
+      _ ->
+        []
+    end
+  end
+
+  def extract_trailing_hashtags(_), do: []
 end
