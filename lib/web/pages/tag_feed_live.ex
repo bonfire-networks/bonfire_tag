@@ -5,15 +5,7 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
   on_mount {LivePlugs, [Bonfire.UI.Me.LivePlugs.LoadCurrentUser]}
 
   def mount(%{"id" => id} = _params, _session, socket) do
-    # debug(id, "id")
-
-    with {:ok, tag} <- Bonfire.Tag.get(id) do
-      ok_assigns(
-        socket,
-        tag,
-        e(tag, :profile, :name, nil) || e(tag, :post_content, :name, nil) || e(tag, :name, nil) ||
-          e(tag, :named, :name, nil) || l("Tag")
-      )
+    with {:ok, _} <- get_tag(socket, id) do
     else
       {:error, :not_found} -> mount(%{"hashtag" => id}, nil, socket)
     end
@@ -24,28 +16,27 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
 
     cond do
       not extension_enabled?(:bonfire_tag, socket) ->
-        {:ok,
-         socket
-         |> redirect_to("/search?s=#{hashtag}")}
+        {:ok, redirect_to(socket, "/search?s=#{hashtag}")}
 
       is_uid?(hashtag) ->
-        with {:ok, tag} <- Bonfire.Tag.get(hashtag) do
-          ok_assigns(
-            socket,
-            tag,
-            e(tag, :profile, :name, nil) || e(tag, :post_content, :name, nil) ||
-              e(tag, :name, nil) ||
-              e(tag, :named, :name, nil) || l("Tag")
-          )
-        end
+        get_tag(socket, hashtag)
 
       true ->
         with {:ok, tag} <- Bonfire.Tag.get_hashtag(hashtag) do
-          #  Bonfire.Tag.one([name: hashtag], pointable: Bonfire.Data.Identity.Named) do
-          #  |> repo().maybe_preload(:named) do
-          ok_assigns(socket, tag, "#{e(tag, :name, hashtag)}")
+          ok_assigns(socket, tag, e(tag, :name, nil) || hashtag)
         end
     end
+  end
+
+  defp get_tag(socket, id) do
+    with {:ok, tag} <- Bonfire.Tag.get(id) do
+      ok_assigns(socket, tag, tag_name(tag))
+    end
+  end
+
+  defp tag_name(tag) do
+    e(tag, :profile, :name, nil) || e(tag, :post_content, :name, nil) ||
+      e(tag, :name, nil) || e(tag, :named, :name, nil) || l("Tag")
   end
 
   def ok_assigns(socket, tag, name, feed_name \\ :hashtag) do
