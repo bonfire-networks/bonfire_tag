@@ -297,10 +297,12 @@ defmodule Bonfire.Tag do
   end
 
   def maybe_update_tags(creator, object, attrs) do
-    # Use the already prepared hashtags and mentions from attrs
+    # Use the already prepared hashtags, mentions, and quote tags from attrs
     new_hashtags = Map.get(attrs, :hashtags, %{}) |> Map.values()
     new_mentions = Map.get(attrs, :mentions, %{}) |> Map.values()
-    all_new_tags = new_hashtags ++ new_mentions
+    # Include quote tags so they aren't removed during Update processing
+    extra_tags = Map.get(attrs, :tags, []) |> List.wrap()
+    all_new_tags = new_hashtags ++ new_mentions ++ extra_tags
 
     # Compare with current tags to find what needs to be added/removed
     current_tag_ids = (object.tags || []) |> Enums.ids() |> MapSet.new()
