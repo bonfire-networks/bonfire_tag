@@ -93,8 +93,11 @@ defmodule Bonfire.Tag.Acts.Tag do
           end
           |> debug("quote processing results")
 
+        context_id = Keyword.get(epic.assigns[:options], :context_id, nil)
+
         categories_auto_boost =
-          e(changeset, :changes, :post_content, :changes, :mentions, [])
+          (e(changeset, :changes, :post_content, :changes, :mentions, []) ++
+            List.wrap(context_id))
           |> Bonfire.Social.Tags.maybe_boostable_categories(current_user, ...)
           |> maybe_debug(epic, act, ..., "categories_auto_boost")
 
