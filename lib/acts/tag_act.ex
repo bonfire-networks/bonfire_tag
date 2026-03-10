@@ -97,7 +97,7 @@ defmodule Bonfire.Tag.Acts.Tag do
 
         categories_auto_boost =
           (e(changeset, :changes, :post_content, :changes, :mentions, []) ++
-            List.wrap(context_id))
+             List.wrap(context_id))
           |> Bonfire.Social.Tags.maybe_boostable_categories(current_user, ...)
           |> maybe_debug(epic, act, ..., "categories_auto_boost")
 
