@@ -98,8 +98,13 @@ defmodule Bonfire.Tag.Acts.Tag do
         categories_auto_boost =
           (e(changeset, :changes, :post_content, :changes, :mentions, []) ++
              List.wrap(context_id))
+          |> Enum.uniq_by(fn
+            %{id: id} -> id
+            id -> id
+          end)
           |> Bonfire.Social.Tags.maybe_boostable_categories(current_user, ...)
           |> maybe_debug(epic, act, ..., "categories_auto_boost")
+          |> flood("categories_auto_boost")
 
         maybe_debug(epic, act, "tags", "Casting")
 
