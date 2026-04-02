@@ -20,8 +20,9 @@
       )}
       {#match trending when is_list(trending)}
         <Bonfire.UI.Common.WidgetBlockLive
-          widget_title={@widget_title || l("Trending topics")}
-          title_class="flex gap-3 text-base-content/90 pb-2 text-lg font-bold tracking-wide"
+          class="w-full flex-auto mx-auto"
+          widget_title={@widget_title || l("Trending")}
+          title_class="flex items-center justify-between flex gap-3 text-base-content/70 text-xs font-semibold uppercase pb-2 border-b border-base-content/20 tracking-wider mb-2 px-3"
         >
           <:action>
             {#if @always_show_reset_btn || Bonfire.Boundaries.can?(@__context__, :tag, :instance_wide)}
@@ -45,18 +46,18 @@
                 {#if e(tag, :table_id, nil) == "7HASHTAG1SPART0FF01KS0N0MY" or
                     Types.object_type(tag) == Bonfire.Tag.Hashtag}
                   {!-- FIXME ^ should just use Types.object_type ? --}
-                  <li data-role="hashtag" class="rounded-none">
-                    <LinkLive class="rounded-none px-0 mx-0" to={~p"/hashtag/" <> e(tag, :named, :name, "")}>
+                  <li data-role="hashtag" class="">
+                    <LinkLive class="" to={~p"/hashtag/" <> e(tag, :named, :name, "")}>
                       <div class="flex flex-row items-center">
                         <div class="flex flex-col items-start flex-1 gap-0 text-left">
                           <div
                             style="overflow-wrap: anywhere;
                           white-space: inherit;"
-                            class="text-sm font-medium truncate line-clamp-1"
+                            class="text-sm font-semibold truncate line-clamp-1"
                           >
                             #{e(tag, :named, :name, nil)}
                           </div>
-                          <div class="text-xs font-light text-base-content/70">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))}</div>
+                          <div class="text-xs font-light text-base-content/70">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))} {l("in the last %{number} days", number: for_last_x_days)}</div>
                         </div>
                         {!-- <div><#Icon outline="DotsHorizontal" class="w-5 h-5 text-base-content text-opacity-60" /></div> --}
                       </div>
