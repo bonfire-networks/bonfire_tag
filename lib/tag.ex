@@ -276,6 +276,9 @@ defmodule Bonfire.Tag do
     # tag any mentions that were found in the text and injected into the changeset by PostContents (NOTE: this doesn't necessarily mean they should be included in boundaries or notified)
     # tag any hashtags that were found in the text and injected into the changeset by PostContents
     # TODO: what fields to look for should be defined by the caller ^
+    # always apply tree parent even when there are no tags (eg. posting in a group with no @mentions)
+    changeset = maybe_put_tree_parent(changeset, opts[:put_tree_parent], creator)
+
     with tags when is_list(tags) and length(tags) > 0 <-
            (get_mentions_from_changeset(changeset) ++
               get_hashtags_from_changeset(changeset) ++
@@ -283,8 +286,6 @@ defmodule Bonfire.Tag do
            |> format_tags()
            |> debug(label: "cast tags") do
       changeset
-      # does this really have to happen here? Could it be decoupled?
-      |> maybe_put_tree_parent(opts[:put_tree_parent], creator)
       |> Changeset.cast(%{tagged: tags}, [])
       |> debug("before cast assoc")
       |> Changeset.cast_assoc(:tagged, with: &Bonfire.Tag.Tagged.changeset/2)

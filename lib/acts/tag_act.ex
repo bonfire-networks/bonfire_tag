@@ -96,15 +96,14 @@ defmodule Bonfire.Tag.Acts.Tag do
         context_id = Keyword.get(epic.assigns[:options], :context_id, nil)
 
         categories_auto_boost =
-          (e(changeset, :changes, :post_content, :changes, :mentions, []) ++
-             List.wrap(context_id))
+          (List.wrap(context_id) ++ e(changeset, :changes, :post_content, :changes, :mentions, []))
           |> Enum.uniq_by(fn
             %{id: id} -> id
             id -> id
           end)
           |> Bonfire.Social.Tags.maybe_boostable_categories(current_user, ...)
           |> maybe_debug(epic, act, ..., "categories_auto_boost")
-          |> flood("categories_auto_boost")
+          |> debug("categories_auto_boost")
 
         maybe_debug(epic, act, "tags", "Casting")
 
@@ -115,6 +114,7 @@ defmodule Bonfire.Tag.Acts.Tag do
         |> Bonfire.Tag.cast(changeset, ..., current_user,
           put_tree_parent: List.first(categories_auto_boost)
         )
+        |> debug("cssss")
         # only add as "published in" in first mentioned category ^
         |> Epic.assign(epic, on, ...)
         |> Epic.assign(..., :categories_auto_boost, categories_auto_boost)
