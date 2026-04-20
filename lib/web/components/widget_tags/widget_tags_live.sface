@@ -20,9 +20,9 @@
       )}
       {#match trending when is_list(trending)}
         <Bonfire.UI.Common.WidgetBlockLive
-          class="w-full flex-auto mx-auto"
+          class="w-full flex-auto mx-auto rounded-box border border-base-content/10"
           widget_title={@widget_title || l("Trending")}
-          title_class="flex items-center justify-between flex gap-3 text-base-content/70 text-xs font-semibold uppercase pb-2 border-b border-base-content/20 tracking-wider mb-2 px-3"
+          title_class="flex items-center justify-between flex gap-3 text-base-content/70 text-sm font-semibold  pt-2  px-4"
         >
           <:action>
             {#if @always_show_reset_btn || Bonfire.Boundaries.can?(@__context__, :tag, :instance_wide)}
@@ -40,7 +40,7 @@
             {/if}
           </:action>
 
-          <ul class="menu w-full p-0">
+          <ul class="menu w-full">
             {#if trending != []}
               {#for %{tag: tag} = tagged <- trending}
                 {#if e(tag, :table_id, nil) == "7HASHTAG1SPART0FF01KS0N0MY" or
@@ -53,11 +53,11 @@
                           <div
                             style="overflow-wrap: anywhere;
                           white-space: inherit;"
-                            class="text-sm font-semibold truncate line-clamp-1"
+                            class="text-sm truncate line-clamp-1"
                           >
                             #{e(tag, :named, :name, nil)}
                           </div>
-                          <div class="text-xs font-light text-base-content/70">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))} {l("in the last %{number} days", number: for_last_x_days)}</div>
+                          <!-- <div class="text-xs font-light text-base-content/70">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))} {l("in the last %{number} days", number: for_last_x_days)}</div> -->
                         </div>
                         {!-- <div><#Icon outline="DotsHorizontal" class="w-5 h-5 text-base-content text-opacity-60" /></div> --}
                       </div>
