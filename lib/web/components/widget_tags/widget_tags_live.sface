@@ -19,11 +19,7 @@
         limit
       )}
       {#match trending when is_list(trending)}
-        <Bonfire.UI.Common.WidgetBlockLive
-          class="w-full flex-auto mx-auto rounded-box border border-base-content/10"
-          widget_title={@widget_title || l("Trending")}
-          title_class="flex items-center justify-between flex gap-3 text-base-content/70 text-sm font-semibold  pt-2  px-4"
-        >
+        <Bonfire.UI.Common.WidgetBlockLive widget_title={@widget_title || l("Trending")}>
           <:action>
             {#if @always_show_reset_btn || Bonfire.Boundaries.can?(@__context__, :tag, :instance_wide)}
               <button
@@ -31,7 +27,7 @@
                 phx-value-for_last_x_days={for_last_x_days}
                 phx-value-limit={limit}
                 type="button"
-                class="btn btn-circle btn-xs btn-ghost ml-auto"
+                class="btn btn-circle btn-xs btn-ghost"
                 title={l("Reset Trending")}
               >
                 <span class="sr-only">{l("Reset Trending")}</span>
@@ -40,7 +36,7 @@
             {/if}
           </:action>
 
-          <ul class="menu w-full">
+          <ul class="menu w-full p-0">
             {#if trending != []}
               {#for %{tag: tag} = tagged <- trending}
                 {#if e(tag, :table_id, nil) == "7HASHTAG1SPART0FF01KS0N0MY" or
