@@ -36,7 +36,7 @@
             {/if}
           </:action>
 
-          <ul class="menu w-full p-0">
+          <ul class="menu w-full p-0 -mx-3">
             {#if trending != []}
               {#for %{tag: tag} = tagged <- trending}
                 {#if e(tag, :table_id, nil) == "7HASHTAG1SPART0FF01KS0N0MY" or
