@@ -80,7 +80,8 @@ defmodule Bonfire.Tag.TextContent.Formatter do
         mention_regex: match_mention(),
         email: false,
         strip_prefix: true,
-        truncate: 30
+        truncate: 30,
+        rel: "nofollow noopener ugc"
       ]
   end
 
@@ -105,7 +106,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
       tag = e(hashtag, :named, :name, nil) || tag
       acc = %{acc | tags: MapSet.put(acc.tags, {"##{tag}", hashtag})}
 
-      url = Bonfire.Common.URIs.base_url() <> "/hashtag/#{tag}"
+      url = "/hashtag/#{tag}"
       link = tag_link("#", url, tag, Map.get(opts, :content_type))
       {link, acc}
     else
@@ -131,7 +132,20 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     tag_handler("!", nickname, buffer, opts, acc)
   end
 
+  defp tag_handler("@" = type, nickname, buffer, opts, acc) do
+    if :ets.member(:mention_prefetch_inflight, nickname) do
+      # warming timed out or errored — skip to avoid a second blocking fetch
+      {buffer, acc}
+    else
+      do_tag_lookup(type, nickname, buffer, opts, acc)
+    end
+  end
+
   defp tag_handler(type, nickname, buffer, opts, acc) do
+    do_tag_lookup(type, nickname, buffer, opts, acc)
+  end
+
+  defp do_tag_lookup(type, nickname, buffer, opts, acc) do
     case Tag.maybe_lookup_tag(nickname, type) do
       {:ok, tag_object} ->
         mention_process(
@@ -144,7 +158,6 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
       none ->
         warn("could not process #{type} mention for #{nickname}, got #{inspect(none)}")
-
         {buffer, acc}
     end
   end
@@ -176,32 +189,11 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   end
 
   defp tag_link("#", url, tag, _html) do
-    Phoenix.HTML.Tag.content_tag(:a, "##{tag}",
-      class: "hashtag",
-      "data-tag": tag,
-      href: url,
-      rel: "tag ugc"
-    )
-    |> Phoenix.HTML.safe_to_string()
+    ~s(<a class="hashtag" data-tag="#{tag}" href="#{url}" rel="tag ugc">##{tag}</a>)
   end
 
-  defp tag_link(type, url, display_name, _html) do
-    debug(type, "type")
-    debug(display_name, "display_name")
-    # possibly bugged, is it actually used anywhere?
-    Phoenix.HTML.Tag.content_tag(
-      :span,
-      Phoenix.HTML.Tag.content_tag(
-        :a,
-        display_name,
-        "data-user": display_name,
-        class: "u-url mention",
-        href: url,
-        rel: "ugc"
-      ),
-      class: "h-card"
-    )
-    |> Phoenix.HTML.safe_to_string()
+  defp tag_link(_type, url, display_name, _html) do
+    ~s(<span class="h-card"><a data-user="#{display_name}" class="u-url mention" href="#{url}" rel="ugc">#{display_name}</a></span>)
   end
 
   defp render_link(display_url, %{href: href}, "text/markdown") do
@@ -214,6 +206,55 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
   # Regex pattern for trailing hashtag line defined as a function to comply with Erlang/OTP 28
   defp trailing_hashtags_regex, do: ~r/(?:\n|<br\s*\/?>)\s*((?:#[\w]+\s*)+)\s*$/u
+
+  @doc "Collects all mention nicks from text using Linkify's parser — no DB or HTTP lookups."
+  def collect_mentions(text) when is_binary(text) do
+    # Drop all handlers: collect_mentions only needs to scan for mention text, not render HTML or hit the DB
+    opts =
+      linkify_opts()
+      |> Keyword.drop([:url_handler, :hashtag_handler, :mention_handler])
+      |> Keyword.put(:hashtag, false)
+      |> Keyword.put(:url, false)
+
+    Linkify.collect_mentions(text, opts)
+  end
+
+  def collect_mentions(_), do: []
+
+  @doc "Warms the actor cache for remote mentions in parallel. Skips locals and already in-flight fetches."
+  def prefetch_mentions(text) when is_binary(text) do
+    mentions =
+      collect_mentions(text)
+      |> Enum.filter(&String.contains?(&1, "@"))
+      |> Enum.filter(&:ets.insert_new(:mention_prefetch_inflight, {&1, true}))
+
+    if mentions != [] do
+      debug(mentions, "prefetching remote mentions in parallel")
+
+      Task.async_stream(
+        mentions,
+        fn mention ->
+          result = Tag.maybe_lookup_tag(mention, "@")
+
+          # only clear on success — failures stay as a negative cache so tag_handler skips the lookup
+          if match?({:ok, _}, result), do: :ets.delete(:mention_prefetch_inflight, mention)
+          result
+        end,
+        timeout: 5_000,
+        on_timeout: :kill_task,
+        ordered: false
+      )
+      |> Stream.each(fn
+        {:ok, {:ok, _}} -> :ok
+        {:ok, {:error, reason}} -> warn(reason, "could not prefetch mention")
+        {:exit, :timeout} -> warn("mention prefetch timed out")
+        _ -> :ok
+      end)
+      |> Stream.run()
+    end
+  end
+
+  def prefetch_mentions(_), do: :ok
 
   @doc "Extracts a trailing line of hashtags, returning `{cleaned_text, hashtag_line}`."
   def extract_trailing_hashtags(text) when is_binary(text) do

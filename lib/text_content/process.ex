@@ -51,6 +51,9 @@ defmodule Bonfire.Tag.TextContent.Process do
       hashtags: Keyword.get(opts, :hashtags, true)
     ]
 
+    if !opts[:mentions_prefetched],
+      do: Bonfire.Tag.TextContent.Formatter.prefetch_mentions(text)
+
     content_type =
       content_type(content_type)
       |> info("content_type")
