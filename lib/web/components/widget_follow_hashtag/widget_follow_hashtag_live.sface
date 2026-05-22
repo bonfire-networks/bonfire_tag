@@ -1,0 +1,8 @@
+<Bonfire.UI.Common.WidgetBlockLive widget_title={@widget_title || l("Hashtag")}>
+  <Bonfire.Tag.Web.FollowHashtagButtonLive
+    object_id={@object_id}
+    path={@path}
+    class={@class}
+    container_class={@container_class}
+  />
+</Bonfire.UI.Common.WidgetBlockLive>

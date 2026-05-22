@@ -56,25 +56,24 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
        tag: tag,
        canonical_url: canonical_url(tag),
        name: name,
-       page_header_aside:
-         if feed_name == :hashtag do
-           [
-             {Bonfire.Tag.Web.FollowHashtagButtonLive,
-              [
-                object_id: id(tag),
-                path: path(tag),
-                class: "btn btn-sm btn-primary",
-                container_class: "flex items-center gap-2"
-              ]}
-           ]
-         else
-           []
-         end,
+       page_header_aside: [],
        sidebar_widgets: [
          users: [
-           secondary: [
-             {Bonfire.Tag.Web.WidgetTagsLive, []}
-           ]
+           secondary:
+             (if feed_name == :hashtag do
+                [
+                  {Bonfire.Tag.Web.WidgetFollowHashtagLive,
+                   [
+                     object_id: id(tag),
+                     path: path(tag)
+                   ]}
+                ]
+              else
+                []
+              end) ++
+               [
+                 {Bonfire.Tag.Web.WidgetTagsLive, []}
+               ]
          ]
        ]
      )}

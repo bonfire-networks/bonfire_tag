@@ -117,6 +117,9 @@ defmodule Bonfire.Tag.HashtagFeed.Test do
 
     # Assert that the page contains the hashtag in the title or header
     |> assert_has("[role=banner]", text: "##{my_hashtag}")
+    |> assert_has("[data-id=secondary_sidebar_widgets]", text: "Hashtag")
+    |> assert_has("[data-id=secondary_sidebar_widgets] [data-id=follow]")
+    |> refute_has("[role=banner] [data-id=follow]")
   end
 
   test "Clicking on a hashtag link navigates to the hashtag feed", %{
