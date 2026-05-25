@@ -60,17 +60,17 @@ defmodule Bonfire.Tag.Web.TagFeedLive do
        sidebar_widgets: [
          users: [
            secondary:
-             (if feed_name == :hashtag do
-                [
-                  {Bonfire.Tag.Web.WidgetFollowHashtagLive,
-                   [
-                     object_id: id(tag),
-                     path: path(tag)
-                   ]}
-                ]
-              else
-                []
-              end) ++
+             if feed_name == :hashtag do
+               [
+                 {Bonfire.Tag.Web.WidgetFollowHashtagLive,
+                  [
+                    object_id: id(tag),
+                    path: path(tag)
+                  ]}
+               ]
+             else
+               []
+             end ++
                [
                  {Bonfire.Tag.Web.WidgetTagsLive, []}
                ]
