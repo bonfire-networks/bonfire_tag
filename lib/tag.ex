@@ -198,20 +198,23 @@ defmodule Bonfire.Tag do
         skip_boundary_check: true
       )
     else
-      # if Bonfire.Common.Extend.extension_enabled?(Bonfire.Federate.ActivityPub) do
-      debug("try get_by_url_ap_id_or_username")
+      # only attempt remote lookup for federated references (user@domain or URLs)
+      if String.contains?(id_or_username_or_url, "@") or
+           String.starts_with?(id_or_username_or_url, "http") do
+        debug("try get_by_url_ap_id_or_username")
 
-      with {:ok, federated_object_or_character} <-
-             Bonfire.Federate.ActivityPub.AdapterUtils.get_by_url_ap_id_or_username(
-               id_or_username_or_url
-             ) do
-        debug("federated_object_or_character: #{inspect(federated_object_or_character)}")
+        with {:ok, federated_object_or_character} <-
+               Bonfire.Federate.ActivityPub.AdapterUtils.get_by_url_ap_id_or_username(
+                 id_or_username_or_url
+               ) do
+          debug("federated_object_or_character: #{inspect(federated_object_or_character)}")
 
-        {:ok, federated_object_or_character}
-      else
-        _ ->
-          error("no such federated remote tag found")
-          nil
+          {:ok, federated_object_or_character}
+        else
+          _ ->
+            error("no such federated remote tag found")
+            nil
+        end
       end
     end
   end
