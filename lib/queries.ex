@@ -103,14 +103,15 @@ defmodule Bonfire.Tag.Queries do
   def filter(q, {:username, username}) when is_binary(username) do
     q
     |> join_to(:character)
-    |> preload(:character)
+    # also preload `character.peered` so a resolved mention can be classified by `is_local?`
+    |> preload(character: :peered)
     |> where([character: a], a.username == ^username)
   end
 
   def filter(q, {:username, usernames}) when is_list(usernames) do
     q
     |> join_to(:character)
-    |> preload(:character)
+    |> preload(character: :peered)
     |> where([character: a], a.username in ^usernames)
   end
 
