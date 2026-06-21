@@ -13,6 +13,25 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled and
         # arg :find, :category_find
         resolve(&TagResolver.tag/2)
       end
+
+      @desc "Autocomplete @-mentions and #-hashtags while composing"
+      field :tag_suggestions, list_of(:tag_suggestion) do
+        @desc "The text typed after the prefix (without the @ or #)"
+        arg(:query, non_null(:string))
+        @desc "The trigger prefix: \"@\" for mentions, \"#\" for hashtags (default \"@\")"
+        arg(:prefix, :string, default_value: "@")
+        resolve(&TagResolver.tag_suggestions/2)
+      end
+    end
+
+    @desc "An autocomplete suggestion for a mention or hashtag"
+    object :tag_suggestion do
+      @desc "The text to insert (e.g. \"@username\" or \"#hashtag\")"
+      field(:id, :string)
+      @desc "Display name"
+      field(:name, :string)
+      @desc "Avatar/icon URL (for user mentions)"
+      field(:icon, :string)
     end
 
     object :tag_mutations do

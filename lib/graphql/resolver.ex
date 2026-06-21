@@ -31,6 +31,25 @@ if Code.ensure_loaded?(Bonfire.API.GraphQL) do
       end
     end
 
+    @doc "Autocomplete @-mentions / #-hashtags, reusing the composer's lookup."
+    def tag_suggestions(%{query: query} = args, _info) do
+      prefix = Map.get(args, :prefix) || "@"
+
+      results =
+        Bonfire.Tag.Autocomplete.api_tag_search(query, prefix, "ck5")
+        |> List.wrap()
+        |> Enum.map(fn hit ->
+          %{
+            id: e(hit, :id, nil) || e(hit, "id", nil),
+            name: e(hit, :name, nil) || e(hit, "name", nil),
+            icon: e(hit, :icon, nil) || e(hit, "icon", nil)
+          }
+        end)
+        |> Enum.reject(&is_nil(&1.id))
+
+      {:ok, results}
+    end
+
     ## fetchers
 
     def fetch_tag(_info, id) do
