@@ -61,6 +61,27 @@ defmodule Bonfire.Tag.PostsTest do
     assert post.post_content.html_body =~ "[#my_tag](/hashtag/my_tag)"
   end
 
+  test "mixed-case hashtag is normalized only in the stored tag, not in the displayed html_body" do
+    user = Fake.fake_user!()
+
+    post =
+      fake_post!(user, "public", %{
+        post_content: %{
+          summary: "summary",
+          name: "name",
+          html_body: "epic html #Testing"
+        }
+      })
+      |> repo().maybe_preload(tagged: [tag: :named])
+
+    # stored tag name is normalized to lowercase
+    assert [%{tag: %{named: %{name: "testing"}}}] = post.tagged
+
+    # but the displayed body preserves the user's original casing,
+    # while the link still points at the normalized hashtag page
+    assert post.post_content.html_body =~ "[#Testing](/hashtag/testing)"
+  end
+
   test "post with mention gets tagged at creation" do
     user = Fake.fake_user!()
     name = user.character.username
