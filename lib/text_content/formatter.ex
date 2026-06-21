@@ -103,10 +103,12 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
   def tag_handler("#" <> tag = tag_text, buffer, opts, acc) do
     with {:ok, hashtag} <- Bonfire.Tag.get_or_create_hashtag(tag) do
-      tag = e(hashtag, :named, :name, nil) || tag
-      acc = %{acc | tags: MapSet.put(acc.tags, {"##{tag}", hashtag})}
+      # use the normalized (stored) name for the canonical link/storage,
+      # but keep the original casing the user typed for display
+      name = e(hashtag, :named, :name, nil) || tag
+      acc = %{acc | tags: MapSet.put(acc.tags, {"##{name}", hashtag})}
 
-      url = "/hashtag/#{tag}"
+      url = "/hashtag/#{name}"
       link = tag_link("#", url, tag, Map.get(opts, :content_type))
       {link, acc}
     else
