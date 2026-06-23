@@ -56,22 +56,21 @@ defmodule Bonfire.Tag.Autocomplete do
 
   # FIXME combine the following functions
 
-  # Enhanced function that uses Meilisearch search with proper preloading
-  def api_tag_search(search, prefix, consumer) do
+  # Enhanced function that uses the search adapter with proper preloading
+  def api_tag_search(search, prefix, consumer, current_user \\ nil) do
+    federation_mode =
+      maybe_apply(Bonfire.Federate.ActivityPub, :federation_mode, [current_user],
+        fallback_return: true
+      )
+
     if module_enabled?(Bonfire.Search) and Bonfire.Search.adapter() do
-      # First try to use Meilisearch
-      debug("Using Meilisearch for autocomplete search: #{search}")
+      # First try to use search adapter for autocomplete
+      debug("Using search adapter for autocomplete search: #{search}")
 
       # Determine the facet filters based on prefix
       index_type = prefix_index(prefix)
 
-      # Set search options with specific preloading for user profile data
-      opts = %{
-        limit: 10,
-        current_user: nil
-      }
-
-      # Perform the search with Meilisearch
+      # Perform the search with search adapter
       search_results = Bonfire.Search.search_by_type(search, index_type)
 
       # Format the results for the autocomplete
@@ -82,32 +81,68 @@ defmodule Bonfire.Tag.Autocomplete do
           |> Bonfire.Social.Activities.activity_preloads(
             # Add these preloads to ensure username, name, icon
             [:with_subject, :with_object],
-            opts
+            limit: 10,
+            current_user: current_user
           )
-          # Directly preload profile data when needed
-          |> repo().maybe_preload([:character, profile: :icon])
+          # preload profile + `character.peered` (peered is needed for the federation check below)
+          |> repo().maybe_preload(character: [:peered])
           |> debug("Search results with preloaded user data")
+          # drop @-mentions to remote actors this instance can't federate with (#647) — once here,
+          # then tell tag_hit_prepare to skip its own (redundant) check for these hits
+          |> reject_unfederatable_mentions(prefix, current_user, federation_mode)
+          |> repo().maybe_preload(profile: [:icon])
 
         # Prepare each hit for the autocomplete UI
         enhanced_results
         |> Enum.map(fn hit ->
-          tag_hit_prepare(hit, search, prefix, consumer)
+          tag_hit_prepare(hit, search, prefix, consumer, skip_federation_check: true)
         end)
         |> Enums.filter_empty([])
       else
         # Fallback to original method if no results
-        debug("No Meilisearch results, falling back to original lookup method")
-        api_tag_lookup(search, prefix, consumer)
+        debug("No search adapter results, falling back to original lookup method")
+
+        api_tag_lookup(search, prefix, consumer,
+          federation_mode: federation_mode,
+          current_user: current_user
+        )
       end
     else
-      # Fallback to original method if Meilisearch is not available
-      debug("Meilisearch not available, using original lookup method")
-      api_tag_lookup(search, prefix, consumer)
+      # Fallback to original method if search adapter is not available
+      debug("Search adapter not available, using original lookup method")
+
+      api_tag_lookup(search, prefix, consumer,
+        federation_mode: federation_mode,
+        current_user: current_user
+      )
     end
   end
 
-  def api_tag_lookup(tag_search, prefix, consumer) do
-    api_tag_lookup_public(tag_search, prefix, consumer, prefix_index(prefix))
+  @doc """
+  For `@` mentions (the only prefix that resolves to users), drop suggested users this instance
+  can't federate an interaction with — mentioning a remote actor is useless when federation isn't
+  open. No-op for non-`@` prefixes, for open federation, or when the federate extension is off.
+  Hits must have `character.peered` preloaded for the check to be accurate. See bonfire-app#647.
+  """
+  def reject_unfederatable_mentions(results, "@", current_user, federation_mode)
+      when is_list(results) do
+    if federation_mode == true do
+      results
+    else
+      Enum.reject(results, fn hit ->
+        not maybe_apply(
+          Bonfire.Federate.ActivityPub,
+          :interaction_allowed?,
+          [current_user, hit, [federation_mode: federation_mode]], fallback_return: true)
+      end)
+    end
+  end
+
+  def reject_unfederatable_mentions(results, _prefix, _current_user, _federation_mode),
+    do: results
+
+  def api_tag_lookup(tag_search, prefix, consumer, hit_opts \\ []) do
+    api_tag_lookup_public(tag_search, prefix, consumer, prefix_index(prefix), hit_opts)
   end
 
   def search_prefix(tag_search, prefix) do
@@ -118,15 +153,16 @@ defmodule Bonfire.Tag.Autocomplete do
     search_or_lookup(tag_search, search_index(), type)
   end
 
-  def api_tag_lookup_public(tag_search, prefix, consumer, index_type) do
-    tag_lookup_public(tag_search, index_type, prefix, consumer)
+  def api_tag_lookup_public(tag_search, prefix, consumer, index_type, hit_opts \\ []) do
+    tag_lookup_public(tag_search, index_type, prefix, consumer, hit_opts)
   end
 
-  def tag_lookup_public(tag_search, index_type, prefix \\ nil, consumer \\ nil) do
-    maybe_search(tag_search, index_type, prefix, consumer) ||
+  def tag_lookup_public(tag_search, index_type, prefix \\ nil, consumer \\ nil, hit_opts \\ []) do
+    maybe_search(tag_search, index_type, prefix, consumer, hit_opts) ||
       maybe_find_tags(tag_search, index_type)
-      |> repo().maybe_preload(profile: [:icon])
-      |> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer))
+      # `character.peered` is needed for the #647 federation check in tag_hit_prepare
+      |> repo().maybe_preload(character: [:peered], profile: :icon)
+      |> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer, hit_opts))
       |> Enums.filter_empty([])
   end
 
@@ -153,7 +189,7 @@ defmodule Bonfire.Tag.Autocomplete do
     end
   end
 
-  def maybe_search(tag_search, facets \\ nil, prefix \\ nil, consumer \\ nil) do
+  def maybe_search(tag_search, facets \\ nil, prefix \\ nil, consumer \\ nil, opts \\ []) do
     # debug(searched: tag_search)
     # debug(facets: facets)
 
@@ -167,11 +203,14 @@ defmodule Bonfire.Tag.Autocomplete do
       # TODO: pass current_user in opts for boundaries
       search =
         Bonfire.Common.Utils.maybe_apply(Bonfire.Search, :search_by_type, [tag_search, facets])
-        |> debug()
+        # `character.peered` is needed for the #647 federation check in tag_hit_prepare
+        |> repo().maybe_preload(character: [:peered])
+
+      # |> debug()
 
       if(is_list(search) and length(search) > 0) do
         # search["hits"]
-        Enum.map(search, &tag_hit_prepare(&1, tag_search, prefix, consumer))
+        Enum.map(search, &tag_hit_prepare(&1, tag_search, prefix, consumer, opts))
         |> Enums.filter_empty([])
         |> input_to_atoms()
 
@@ -207,7 +246,37 @@ defmodule Bonfire.Tag.Autocomplete do
   #   end
   # end
 
-  def tag_hit_prepare(hit, _tag_search, prefix, consumer) do
+  # #647: drop @-mention suggestions for remote actors this instance can't federate with —
+  # mentioning them is useless when federation isn't open. ALL autocomplete paths funnel their
+  # (loaded) hit structs through here, so it's the single chokepoint covering both the search
+  # adapter and DB-lookup branches. `opts[:federation_mode]` is computed ONCE per request by the
+  # caller and passed in (so we don't recompute per hit); open federation short-circuits with no
+  # per-hit work. Hits should have `character.peered` preloaded so the `is_local?` check inside
+  # `interaction_allowed?` is query-free. Returns nil → dropped by `Enums.filter_empty`.
+  def tag_hit_prepare(hit, tag_search, prefix, consumer, opts \\ [])
+
+  def tag_hit_prepare(hit, _tag_search, "@" = prefix, consumer, opts) do
+    # `skip_federation_check: true` is passed by callers that already filtered the structs via
+    # reject_unfederatable_mentions/3 (the search-adapter path) — avoids checking twice. The
+    # DB-lookup fallback doesn't pre-filter, so it relies on this gate.
+    if opts[:skip_federation_check] == true or opts[:federation_mode] == true or
+         maybe_apply(
+           Bonfire.Federate.ActivityPub,
+           :interaction_allowed?,
+           [opts[:current_user], hit, [federation_mode: opts[:federation_mode]]],
+           fallback_return: true
+         ) do
+      do_tag_hit_prepare(hit, prefix, consumer)
+    else
+      nil
+    end
+  end
+
+  def tag_hit_prepare(hit, _tag_search, prefix, consumer, _opts) do
+    do_tag_hit_prepare(hit, prefix, consumer)
+  end
+
+  defp do_tag_hit_prepare(hit, prefix, consumer) do
     debug(hit)
 
     username = e(hit, "username", nil) || e(hit, :character, :username, nil) || e(hit, "id", nil)

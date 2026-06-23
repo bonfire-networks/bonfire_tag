@@ -9,12 +9,12 @@ defmodule Bonfire.Tag.Web.API.Autocomplete do
         "search" => search,
         "consumer" => consumer
       }) do
-    tags = Autocomplete.api_tag_search(search, prefix, consumer)
+    tags = Autocomplete.api_tag_search(search, prefix, consumer, current_user_or_id(conn))
     json(conn, prepare(tags))
   end
 
   def get(conn, %{"prefix" => prefix, "search" => search}) do
-    tags = Autocomplete.api_tag_search(search, prefix, "tag_as")
+    tags = Autocomplete.api_tag_search(search, prefix, "tag_as", current_user_or_id(conn))
     json(conn, prepare(tags))
   end
 
