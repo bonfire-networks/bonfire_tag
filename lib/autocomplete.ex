@@ -133,7 +133,9 @@ defmodule Bonfire.Tag.Autocomplete do
         not maybe_apply(
           Bonfire.Federate.ActivityPub,
           :interaction_allowed?,
-          [current_user, hit, [federation_mode: federation_mode]], fallback_return: true)
+          [current_user, hit, [federation_mode: federation_mode]],
+          fallback_return: true
+        )
       end)
     end
   end
