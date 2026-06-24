@@ -19,23 +19,12 @@
         limit
       )}
       {#match trending when is_list(trending)}
-        <Bonfire.UI.Common.WidgetBlockLive widget_title={@widget_title || l("Trending")}>
-          <:action>
-            {#if @always_show_reset_btn || Bonfire.Boundaries.can?(@__context__, :tag, :instance_wide)}
-              <button
-                :on-click="Bonfire.Tag.Web.WidgetTagsLive:reset_trending"
-                phx-value-for_last_x_days={for_last_x_days}
-                phx-value-limit={limit}
-                type="button"
-                class="btn btn-circle btn-xs btn-ghost"
-                title={l("Reset Trending")}
-              >
-                <span class="sr-only">{l("Reset Trending")}</span>
-                <#Icon iconify="ph:arrow-counter-clockwise-duotone" class="w-4 h-4" />
-              </button>
-            {/if}
-          </:action>
-
+        <Bonfire.UI.Common.WidgetBlockLive
+          widget_title={@widget_title || l("Trending")}
+          reset_cache_event="Bonfire.Tag.Web.WidgetTagsLive:reset_trending"
+          reset_cache_values={%{for_last_x_days: for_last_x_days, limit: limit}}
+          can_reset={@always_show_reset_btn || Bonfire.Boundaries.can?(@__context__, :tag, :instance_wide)}
+        >
           <ul class="menu w-full p-0 -mx-3">
             {#if trending != []}
               {#for %{tag: tag} = tagged <- trending}

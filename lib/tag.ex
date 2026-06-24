@@ -115,21 +115,21 @@ defmodule Bonfire.Tag do
   @default_in_last_x_days 30
   @default_limit 10
 
-  def list_trending(in_last_x_days \\ @default_in_last_x_days, limit \\ @default_limit) do
+  @doc """
+  Lists trending tags (cached). Pass the standard `:cache` opt to control caching —
+  `cache: :refresh` busts + recomputes (what the widget's refresh button calls),
+  `cache: :reset` clears, `cache: false` bypasses.
+  """
+  def list_trending(
+        in_last_x_days \\ @default_in_last_x_days,
+        limit \\ @default_limit,
+        opts \\ []
+      ) do
     Cache.maybe_apply_cached(
       &list_trending_without_cache/2,
       [in_last_x_days || @default_in_last_x_days, limit || @default_limit],
-      expire: @default_cache_ttl
+      Keyword.put_new(opts, :expire, @default_cache_ttl)
     )
-
-    # Cache.maybe_apply_cached({__MODULE__, :list_trending_without_cache}, [in_last_x_days, limit], expire: @default_cache_ttl)
-  end
-
-  def trending_links_reset(in_last_x_days \\ @default_in_last_x_days, limit \\ @default_limit) do
-    Cache.reset(&list_trending_without_cache/2, [
-      in_last_x_days || @default_in_last_x_days,
-      limit || @default_limit
-    ])
   end
 
   def list_trending_without_cache(

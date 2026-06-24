@@ -3,13 +3,6 @@ defmodule Bonfire.Tag.Web.Routes do
 
   defmacro __using__(_) do
     quote do
-      # pages anyone can view
-      scope "/", Bonfire.Tag.Web do
-        pipe_through(:browser)
-
-        live("/tags/autocomplete", API.Autocomplete)
-      end
-
       # pages you need an account to view
       scope "/", Bonfire.Tag.Web do
         pipe_through(:browser)
@@ -23,6 +16,13 @@ defmodule Bonfire.Tag.Web.Routes do
         live("/tag/:id", TagFeedLive, as: Bonfire.Tag)
         live("/hashtag/:hashtag", TagFeedLive, as: Bonfire.Tag.Hashtag)
         live("/hashtags/followed", FollowedTagsLive, as: Bonfire.Tag.FollowedTags)
+      end
+
+      # hot autocomplete endpoint (hit on every keystroke): a read-only JSON GET that only needs an
+      # authenticated session (NOT a full user load, and no CSRF/flash/layout) — the
+      # :user_session_required plug fetches the session itself, so we skip the :browser pipeline
+      scope "/", Bonfire.Tag.Web do
+        pipe_through(:user_session_required)
 
         get("/api/tag/autocomplete/:prefix/:search", API.Autocomplete, :get)
 
