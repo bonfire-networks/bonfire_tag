@@ -2,7 +2,7 @@ defmodule Bonfire.Tag.LiveHandler do
   use Bonfire.UI.Common.Web, :live_handler
   use Bonfire.Common.Repo
 
-  declare_extension("Tag",
+  declare_extension(l("Tag"),
     icon: "ci:label",
     emoji: "🏷️",
     description:
