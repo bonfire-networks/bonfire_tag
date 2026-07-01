@@ -20,6 +20,7 @@
       )}
       {#match trending when is_list(trending)}
         <Bonfire.UI.Common.WidgetBlockLive
+          class="p-card border-y border-y-secondary border-y-hair"
           widget_title={@widget_title || l("Trending")}
           reset_cache_event="Bonfire.Tag.Web.WidgetTagsLive:reset_trending"
           reset_cache_values={%{for_last_x_days: for_last_x_days, limit: limit}}
@@ -38,11 +39,11 @@
                           <div
                             style="overflow-wrap: anywhere;
                           white-space: inherit;"
-                            class="text-sm truncate line-clamp-1"
+                            class="text-body font-medium truncate line-clamp-1"
                           >
                             #{e(tag, :named, :name, nil)}
                           </div>
-                          <!-- <div class="text-xs font-light text-base-content/70">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))} {l("in the last %{number} days", number: for_last_x_days)}</div> -->
+                          <!-- <div class="text-xs font-light text-muted">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))} {l("in the last %{number} days", number: for_last_x_days)}</div> -->
                         </div>
                         {!-- <div><#Icon outline="DotsHorizontal" class="w-5 h-5 text-base-content text-opacity-60" /></div> --}
                       </div>
@@ -65,7 +66,7 @@
                             {e(tag, :name, nil) || e(tag, :profile, :name, nil) || e(tag, :character, :username, nil) ||
                               e(tag, :named, :name, nil) || e(tag, :id, nil)}
                           </div>
-                          <div class="text-xs font-light text-base-content/70">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))}</div>
+                          <div class="text-xs font-light text-muted">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))}</div>
                         </div>
                       </div>
                     </LinkLive>
