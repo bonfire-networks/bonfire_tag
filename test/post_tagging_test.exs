@@ -98,7 +98,9 @@ defmodule Bonfire.Tag.PostsTest do
 
     assert [%{tag: %{character: %{username: tagged_username}}}] = post.tagged
     assert name == tagged_username
-    assert post.post_content.html_body =~ "[@#{name}](/character/#{name})"
+    # mention links get localised from the canonical AP URL to the in-app path
+    # (see `Bonfire.Common.URIs.localise_ap_path/1`): new-scheme actors → /user/<ULID>
+    assert post.post_content.html_body =~ "[@#{name}](/user/#{user.id})"
   end
 
   test "Tag.cast should add a Tagged entry to the changeset" do

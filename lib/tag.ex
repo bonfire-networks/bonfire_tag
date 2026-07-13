@@ -237,8 +237,15 @@ defmodule Bonfire.Tag do
   Lookup a single for a tag by its name/username
   """
   def maybe_lookup_tag(id_or_username_or_url, _prefix \\ "@")
-      when is_binary(id_or_username_or_url),
-      do: maybe_find_tag(nil, id_or_username_or_url)
+      when is_binary(id_or_username_or_url) do
+    with {:ok, tag_object} <- maybe_find_tag(nil, id_or_username_or_url) do
+      # consumers (e.g. the mention linkifier) generate the tag's canonical URL, which needs the actor type + locality preloaded at the source; superset across possible tag types (users, categories, characters...), fitted per schema via `prune: true`
+      {:ok,
+       repo().maybe_preload(tag_object, [:shared_user, :peered, :character, created: [:peered]],
+         prune: true
+       )}
+    end
+  end
 
   def maybe_taxonomy_tag(user, id) do
     if Bonfire.Common.Extend.extension_enabled?(Bonfire.TaxonomySeeder.TaxonomyTags) do
