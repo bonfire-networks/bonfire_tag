@@ -22,6 +22,11 @@ defmodule Bonfire.Tags.Acts.AutoBoost do
       categories_auto_boost = ed(epic.assigns, key, [])
 
       if categories_auto_boost != [] do
+        auto_boost_opts =
+          epic.assigns
+          |> ed(:options, [])
+          |> Keyword.take([:auto_boost_at])
+
         maybe_debug(
           epic,
           act,
@@ -33,7 +38,8 @@ defmodule Bonfire.Tags.Acts.AutoBoost do
           %{object: %{id: _} = object} ->
             Bonfire.Common.Utils.maybe_apply(Bonfire.Social.Tags, :auto_boost, [
               categories_auto_boost,
-              object
+              object,
+              auto_boost_opts
             ])
 
             epic
@@ -41,7 +47,8 @@ defmodule Bonfire.Tags.Acts.AutoBoost do
           %{} = object ->
             Bonfire.Common.Utils.maybe_apply(Bonfire.Social.Tags, :auto_boost, [
               categories_auto_boost,
-              object
+              object,
+              auto_boost_opts
             ])
 
             epic
