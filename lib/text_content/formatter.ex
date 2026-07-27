@@ -56,16 +56,38 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   defp do_linkify(text, options) do
     acc = %{mentions: MapSet.new(), tags: MapSet.new(), urls: MapSet.new()}
 
-    if options[:safe_mention] && Regex.named_captures(safe_mention_regex(), text) do
-      %{"mentions" => mentions, "rest" => rest} =
-        Regex.named_captures(safe_mention_regex(), text)
+    with_parse_timeout(
+      fn ->
+        if options[:safe_mention] && Regex.named_captures(safe_mention_regex(), text) do
+          %{"mentions" => mentions, "rest" => rest} =
+            Regex.named_captures(safe_mention_regex(), text)
 
-      {text_mentions, %{mentions: mentions}} = Linkify.link_map(mentions, acc, options)
-      {text_rest, %{tags: tags, urls: urls}} = Linkify.link_map(rest, acc, options)
+          {text_mentions, %{mentions: mentions}} = Linkify.link_map(mentions, acc, options)
+          {text_rest, %{tags: tags, urls: urls}} = Linkify.link_map(rest, acc, options)
 
-      {text_mentions <> text_rest, %{mentions: mentions, tags: tags, urls: urls}}
-    else
-      Linkify.link_map(text, acc, options)
+          {text_mentions <> text_rest, %{mentions: mentions, tags: tags, urls: urls}}
+        else
+          Linkify.link_map(text, acc, options)
+        end
+      end,
+      # if parsing has to be abandoned, leave the text as the user typed it
+      {text, acc}
+    )
+  end
+
+  # parsing user-provided text runs in a Task with a budget, so that input which makes
+  # the parser misbehave can only lose us the mentions/hashtags/links for that text,
+  # rather than tie up the process handling the request (see `Utils.apply_task/3`)
+  defp with_parse_timeout(fun, fallback) do
+    timeout = Config.get([:bonfire_tag, :linkify_timeout], 10_000)
+
+    case Utils.apply_task(:await, fun, timeout: timeout) do
+      {:ok, result} ->
+        result
+
+      # NOTE: already logged by `apply_task`
+      _ ->
+        fallback
     end
   end
 
@@ -218,7 +240,7 @@ defmodule Bonfire.Tag.TextContent.Formatter do
       |> Keyword.put(:hashtag, false)
       |> Keyword.put(:url, false)
 
-    Linkify.collect_mentions(text, opts)
+    with_parse_timeout(fn -> Linkify.collect_mentions(text, opts) end, [])
   end
 
   def collect_mentions(_), do: []

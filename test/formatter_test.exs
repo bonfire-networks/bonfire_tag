@@ -193,4 +193,23 @@ defmodule Bonfire.Tag.FormatterTest do
       assert {_, _, _, _} = Formatter.linkify(text, content_type: "text/markdown")
     end
   end
+
+  # parsing runs in a Task with a budget, so that text which makes the parser
+  # misbehave can never wedge the process handling the request
+  describe "when parsing overruns its timeout" do
+    setup do
+      Process.put([:bonfire_tag, :linkify_timeout], 0)
+      :ok
+    end
+
+    test "linkify returns the text unchanged, with no mentions, hashtags or urls" do
+      text = "hi @someone about #stuff, see google.com"
+
+      assert {^text, [], [], []} = Formatter.linkify(text, content_type: "text/markdown")
+    end
+
+    test "collect_mentions returns no mentions" do
+      assert Formatter.collect_mentions("hi @someone and @someone_else") == []
+    end
+  end
 end
