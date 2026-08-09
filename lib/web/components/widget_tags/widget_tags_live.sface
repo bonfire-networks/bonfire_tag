@@ -26,7 +26,7 @@
           reset_cache_values={%{for_last_x_days: for_last_x_days, limit: limit}}
           can_reset={@always_show_reset_btn || Bonfire.Boundaries.can?(@__context__, :tag, :instance_wide)}
         >
-          <ul class="menu w-full p-0 -mx-3">
+          <ul class="menu gap-0 w-full p-0 -mx-3">
             {#if trending != []}
               {#for %{tag: tag} = tagged <- trending}
                 {#if e(tag, :table_id, nil) == "7HASHTAG1SPART0FF01KS0N0MY" or
@@ -39,7 +39,7 @@
                           <div
                             style="overflow-wrap: anywhere;
                           white-space: inherit;"
-                            class="text-body font-medium truncate line-clamp-1"
+                            class="text-body truncate line-clamp-1"
                           >
                             #{e(tag, :named, :name, nil)}
                           </div>
@@ -61,7 +61,7 @@
                           <div
                             style="overflow-wrap: anywhere;
                       white-space: inherit;"
-                            class="text-sm font-medium truncate line-clamp-1"
+                            class="text-sm truncate line-clamp-1"
                           >
                             {e(tag, :name, nil) || e(tag, :profile, :name, nil) || e(tag, :character, :username, nil) ||
                               e(tag, :named, :name, nil) || e(tag, :id, nil)}
