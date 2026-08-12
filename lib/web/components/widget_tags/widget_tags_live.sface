@@ -39,7 +39,7 @@
                           <div
                             style="overflow-wrap: anywhere;
                           white-space: inherit;"
-                            class="text-body truncate line-clamp-1"
+                            class="text-sm truncate line-clamp-1"
                           >
                             #{e(tag, :named, :name, nil)}
                           </div>
