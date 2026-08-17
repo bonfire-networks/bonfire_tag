@@ -42,16 +42,20 @@ defmodule Bonfire.Tag.TextContent.Process do
       System.get_env("SKIP_LINK_DOMAINS_VALIDATION") not in ["1", "true"] and
         System.get_env("TEST_INSTANCE") != "yes"
 
+    # NOTE: `mention`/`hashtag` are Linkify's own option names, so callers use those rather than a second vocabulary
+    mention? = Keyword.get(opts, :mention, true)
+
     options = [
       mentions_format: :full,
       user: user,
       validate_hostname: validate_domains,
       validate_tld: validate_domains,
-      mentions: Keyword.get(opts, :mentions, true),
-      hashtags: Keyword.get(opts, :hashtags, true)
+      mention: mention?,
+      hashtag: Keyword.get(opts, :hashtag, true)
     ]
 
-    if !opts[:mentions_prefetched],
+    # skip the (possibly remote) actor lookups when we're not parsing mentions anyway
+    if mention? and !opts[:mentions_prefetched],
       do: Bonfire.Tag.TextContent.Formatter.prefetch_mentions(text)
 
     content_type =
@@ -96,7 +100,7 @@ defmodule Bonfire.Tag.TextContent.Process do
     |> html_escape(content_type)
     |> String.replace("&amp;", "&")
     |> String.replace(~r/\r?\n/, "<br>")
-    |> Formatter.linkify(options ++ [content_type: content_type])
+    |> Formatter.linkify(Keyword.put(options, :content_type, content_type))
   end
 
   # doc """ Formatting text to html. """
@@ -104,7 +108,7 @@ defmodule Bonfire.Tag.TextContent.Process do
     text
     |> html_escape(content_type)
     |> String.replace("&amp;", "&")
-    |> Formatter.linkify(options ++ [content_type: content_type])
+    |> Formatter.linkify(Keyword.put(options, :content_type, content_type))
   end
 
   # doc """ Formatting text to markdown. FIXME """
@@ -114,7 +118,7 @@ defmodule Bonfire.Tag.TextContent.Process do
     # |> Earmark.as_html()
     # |> elem(1)
     |> String.replace("&amp;", "&")
-    |> Formatter.linkify(options ++ [content_type: content_type])
+    |> Formatter.linkify(Keyword.put(options, :content_type, content_type))
   end
 
   # defp maybe_add_nsfw_tag({text, mentions, tags}, %{"sensitive" => sensitive})

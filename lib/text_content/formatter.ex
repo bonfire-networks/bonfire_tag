@@ -34,8 +34,12 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   @spec linkify(String.t(), keyword()) ::
           {String.t(), [{String.t(), User.t()}], [{String.t(), String.t()}]}
   def linkify(text, options \\ []) do
-    {text, trailing_line} = extract_trailing_hashtags(text)
-    options = linkify_opts() ++ options
+    # caller options win, eg. to disable `mention`/`hashtag` parsing while still linkifying URLs
+    options = linkify_opts(options)
+
+    # only worth pulling apart when we're actually going to parse the hashtags
+    {text, trailing_line} =
+      if options[:hashtag] != false, do: extract_trailing_hashtags(text), else: {text, ""}
 
     {text, %{mentions: mentions, tags: tags, urls: urls}} = do_linkify(text, options)
 
@@ -91,20 +95,22 @@ defmodule Bonfire.Tag.TextContent.Formatter do
     end
   end
 
-  defp linkify_opts() do
-    Config.get(Bonfire.Tag.TextContent.Formatter, []) ++
-      [
-        url_handler: &url_handler/3,
-        hashtag: true,
-        hashtag_handler: &tag_handler/4,
-        mention: true,
-        mention_handler: &tag_handler/4,
-        mention_regex: match_mention(),
-        email: false,
-        strip_prefix: true,
-        truncate: 30,
-        rel: "nofollow noopener ugc"
-      ]
+  # NOTE: merged rather than concatenated so there's exactly one entry per key. With duplicates the winner depends on who reads them (`Keyword.get` takes the first, Linkify takes the last), which is a good way to have a flag mean two different things at once. Precedence: defaults < config < caller.
+  defp linkify_opts(overrides \\ []) do
+    [
+      url_handler: &url_handler/3,
+      hashtag: true,
+      hashtag_handler: &tag_handler/4,
+      mention: true,
+      mention_handler: &tag_handler/4,
+      mention_regex: match_mention(),
+      email: false,
+      strip_prefix: true,
+      truncate: 30,
+      rel: "nofollow noopener ugc"
+    ]
+    |> Keyword.merge(Config.get(Bonfire.Tag.TextContent.Formatter, []))
+    |> Keyword.merge(overrides)
   end
 
   def nothing_handler(text, _opts, acc) do
@@ -235,10 +241,8 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   def collect_mentions(text) when is_binary(text) do
     # Drop all handlers: collect_mentions only needs to scan for mention text, not render HTML or hit the DB
     opts =
-      linkify_opts()
+      linkify_opts(hashtag: false, url: false)
       |> Keyword.drop([:url_handler, :hashtag_handler, :mention_handler])
-      |> Keyword.put(:hashtag, false)
-      |> Keyword.put(:url, false)
 
     with_parse_timeout(fn -> Linkify.collect_mentions(text, opts) end, [])
   end
