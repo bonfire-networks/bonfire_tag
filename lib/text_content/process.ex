@@ -99,7 +99,8 @@ defmodule Bonfire.Tag.TextContent.Process do
     text
     |> html_escape(content_type)
     |> String.replace("&amp;", "&")
-    |> String.replace(~r/\r?\n/, "<br>")
+    # equivalent to `~r/\r?\n/` (leftmost-longest picks CRLF over LF) but stays in `:binary.replace` instead of starting the regex engine
+    |> String.replace(["\r\n", "\n"], "<br>")
     |> Formatter.linkify(Keyword.put(options, :content_type, content_type))
   end
 
