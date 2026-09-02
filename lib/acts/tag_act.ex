@@ -95,8 +95,39 @@ defmodule Bonfire.Tag.Acts.Tag do
 
         context_id = Keyword.get(epic.assigns[:options], :context_id, nil)
 
+        # A reply belongs to the group its thread is in, whoever made it. The composer arranges this by mentioning the group, but an API client or an incoming federated activity does not, so derive it here: this act runs for every object type, and after `Threaded`, which has already resolved (and boundary-checked) what is being replied to.
+        # No permission shortcut: the result goes through `maybe_boostable_categories/2` below like any other candidate, so an author without `:tag` on the group still boosts nothing.
+        # `assigns[:reply_to]` is the object `Threaded` already resolved and boundary-checked, so
+        # passing it in means nothing is fetched here for the common case.
+        reply_to =
+          e(epic.assigns, :reply_to, nil) ||
+            e(changeset, :changes, :replied, :changes, :reply_to, nil) ||
+            e(changeset, :changes, :replied, :changes, :reply_to_id, nil)
+
+        {publish_in, epic} =
+          case Utils.maybe_apply(
+                 Bonfire.Social.Threads,
+                 :maybe_publish_in,
+                 # falls back to `context_id`, which for a reply IS the thread: it is dropped below
+                 # as a boost candidate (only categories can be one), but it still answers "which
+                 # group is this thread in" for anything that arrives without a `reply_to`
+                 [reply_to || context_id, attrs, epic.assigns[:options] || []],
+                 fallback_return: nil
+               ) do
+            {:ok, reply_to, group} when not is_nil(reply_to) ->
+              {group, Epic.assign(epic, :reply_to, reply_to)}
+
+            {:ok, _object, group} ->
+              {group, epic}
+
+            _ ->
+              {nil, epic}
+          end
+
         categories_auto_boost =
-          (List.wrap(context_id) ++ e(changeset, :changes, :post_content, :changes, :mentions, []))
+          (List.wrap(context_id) ++
+             e(changeset, :changes, :post_content, :changes, :mentions, []) ++
+             List.wrap(publish_in))
           |> Enum.uniq_by(fn
             %{id: id} -> id
             id -> id
