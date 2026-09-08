@@ -110,6 +110,25 @@ defmodule Bonfire.Tag do
     end
   end
 
+  @doc """
+  The `Hashtag`s for an incoming AS2 `tag` list, keyed by the href (or the name, where the sender gave no href) that they appear as in the content.
+
+  Keyed rather than a plain list because a body's anchors are rewritten to point at the local hashtag, which needs matching back by the URL the sender used. Callers that only want to attach the tags can take `Map.values/1`.
+  """
+  def ap_receive_hashtags(tags) do
+    for %{"type" => "Hashtag", "name" => name} = tag <- List.wrap(tags) do
+      with {:ok, hashtag} <- get_or_create_hashtag(name) do
+        {String.downcase(tag["href"] || name), hashtag}
+      else
+        none ->
+          warn(none, "could not create Hashtag for #{tag["name"]}")
+          nil
+      end
+    end
+    |> filter_empty([])
+    |> Map.new()
+  end
+
   # 1 hour # NOTE: these are just defaults but the UI checks for overrides in settings
   @default_cache_ttl 1_000 * 60 * 60
   @default_in_last_x_days 30
