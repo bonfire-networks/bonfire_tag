@@ -146,7 +146,7 @@ if Code.ensure_loaded?(Bonfire.API.GraphQL) do
       with {:ok, me} <- GraphQL.current_user_or_not_logged_in(info),
            {:ok, hashtag} <- Tag.get_or_create_hashtag(name),
            {:ok, _follow} <-
-             Bonfire.Social.Graph.Follows.follow(me, hashtag, skip_boundary_check: true) do
+             Bonfire.Social.Graph.Follows.maybe_follow(me, hashtag, skip_boundary_check: true) do
         {:ok, hashtag}
       end
     end
