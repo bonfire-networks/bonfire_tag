@@ -15,6 +15,16 @@ defmodule Bonfire.Tag.FeedFilterTaggedTest do
   alias Bonfire.Me.Fake
   import Bonfire.Posts.Fake
 
+  # both halves, each on its own: a key with no field is dropped by the cast, and a field with no module validates and filters nothing, and either way every test below just sees an unfiltered feed
+  test "the filter's key is a field on FeedFilters, declared from this extension's config" do
+    assert :tags in Bonfire.Social.FeedFilters.__schema__(:fields)
+    assert :exclude_tags in Bonfire.Social.FeedFilters.__schema__(:fields)
+  end
+
+  test "the module that applies it is registered with the feed loader" do
+    assert Bonfire.Tag.FeedFilters in Bonfire.Common.FeedFilterModule.modules()
+  end
+
   setup do
     # tests paginate at 2 by default, and the control below wants all three fixtures on one page: without this the oldest falls off and reads as "the filter excluded it"
     Process.put([:bonfire, :default_pagination_limit], 10)
