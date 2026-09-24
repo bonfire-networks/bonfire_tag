@@ -8,6 +8,10 @@ defmodule Bonfire.Tag.Autocomplete do
   alias Enums
   import Bonfire.Common.Config, only: [repo: 0]
 
+  @autocomplete_limit 10
+  # hit on every keystroke: don't queue behind other searches on the shared index connection, the DB merge still answers
+  @autocomplete_index_timeout 1_500
+
   @tag_terminator " "
   @tags_seperator " "
   def prefixes,
@@ -71,26 +75,19 @@ defmodule Bonfire.Tag.Autocomplete do
       index_type = prefix_index(prefix)
 
       # Perform the search with search adapter
-      search_results = Bonfire.Search.search_by_type(search, index_type)
+      search_results = Bonfire.Search.search_by_type(search, index_type, search_opts(prefix))
 
       # Format the results for the autocomplete
       if is_list(search_results) and length(search_results) > 0 do
-        # Process search results with enhanced preloading
         enhanced_results =
           search_results
-          |> Bonfire.Social.Activities.activity_preloads(
-            # Add these preloads to ensure username, name, icon
-            [:with_subject, :with_object],
-            limit: 10,
-            current_user: current_user
-          )
-          # preload profile + `character.peered` (peered is needed for the federation check below)
-          |> repo().maybe_preload(character: [:peered])
+          |> Enum.take(@autocomplete_limit)
+          # profile for name + icon, `character.peered` for the federation check below
+          |> repo().maybe_preload(profile: [:icon], character: [:peered])
           |> debug("Search results with preloaded user data")
           # drop @-mentions to remote actors this instance can't federate with (#647) — once here,
           # then tell tag_hit_prepare to skip its own (redundant) check for these hits
           |> reject_unfederatable_mentions(prefix, current_user, federation_mode)
-          |> repo().maybe_preload(profile: [:icon])
 
         # Prepare each hit for the autocomplete UI
         enhanced_results
@@ -99,10 +96,10 @@ defmodule Bonfire.Tag.Autocomplete do
         end)
         |> Enums.filter_empty([])
       else
-        # Fallback to original method if no results
-        debug("No search adapter results, falling back to original lookup method")
+        # the index was already queried (and for `@` merged with the DB), so only look up locally
+        debug("No search adapter results, falling back to local lookup")
 
-        api_tag_lookup(search, prefix, consumer,
+        local_tag_lookup(search, index_type, prefix, consumer,
           federation_mode: federation_mode,
           current_user: current_user
         )
@@ -117,6 +114,12 @@ defmodule Bonfire.Tag.Autocomplete do
       )
     end
   end
+
+  # For mentions, merge DB prefix matches into index hits: the index matches whole words and may not have every user.
+  defp search_opts("@"),
+    do: [db_merge: true, limit: @autocomplete_limit, timeout: @autocomplete_index_timeout]
+
+  defp search_opts(_prefix), do: [timeout: @autocomplete_index_timeout]
 
   @doc """
   For `@` mentions (the only prefix that resolves to users), drop suggested users this instance
@@ -161,16 +164,22 @@ defmodule Bonfire.Tag.Autocomplete do
 
   def tag_lookup_public(tag_search, index_type, prefix \\ nil, consumer \\ nil, hit_opts \\ []) do
     maybe_search(tag_search, index_type, prefix, consumer, hit_opts) ||
-      maybe_find_tags(tag_search, index_type)
-      # `character.peered` is needed for the #647 federation check in tag_hit_prepare
-      |> repo().maybe_preload(character: [:peered], profile: :icon)
-      |> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer, hit_opts))
-      |> Enums.filter_empty([])
+      local_tag_lookup(tag_search, index_type, prefix, consumer, hit_opts)
   end
 
+  defp local_tag_lookup(tag_search, index_type, prefix, consumer, hit_opts) do
+    maybe_find_tags(tag_search, index_type)
+    # `character.peered` is needed for the #647 federation check in tag_hit_prepare
+    |> repo().maybe_preload(character: [:peered], profile: :icon)
+    |> Enum.map(&tag_hit_prepare(&1, tag_search, prefix, consumer, hit_opts))
+    |> Enums.filter_empty([])
+  end
+
+  # Local lookup only: autocomplete runs on every keystroke, so it must never reach `Tag.maybe_find_tag`'s remote actor fetch.
   def maybe_find_tags(tag_search, index_type) do
-    with {:ok, tags} <- Tag.maybe_find_tags(nil, tag_search, index_type) do
-      tags
+    case Tag.find(tag_search, index_type) do
+      {:ok, tags} -> List.wrap(tags)
+      _ -> []
     end
   end
 
