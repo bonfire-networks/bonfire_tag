@@ -8,22 +8,15 @@ defmodule Bonfire.Tag.AutocompleteTest do
     {:ok, me: me}
   end
 
-  test "@ mentions find a local user by username prefix even when the search index doesn't have them",
-       %{me: me} do
+  test "@ mentions fall back to a local lookup when the search index has no hits", %{me: me} do
     _ = Fake.fake_user!(%{}, %{username: "zanzibarquokka"})
-    indexed = Fake.fake_user!(%{}, %{username: "zanzibarquail"})
 
-    # the index returns some hits, but not every matching user
     Repatch.patch(Bonfire.Search, :adapter, [mode: :shared], fn -> Bonfire.Search.Sonic end)
-
-    Repatch.patch(Bonfire.Search.Sonic, :search_by_type, [mode: :shared], fn _, _, _ ->
-      [indexed]
-    end)
+    Repatch.patch(Bonfire.Search.Sonic, :search_by_type, [mode: :shared], fn _, _, _ -> [] end)
 
     ids = Autocomplete.api_tag_search("zanzibarq", "@", "ck5", me) |> Enum.map(& &1[:id])
 
     assert "@zanzibarquokka" in ids
-    assert "@zanzibarquail" in ids
   end
 
   test "@ mentions never fetch remote actors while a handle is being typed", %{me: me} do

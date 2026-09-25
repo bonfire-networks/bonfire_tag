@@ -9,8 +9,6 @@ defmodule Bonfire.Tag.Autocomplete do
   import Bonfire.Common.Config, only: [repo: 0]
 
   @autocomplete_limit 10
-  # hit on every keystroke: don't queue behind other searches on the shared index connection, the DB merge still answers
-  @autocomplete_index_timeout 1_500
 
   @tag_terminator " "
   @tags_seperator " "
@@ -75,7 +73,7 @@ defmodule Bonfire.Tag.Autocomplete do
       index_type = prefix_index(prefix)
 
       # Perform the search with search adapter
-      search_results = Bonfire.Search.search_by_type(search, index_type, search_opts(prefix))
+      search_results = Bonfire.Search.search_by_type(search, index_type, limit: @autocomplete_limit)
 
       # Format the results for the autocomplete
       if is_list(search_results) and length(search_results) > 0 do
@@ -114,12 +112,6 @@ defmodule Bonfire.Tag.Autocomplete do
       )
     end
   end
-
-  # For mentions, merge DB prefix matches into index hits: the index matches whole words and may not have every user.
-  defp search_opts("@"),
-    do: [db_merge: true, limit: @autocomplete_limit, timeout: @autocomplete_index_timeout]
-
-  defp search_opts(_prefix), do: [timeout: @autocomplete_index_timeout]
 
   @doc """
   For `@` mentions (the only prefix that resolves to users), drop suggested users this instance
