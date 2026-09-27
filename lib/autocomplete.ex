@@ -73,7 +73,8 @@ defmodule Bonfire.Tag.Autocomplete do
       index_type = prefix_index(prefix)
 
       # Perform the search with search adapter
-      search_results = Bonfire.Search.search_by_type(search, index_type, limit: @autocomplete_limit)
+      search_results =
+        Bonfire.Search.search_by_type(search, index_type, limit: @autocomplete_limit)
 
       # Format the results for the autocomplete
       if is_list(search_results) and length(search_results) > 0 do

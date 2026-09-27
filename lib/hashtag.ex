@@ -35,13 +35,15 @@ defmodule Bonfire.Tag.Hashtag do
     )
   end
 
-  def normalize_name(name) do
+  def normalize_name(name) when is_binary(name) do
     name
     |> String.trim()
     |> String.downcase()
     |> String.trim_leading("#")
     |> String.replace(" ", "_")
   end
+
+  def normalize_name(_), do: nil
 end
 
 defmodule Bonfire.Tag.Hashtag.Migration do
