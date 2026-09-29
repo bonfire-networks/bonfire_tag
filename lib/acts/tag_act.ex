@@ -149,14 +149,18 @@ defmodule Bonfire.Tag.Acts.Tag do
         # only add as "published in" in first mentioned category ^
         |> Epic.assign(epic, on, ...)
         |> Epic.assign(..., :categories_auto_boost, categories_auto_boost)
-        # the ACLs that come with publishing in the group made tree parent above, for `SetBoundaries` (which runs after this act) to attach with the post's own
+        # Resolve the group audience before SetBoundaries so member ACLs cannot widen a restricted post.
         |> Epic.assign(
           ...,
-          :published_in_acl_ids,
+          :published_in_boundary_options,
           Utils.maybe_apply(
             Bonfire.Classify.Boundaries,
-            :acl_ids_for_published_in,
-            [List.first(categories_auto_boost)],
+            :post_boundary_options,
+            [
+              List.first(categories_auto_boost),
+              epic.assigns[:options] || [],
+              e(epic.assigns, :reply_to, nil) || reply_to
+            ],
             fallback_return: []
           )
         )
