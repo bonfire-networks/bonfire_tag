@@ -136,6 +136,12 @@ defmodule Bonfire.Tag.Acts.Tag do
           |> maybe_debug(epic, act, ..., "categories_auto_boost")
           |> debug("categories_auto_boost")
 
+        # TEMP probe for CI: which group the post goes into, as what struct
+        warn(
+          Enum.map(categories_auto_boost, &{Map.get(&1, :__struct__), Map.get(&1, :id), Map.get(&1, :type)}),
+          "DEBUG tag act categories_auto_boost"
+        )
+
         maybe_debug(epic, act, "tags", "Casting")
 
         attrs
@@ -163,6 +169,8 @@ defmodule Bonfire.Tag.Acts.Tag do
             ],
             fallback_return: []
           )
+          # TEMP probe for CI
+          |> warn("DEBUG tag act published_in_acl_ids")
         )
         # Store for later processing
         |> Epic.assign(..., :request_quotes, pending_quotes)
