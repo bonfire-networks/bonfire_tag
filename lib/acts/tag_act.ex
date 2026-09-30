@@ -114,8 +114,9 @@ defmodule Bonfire.Tag.Acts.Tag do
                  [reply_to || context_id, attrs, epic.assigns[:options] || []],
                  fallback_return: nil
                ) do
-            {:ok, reply_to, group} when not is_nil(reply_to) ->
-              {group, Epic.assign(epic, :reply_to, reply_to)}
+            # only a real reply is kept as `reply_to`: from the `context_id` fallback it is where the post is published (eg. the group itself), and boundaries would treat the post as a reply to it and clone its ACLs
+            {:ok, loaded, group} when not is_nil(loaded) and not is_nil(reply_to) ->
+              {group, Epic.assign(epic, :reply_to, loaded)}
 
             {:ok, _object, group} ->
               {group, epic}
@@ -138,7 +139,10 @@ defmodule Bonfire.Tag.Acts.Tag do
 
         # TEMP probe for CI: which group the post goes into, as what struct
         warn(
-          Enum.map(categories_auto_boost, &{Map.get(&1, :__struct__), Map.get(&1, :id), Map.get(&1, :type)}),
+          Enum.map(
+            categories_auto_boost,
+            &{Map.get(&1, :__struct__), Map.get(&1, :id), Map.get(&1, :type)}
+          ),
           "DEBUG tag act categories_auto_boost"
         )
 
@@ -165,7 +169,8 @@ defmodule Bonfire.Tag.Acts.Tag do
             [
               List.first(categories_auto_boost),
               epic.assigns[:options] || [],
-              e(epic.assigns, :reply_to, nil) || reply_to
+              # or the opening post of the thread it was placed in without replying to anything (see `Bonfire.Social.Acts.Threaded`)
+              e(epic.assigns, :reply_to, nil) || reply_to || e(epic.assigns, :context_thread, nil)
             ],
             fallback_return: []
           )
