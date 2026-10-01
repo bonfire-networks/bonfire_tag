@@ -20,7 +20,6 @@
       )}
       {#match trending when is_list(trending)}
         <Bonfire.UI.Common.WidgetBlockLive
-          class="p-card border-y border-y-secondary border-y-hair"
           widget_title={@widget_title || l("Trending")}
           reset_cache_event="Bonfire.Tag.Web.WidgetTagsLive:reset_trending"
           reset_cache_values={%{for_last_x_days: for_last_x_days, limit: limit}}
