@@ -18,7 +18,10 @@ defmodule Bonfire.Tag.TextContent.Formatter do
   # &Community@instance.tld
   # +CategoryTag
   # +CategoryTag@instance.tld
-  defp match_mention, do: ~r/^(?<prefix>[@&\+])(?<user>[a-zA-Z\d_-]+)(@(?<host>[^@]+))?$/
+  # usernames may contain letters, marks and digits in any script, plus `_` and `-`, and dots between those (as Mastodon allows), see the W3C SocialCG ActivityPub and WebFinger report, 3.1.2
+  defp match_mention,
+    do:
+      ~r/^(?<prefix>[@&\+])(?<user>[\p{L}\p{M}\p{N}_-]+(?:\.[\p{L}\p{M}\p{N}_-]+)*)(@(?<host>[^@]+))?$/u
 
   # defp match_mention, do: ~r"^[@&\+][a-zA-Z\d_-]+@[a-zA-Z0-9_-](?:[a-zA-Z0-9-:]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-:]{0,61}[a-zA-Z0-9])?)*|[@&\+][a-zA-Z\d_-]+"u
   # defp match_mention, do: ~r"([@&\+][a-zA-Z\d_-]+@[a-zA-Z0-9:._-]+)*|([@&\+][a-zA-Z\d_-]+)*"u
