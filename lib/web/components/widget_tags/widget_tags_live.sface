@@ -44,7 +44,7 @@
                           </div>
                           <!-- <div class="text-xs font-light text-muted">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))} {l("in the last %{number} days", number: for_last_x_days)}</div> -->
                         </div>
-                        {!-- <div><#Icon outline="DotsHorizontal" class="w-5 h-5 text-base-content text-opacity-60" /></div> --}
+                        {!-- <div><#Icon outline="DotsHorizontal" class="w-5 h-5 text-muted" /></div> --}
                       </div>
                     </LinkLive>
                   </li>
@@ -79,7 +79,7 @@
                   src={Config.get([:ui, :theme, :instance_icon], nil)}
                   class="w-12 h-full grayscale"
                 />
-                <span class="text-sm text-base-content text-opacity-70">{l("Nothing trending at the moment")}</span>
+                <span class="text-sm text-muted">{l("Nothing trending at the moment")}</span>
               </div>
             {/if}
           </ul>
