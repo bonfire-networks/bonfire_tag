@@ -42,7 +42,7 @@
                           >
                             #{e(tag, :named, :name, nil)}
                           </div>
-                          <!-- <div class="text-xs font-light text-muted">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))} {l("in the last %{number} days", number: for_last_x_days)}</div> -->
+                          <!-- <div class="text-xs font-normal text-muted">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))} {l("in the last %{number} days", number: for_last_x_days)}</div> -->
                         </div>
                         {!-- <div><#Icon outline="DotsHorizontal" class="w-5 h-5 text-muted" /></div> --}
                       </div>
@@ -65,7 +65,7 @@
                             {e(tag, :name, nil) || e(tag, :profile, :name, nil) || e(tag, :character, :username, nil) ||
                               e(tag, :named, :name, nil) || e(tag, :id, nil)}
                           </div>
-                          <div class="text-xs font-light text-muted">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))}</div>
+                          <div class="text-xs font-normal text-muted">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))}</div>
                         </div>
                       </div>
                     </LinkLive>
