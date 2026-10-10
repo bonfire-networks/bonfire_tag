@@ -6,7 +6,7 @@
           <li data-role="followed-hashtag" class="border-b border-divider last:border-b-0">
             <div class="flex items-center justify-between gap-2 py-2">
               <div class="flex items-center gap-5 flex-1">
-                <span><#Icon iconify="ph:hash-duotone" class="w-5 h-5 text-primary" /></span>
+                <span><#Icon iconify="ph:hash-duotone" class="size-5 text-primary" /></span>
                 <LinkLive
                   class="flex-1 font-medium"
                   to={~p"/hashtag/" <> e(tag, :named, :name, e(tag, :name, ""))}
@@ -32,7 +32,7 @@
       />
     {#else}
       <div class="flex flex-col items-center p-8 space-y-4 place-content-center">
-        <#Icon iconify="ph:hash-duotone" class="w-12 h-12 text-subtle" />
+        <#Icon iconify="ph:hash-duotone" class="size-12 text-subtle" />
         <span class="font-medium text-muted">{l("You are not following any hashtags yet.")}</span>
         <p class="text-sm text-muted">{l("Follow hashtags to see posts using them in your home feed.")}</p>
       </div>

@@ -25,7 +25,10 @@
           reset_cache_values={%{for_last_x_days: for_last_x_days, limit: limit}}
           can_reset={@always_show_reset_btn || Bonfire.Boundaries.can?(@__context__, :tag, :instance_wide)}
         >
-          <ul class="menu gap-0 w-full p-0 -mx-3">
+          {!-- menu items carry px-3; bleed the list by the same amount on both
+               sides so the text aligns with the widget title while the hover
+               pill extends evenly past it --}
+          <ul class="menu gap-0 p-0 -mx-3 w-[calc(100%+1.5rem)]">
             {#if trending != []}
               {#for %{tag: tag} = tagged <- trending}
                 {#if e(tag, :table_id, nil) == "7HASHTAG1SPART0FF01KS0N0MY" or
@@ -44,7 +47,7 @@
                           </div>
                           <!-- <div class="text-xs font-normal text-muted">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))} {l("in the last %{number} days", number: for_last_x_days)}</div> -->
                         </div>
-                        {!-- <div><#Icon outline="DotsHorizontal" class="w-5 h-5 text-muted" /></div> --}
+                        {!-- <div><#Icon outline="DotsHorizontal" class="size-5 text-muted" /></div> --}
                       </div>
                     </LinkLive>
                   </li>
