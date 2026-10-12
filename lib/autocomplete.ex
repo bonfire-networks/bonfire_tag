@@ -14,7 +14,7 @@ defmodule Bonfire.Tag.Autocomplete do
   @tags_seperator " "
   def prefixes,
     do:
-      Bonfire.Common.Config.get([__MODULE__, :prefixes], ["@", "&", "+"],
+      Bonfire.Common.Config.get([__MODULE__, :prefixes], ["@", "&", "+", "!"],
         name: l("Autocomplete for @ mentions and hashtags"),
         description: l("What prefixes to use")
       )
@@ -51,6 +51,11 @@ defmodule Bonfire.Tag.Autocomplete do
   # def prefix_index(tag_search, "&" = prefix, consumer) do
   #   "Community"
   # end
+
+  # groups and their topics, which are both categories, and no people or hashtags. `!` is the threadiverse's way of naming a group
+  def prefix_index(prefix) when prefix in ["&", "!"] do
+    Bonfire.Classify.Category
+  end
 
   def prefix_index(_) do
     [Bonfire.Data.Identity.User, Bonfire.Classify.Category, Bonfire.Tag]

@@ -8,7 +8,8 @@ defmodule Bonfire.Tag.FormatterTest do
       assert {"", [], [], []} = Formatter.linkify("")
     end
 
-    for prefix <- ["@", "+", "&"] do
+    # `!` is how the threadiverse names a community (`!group@host`), so it is a group mention too
+    for prefix <- ["@", "+", "&", "!"] do
       test "using #{prefix}, find mention if the user exists and linkify it" do
         user = Fake.fake_user!()
         username = user.character.username
