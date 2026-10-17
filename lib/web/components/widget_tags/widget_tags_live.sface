@@ -77,10 +77,7 @@
               {/for}
             {#else}
               <div class="flex flex-col items-center p-3 space-y-2 place-content-center">
-                <img
-                  src={Config.get([:ui, :theme, :instance_icon], nil)}
-                  class="w-12 h-full grayscale"
-                />
+                <img src={Config.get([:ui, :theme, :instance_icon], nil)} class="w-12 h-full grayscale">
                 <span class="text-sm text-muted">{l("Nothing trending at the moment")}</span>
               </div>
             {/if}
