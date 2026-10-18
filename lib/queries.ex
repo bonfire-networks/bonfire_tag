@@ -149,9 +149,11 @@ defmodule Bonfire.Tag.Queries do
 
   def filter(q, :deleted) do
     if Bonfire.Common.Extend.module_enabled?(Bonfire.Classify.Category) do
+      # an archived group has no row (`Bonfire.Classify.Categories.soft_delete/2` marks its pointer deleted, so Needle deletes it), so joining the categories is what leaves archived ones out
       q
       |> join_to(:category)
-      |> where([category: o], is_nil(o.deleted_at))
+
+      # |> where([category: o], is_nil(o.deleted_at))
     else
       q
     end
