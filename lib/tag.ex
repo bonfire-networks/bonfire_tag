@@ -429,6 +429,36 @@ defmodule Bonfire.Tag do
   # end
 
   @doc """
+  Boosts a thing into the feed of each category it is already tagged with, as far as the user may `:tag` those categories.
+
+  It is the boost half of `tag_something/4`, for a thing that was tagged as it was made, so the tag rows are not written again.
+
+  Pass the incoming AP object it was made from as `ap_object:`, and that is linked to the thing first. The boost federates an `Announce` that is resolved through the AP object, and boosting before the link relays nothing (see `Bonfire.Federate.ActivityPub.Incoming.link_and_tag/5`).
+  """
+  def maybe_boost_tagged(user, thing, opts \\ []) do
+    tags = thing |> repo().maybe_preload(:tags) |> e(:tags, [])
+
+    if tags != [] and module_enabled?(Bonfire.Social.Tags, user) do
+      if opts[:ap_object] do
+        Bonfire.Common.Utils.maybe_apply(
+          Bonfire.Federate.ActivityPub.Incoming,
+          :link_ap_object,
+          [opts[:ap_object], Enums.id(thing)],
+          fallback_return: nil
+        )
+      end
+
+      Bonfire.Common.Utils.maybe_apply(Bonfire.Social.Tags, :maybe_auto_boost, [
+        user,
+        tags,
+        thing
+      ])
+    end
+
+    {:ok, thing}
+  end
+
+  @doc """
   tag existing thing with one or multiple Tags, Needle, or anything that can be made into a tag
   """
   # def tag_something(user, thing, tags) when is_struct(thing) do
