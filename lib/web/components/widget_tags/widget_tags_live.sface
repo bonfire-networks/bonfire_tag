@@ -19,8 +19,10 @@
         limit
       )}
       {#match trending when is_list(trending)}
+       {#case Vocabulary.preset(:trending_tags, @__context__)}
+        {#match vocab}
         <Bonfire.UI.Common.WidgetBlockLive
-          widget_title={@widget_title || l("Trending")}
+          widget_title={@widget_title || Vocabulary.phrase(vocab, :title)}
           reset_cache_event="Bonfire.Tag.Web.WidgetTagsLive:reset_trending"
           reset_cache_values={%{for_last_x_days: for_last_x_days, limit: limit}}
           can_reset={@always_show_reset_btn || Bonfire.Boundaries.can?(@__context__, :tag, :instance_wide)}
@@ -78,11 +80,12 @@
             {#else}
               <div class="flex flex-col items-center p-3 space-y-2 place-content-center">
                 <img src={Config.get([:ui, :theme, :instance_icon], nil)} class="w-12 h-full grayscale">
-                <span class="text-sm text-muted">{l("Nothing trending at the moment")}</span>
+                <span class="text-sm text-muted">{Vocabulary.phrase(vocab, :empty)}</span>
               </div>
             {/if}
           </ul>
         </Bonfire.UI.Common.WidgetBlockLive>
+       {/case}
       {#match _}
     {/case}
   {#match _}
