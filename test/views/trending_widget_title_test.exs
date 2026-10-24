@@ -12,24 +12,29 @@ defmodule Bonfire.Tag.TrendingWidgetTitleTest do
     account = fake_account!()
     me = fake_user!(account)
 
-    {:ok, conn: conn(user: me, account: account)}
+    {:ok, me: me}
   end
 
   defp choose(preset_id), do: Process.put([:bonfire_common, Vocabulary, :trending_tags], preset_id)
 
-  defp dashboard(conn) do
-    {:ok, view, _html} = live(conn, "/dashboard")
-
-    view |> render_async() |> Floki.parse_document!()
+  # rendered directly rather than read from the dashboard, since not every flavour's dashboard has the block (jacobin leaves it out)
+  defp widget(user) do
+    render_component(&Bonfire.Tag.Web.WidgetTagsLive.render/1, %{
+      widget_title: nil,
+      wrapper_class: nil,
+      always_show_reset_btn: false,
+      __context__: %{current_user: user}
+    })
+    |> Floki.parse_fragment!()
   end
 
-  # the block, found by its title, since the dashboard has other widgets
+  # the block, found by its title, so a block showing another title doesn't match
   defp block(doc, title), do: Floki.find(doc, ~s(#{@widget}[aria-label="#{title}"]))
 
-  test "without a choice the block keeps its title and empty message", %{conn: conn} do
-    doc = dashboard(conn)
+  test "without a choice the block keeps its title and empty message", %{me: me} do
+    doc = widget(me)
 
-    assert [_] = block(doc, "Trending"), "control: the block is on the dashboard"
+    assert [_] = block(doc, "Trending"), "control: the block renders with its default title"
     assert doc |> block("Trending") |> Floki.text() =~ "Nothing trending at the moment"
   end
 
@@ -42,8 +47,7 @@ defmodule Bonfire.Tag.TrendingWidgetTitleTest do
       preset = Vocabulary.preset(:trending_tags, nil)
       title = Vocabulary.phrase(preset, :title)
 
-      account = fake_account!()
-      doc = dashboard(conn(user: fake_user!(account), account: account))
+      doc = widget(fake_user!())
 
       assert [_] = block(doc, title), "title of #{inspect(id)}"
       assert doc |> block(title) |> Floki.text() =~ Vocabulary.phrase(preset, :empty)
@@ -54,7 +58,7 @@ defmodule Bonfire.Tag.TrendingWidgetTitleTest do
   end
 
   test "an instance's own wording is the title, and the empty message comes from its base", %{
-    conn: conn
+    me: me
   } do
     Process.put(
       [:bonfire_common, Vocabulary, :custom_presets],
@@ -64,7 +68,7 @@ defmodule Bonfire.Tag.TrendingWidgetTitleTest do
     )
 
     choose(:school_yard)
-    doc = dashboard(conn)
+    doc = widget(me)
 
     assert [_] = block(doc, "What do you hear in the school yard?")
 
