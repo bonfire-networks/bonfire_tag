@@ -19,73 +19,73 @@
         limit
       )}
       {#match trending when is_list(trending)}
-       {#case Vocabulary.preset(:trending_tags, @__context__)}
-        {#match vocab}
-        <Bonfire.UI.Common.WidgetBlockLive
-          widget_title={@widget_title || Vocabulary.phrase(vocab, :title)}
-          reset_cache_event="Bonfire.Tag.Web.WidgetTagsLive:reset_trending"
-          reset_cache_values={%{for_last_x_days: for_last_x_days, limit: limit}}
-          can_reset={@always_show_reset_btn || Bonfire.Boundaries.can?(@__context__, :tag, :instance_wide)}
-        >
-          {!-- menu items carry px-3; bleed the list by the same amount on both
+        {#case Vocabulary.preset(:trending_tags, @__context__)}
+          {#match vocab}
+            <Bonfire.UI.Common.WidgetBlockLive
+              widget_title={@widget_title || Vocabulary.phrase(vocab, :title)}
+              reset_cache_event="Bonfire.Tag.Web.WidgetTagsLive:reset_trending"
+              reset_cache_values={%{for_last_x_days: for_last_x_days, limit: limit}}
+              can_reset={@always_show_reset_btn || Bonfire.Boundaries.can?(@__context__, :tag, :instance_wide)}
+            >
+              {!-- menu items carry px-3; bleed the list by the same amount on both
                sides so the text aligns with the widget title while the hover
                pill extends evenly past it --}
-          <ul class="menu gap-0 p-0 -mx-3 w-[calc(100%+1.5rem)]">
-            {#if trending != []}
-              {#for %{tag: tag} = tagged <- trending}
-                {#if e(tag, :table_id, nil) == "7HASHTAG1SPART0FF01KS0N0MY" or
-                    Types.object_type(tag) == Bonfire.Tag.Hashtag}
-                  {!-- FIXME ^ should just use Types.object_type ? --}
-                  <li data-role="hashtag" class="">
-                    <LinkLive class="" to={~p"/hashtag/" <> e(tag, :named, :name, "")}>
-                      <div class="flex flex-row items-center">
-                        <div class="flex flex-col items-start flex-1 gap-0 text-left">
-                          <div
-                            style="overflow-wrap: anywhere;
+              <ul class="menu gap-0 p-0 -mx-3 w-[calc(100%+1.5rem)]">
+                {#if trending != []}
+                  {#for %{tag: tag} = tagged <- trending}
+                    {#if e(tag, :table_id, nil) == "7HASHTAG1SPART0FF01KS0N0MY" or
+                        Types.object_type(tag) == Bonfire.Tag.Hashtag}
+                      {!-- FIXME ^ should just use Types.object_type ? --}
+                      <li data-role="hashtag" class="">
+                        <LinkLive class="" to={~p"/hashtag/" <> e(tag, :named, :name, "")}>
+                          <div class="flex flex-row items-center">
+                            <div class="flex flex-col items-start flex-1 gap-0 text-left">
+                              <div
+                                style="overflow-wrap: anywhere;
                           white-space: inherit;"
-                            class="text-sm truncate line-clamp-1"
-                          >
-                            #{e(tag, :named, :name, nil)}
+                                class="text-sm truncate line-clamp-1"
+                              >
+                                #{e(tag, :named, :name, nil)}
+                              </div>
+                              <!-- <div class="text-xs font-normal text-muted">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))} {l("in the last %{number} days", number: for_last_x_days)}</div> -->
+                            </div>
+                            {!-- <div><#Icon outline="DotsHorizontal" class="size-5 text-muted" /></div> --}
                           </div>
-                          <!-- <div class="text-xs font-normal text-muted">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))} {l("in the last %{number} days", number: for_last_x_days)}</div> -->
-                        </div>
-                        {!-- <div><#Icon outline="DotsHorizontal" class="size-5 text-muted" /></div> --}
-                      </div>
-                    </LinkLive>
-                  </li>
-                {#else}
-                  <li data-role="other">
-                    <LinkLive
-                      class="rounded-none"
-                      to={"/tag/#{e(tag, :character, :username, nil) || e(tag, :id, nil) || path(tag)}"}
-                    >
-                      {!-- FIXME ^ should just use path(tag) ? --}
-                      <div class="flex flex-row items-center">
-                        <div class="flex flex-col items-start flex-1 gap-0 text-left">
-                          <div
-                            style="overflow-wrap: anywhere;
+                        </LinkLive>
+                      </li>
+                    {#else}
+                      <li data-role="other">
+                        <LinkLive
+                          class="rounded-none"
+                          to={"/tag/#{e(tag, :character, :username, nil) || e(tag, :id, nil) || path(tag)}"}
+                        >
+                          {!-- FIXME ^ should just use path(tag) ? --}
+                          <div class="flex flex-row items-center">
+                            <div class="flex flex-col items-start flex-1 gap-0 text-left">
+                              <div
+                                style="overflow-wrap: anywhere;
                       white-space: inherit;"
-                            class="text-sm truncate line-clamp-1"
-                          >
-                            {e(tag, :name, nil) || e(tag, :profile, :name, nil) || e(tag, :character, :username, nil) ||
-                              e(tag, :named, :name, nil) || e(tag, :id, nil)}
+                                class="text-sm truncate line-clamp-1"
+                              >
+                                {e(tag, :name, nil) || e(tag, :profile, :name, nil) || e(tag, :character, :username, nil) ||
+                                  e(tag, :named, :name, nil) || e(tag, :id, nil)}
+                              </div>
+                              <div class="text-xs font-normal text-muted">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))}</div>
+                            </div>
                           </div>
-                          <div class="text-xs font-normal text-muted">{e(tagged, :count, 0)} {lp("activity", "activities", e(tagged, :count, 0))}</div>
-                        </div>
-                      </div>
-                    </LinkLive>
-                  </li>
+                        </LinkLive>
+                      </li>
+                    {/if}
+                  {/for}
+                {#else}
+                  <div class="flex flex-col items-center p-3 space-y-2 place-content-center">
+                    <img src={Config.get([:ui, :theme, :instance_icon], nil)} class="w-12 h-full grayscale">
+                    <span class="text-sm text-muted">{Vocabulary.phrase(vocab, :empty)}</span>
+                  </div>
                 {/if}
-              {/for}
-            {#else}
-              <div class="flex flex-col items-center p-3 space-y-2 place-content-center">
-                <img src={Config.get([:ui, :theme, :instance_icon], nil)} class="w-12 h-full grayscale">
-                <span class="text-sm text-muted">{Vocabulary.phrase(vocab, :empty)}</span>
-              </div>
-            {/if}
-          </ul>
-        </Bonfire.UI.Common.WidgetBlockLive>
-       {/case}
+              </ul>
+            </Bonfire.UI.Common.WidgetBlockLive>
+        {/case}
       {#match _}
     {/case}
   {#match _}

@@ -15,7 +15,8 @@ defmodule Bonfire.Tag.TrendingWidgetTitleTest do
     {:ok, conn: conn(user: me, account: account)}
   end
 
-  defp choose(preset_id), do: Process.put([:bonfire_common, Vocabulary, :trending_tags], preset_id)
+  defp choose(preset_id),
+    do: Process.put([:bonfire_common, Vocabulary, :trending_tags], preset_id)
 
   defp dashboard(conn) do
     {:ok, view, _html} = live(conn, "/dashboard")
@@ -35,7 +36,8 @@ defmodule Bonfire.Tag.TrendingWidgetTitleTest do
 
   # whatever the extension ships, now or later, the block shows it. The expected text comes from `Vocabulary`, so what is checked is that the widget reads it
   test "each built-in wording is the title and the empty message" do
-    default_title = Vocabulary.phrase(Vocabulary.preset_for(:trending_tags, :trending_tags), :title)
+    default_title =
+      Vocabulary.phrase(Vocabulary.preset_for(:trending_tags, :trending_tags), :title)
 
     for id <- Map.keys(Vocabulary.built_in(:trending_tags)) do
       choose(id)
