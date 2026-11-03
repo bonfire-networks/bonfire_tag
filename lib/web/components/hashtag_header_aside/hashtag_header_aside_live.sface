@@ -1,0 +1,36 @@
+<Dropdown
+  :if={current_user_id(@__context__)}
+  id={"hashtag_menu_#{@object_id}"}
+  position="bottom-end"
+  trigger_class="btn btn-ghost btn-circle btn-sm"
+  trigger_opts={Dropdown.load_on_first_open("hashtag_menu_#{@object_id}", "hashtag_bell_#{@object_id}")}
+  panel_class="dropdown_actions text-base-content"
+  label={l("Hashtag actions")}
+>
+  <:trigger>
+    <#Icon iconify="ph:dots-three-outline-vertical-fill" class="size-4" />
+  </:trigger>
+  <li>
+    <StatefulComponent
+      module={maybe_component(Bonfire.UI.Social.Graph.FollowButtonLive, @__context__)}
+      id={ComponentID.new(Bonfire.UI.Social.Graph.FollowButtonLive, @object_id, "hashtag")}
+      object_id={@object_id}
+      object={@object}
+      path={@path}
+      icon_class="size-4 shrink-0"
+      container_class="flex w-full"
+      class="flex items-center gap-3 w-full text-sm text-muted"
+      class_already="flex items-center gap-3 w-full text-sm text-primary"
+      with_bell={false}
+    />
+  </li>
+  <li>
+    <StatefulComponent
+      module={maybe_component(Bonfire.Notify.Web.BellButtonLive, @__context__)}
+      id={"hashtag_bell_#{@object_id}"}
+      object={@object || @object_id}
+      lazy
+      menu_item
+    />
+  </li>
+</Dropdown>
