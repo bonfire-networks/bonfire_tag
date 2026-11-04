@@ -47,13 +47,12 @@ defmodule Bonfire.Tag.TextContent.Formatter do
 
     {text, %{mentions: mentions, tags: tags, urls: urls}} = do_linkify(text, options)
 
-    # Process trailing hashtags through Linkify for DB creation, wrapped in one invisible block
+    # Trailing hashtags are tagged like any other, and kept as ordinary links in a paragraph of their own: they are hidden at render (`Bonfire.Common.Text.maybe_markdown_to_html/2` with `hide_trailing_hashtags: true`) rather than wrapped in HTML here, so the stored markdown stays markdown for servers that read our `source`. A paragraph rather than a line break, as the markdown renderer turns a single newline into a `<br>` within the same paragraph.
     {text, tags} =
       if trailing_line != "" do
         {trailing_text, %{tags: trailing_tags}} = do_linkify(trailing_line, options)
 
-        {text <> "<span class=\"invisible\"> " <> trailing_text <> "</span>",
-         MapSet.union(tags, trailing_tags)}
+        {text <> "\n\n" <> trailing_text, MapSet.union(tags, trailing_tags)}
       else
         {text, tags}
       end
