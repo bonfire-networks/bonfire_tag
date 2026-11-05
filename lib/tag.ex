@@ -76,7 +76,10 @@ defmodule Bonfire.Tag do
   def search_hashtag(text, opts \\ [])
 
   def search_hashtag(text, opts) do
-    repo().many(search_hashtag_query(text, opts))
+    text
+    |> search_hashtag_query(opts)
+    |> then(&if(limit = opts[:limit], do: limit(&1, ^limit), else: &1))
+    |> repo().many()
   end
 
   def search_hashtag_query(text, opts) do
@@ -107,8 +110,32 @@ defmodule Bonfire.Tag do
           # conflict_target: :name,
           returning: true
         )
+        |> tap(fn
+          {:ok, hashtag} -> maybe_index_hashtag(hashtag)
+          _ -> nil
+        end)
     end
   end
+
+  @doc "The document a hashtag is indexed as: its name, under its own index type."
+  def hashtag_indexing_object_format(%{id: id} = hashtag) do
+    %{
+      "id" => id,
+      "index_type" => Types.module_to_str(Hashtag),
+      "tags" => [e(repo().maybe_preload(hashtag, :named), :named, :name, nil)]
+    }
+  end
+
+  @doc "Puts a hashtag in the public search index, as anyone may see a hashtag's name."
+  def maybe_index_hashtag(%{id: _} = hashtag) do
+    maybe_apply(Bonfire.Search, :maybe_index, [
+      hashtag_indexing_object_format(hashtag),
+      :public,
+      []
+    ])
+  end
+
+  def maybe_index_hashtag(_), do: nil
 
   @doc """
   The `Hashtag`s for an incoming AS2 `tag` list, keyed by the href (or the name, where the sender gave no href) that they appear as in the content.
