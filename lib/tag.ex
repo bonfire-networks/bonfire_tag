@@ -411,24 +411,24 @@ defmodule Bonfire.Tag do
   @doc """
   Maybe tag something
   """
-  def maybe_tag(user, thing, tags \\ nil, boost_category_mentions? \\ true)
+  def maybe_tag(user, thing, tags \\ nil, boost_category_mentions? \\ true, opts \\ [])
 
-  def maybe_tag(user, thing, %{tags: tags}, boost_category_mentions?),
-    do: maybe_tag(user, thing, tags, boost_category_mentions?)
+  def maybe_tag(user, thing, %{tags: tags}, boost_category_mentions?, opts),
+    do: maybe_tag(user, thing, tags, boost_category_mentions?, opts)
 
-  def maybe_tag(user, thing, %{tag: tag}, boost_category_mentions?),
-    do: maybe_tag(user, thing, tag, boost_category_mentions?)
+  def maybe_tag(user, thing, %{tag: tag}, boost_category_mentions?, opts),
+    do: maybe_tag(user, thing, tag, boost_category_mentions?, opts)
 
-  def maybe_tag(user, thing, tags, boost_category_mentions?) when is_list(tags),
-    do: tag_something(user, thing, tags, boost_category_mentions?)
+  def maybe_tag(user, thing, tags, boost_category_mentions?, opts) when is_list(tags),
+    do: tag_something(user, thing, tags, boost_category_mentions?, opts)
 
-  def maybe_tag(user, thing, %{__struct__: _} = tag, boost_category_mentions?),
-    do: tag_something(user, thing, tag, boost_category_mentions?)
+  def maybe_tag(user, thing, %{__struct__: _} = tag, boost_category_mentions?, opts),
+    do: tag_something(user, thing, tag, boost_category_mentions?, opts)
 
-  def maybe_tag(user, thing, tag_string, boost_category_mentions?)
+  def maybe_tag(user, thing, tag_string, boost_category_mentions?, opts)
       when is_binary(tag_string) do
     String.split(tag_string, ",")
-    |> tag_something(user, thing, ..., boost_category_mentions?)
+    |> tag_something(user, thing, ..., boost_category_mentions?, opts)
   end
 
   # def maybe_tag(user, thing, text, boost_category_mentions?) when is_binary(text) do
@@ -441,13 +441,14 @@ defmodule Bonfire.Tag do
   #   end
   # end
   # otherwise maybe we have tagnames inline in the text assocs of the object?
-  def maybe_tag(user, obj, _, boost_category_mentions?),
+  def maybe_tag(user, obj, _, boost_category_mentions?, opts),
     do:
       maybe_tag(
         user,
         obj,
         Bonfire.Common.Utils.maybe_apply(Bonfire.Social.PostContents, :all_text_content, [obj]),
-        boost_category_mentions?
+        boost_category_mentions?,
+        opts
       )
 
   # def maybe_tag(_user, thing, _maybe_tags, boost_category_mentions?) do
@@ -486,14 +487,30 @@ defmodule Bonfire.Tag do
   end
 
   @doc """
-  tag existing thing with one or multiple Tags, Needle, or anything that can be made into a tag
+  tag existing thing with one or multiple Tags, Needle, or anything that can be made into a tag, if the user may `:tag` the thing (or made it).
+
+  Pass `skip_boundary_check: true` in `opts` for callers that have checked already (federation, imports, labelling). A fourth argument of `:skip_boundary_check` does so too.
   """
   # def tag_something(user, thing, tags) when is_struct(thing) do
   #   with {:ok, tagged} <- do_tag_thing(user, thing, tags) do
   #     {:ok, Map.put(thing, :tags, Map.get(tagged, :tags, []))}
   #   end
   # end
-  def tag_something(user, thing, tags, boost_or_label_category_tags? \\ true) do
+  def tag_something(user, thing, tags, boost_or_label_category_tags? \\ true, opts \\ []) do
+    if boost_or_label_category_tags? == :skip_boundary_check or
+         Keyword.get(opts, :skip_boundary_check) == true or
+         (not is_nil(user) and
+            Bonfire.Boundaries.can?(user, :tag, thing, Keyword.take(opts, [:skip_boundary_check])) ==
+              true) do
+      do_tag_something(user, thing, tags, boost_or_label_category_tags?)
+    else
+      error(thing, "No permission to tag this")
+      {:error, :not_permitted}
+    end
+  end
+
+  # for internal use, please call `tag_something/5` which checks for permission
+  def do_tag_something(user, thing, tags, boost_or_label_category_tags?) do
     with {:ok, thing} <- do_tag_thing(user, thing, tags) do
       if boost_or_label_category_tags? &&
            module_enabled?(Bonfire.Social.Tags, user) do
