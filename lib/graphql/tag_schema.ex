@@ -9,6 +9,7 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled and
     object :tag_queries do
       @desc "Get a tag by ID "
       field :tag, :tag do
+        meta(public: true)
         arg(:id, :id)
         # arg :find, :category_find
         resolve(&TagResolver.tag/2)
