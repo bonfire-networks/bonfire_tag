@@ -17,9 +17,13 @@ if Application.compile_env(:bonfire_api_graphql, :modularity) != :disabled do
     """
 
     test "tag suggestions returns an empty list rather than null when there are no matches" do
+      # suggestions serve the composer's autocomplete, so they need a signed-in user
+      user = Bonfire.Me.Fake.fake_user!()
+
       {:ok, result} =
         Absinthe.run(@query, Schema,
-          variables: %{"query" => "unlikely-tag-suggestion-no-match", "prefix" => "#"}
+          variables: %{"query" => "unlikely-tag-suggestion-no-match", "prefix" => "#"},
+          context: %{current_user: user}
         )
 
       refute result[:errors]
