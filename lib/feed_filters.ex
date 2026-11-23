@@ -35,6 +35,16 @@ defmodule Bonfire.Tag.FeedFilters do
   @impl true
   def maybe_filter(query, filter, opts \\ [])
 
+  # groups of tags (eg. a category with its subtopics, and a label): tagged with one of each group. An EXISTS per group, so something with several matching tags is listed once
+  def maybe_filter(query, {:tags, [first | _] = groups}, _opts) when is_list(first) do
+    Enum.reduce(groups, query, fn group, query ->
+      case ids_and_hashtags(group) do
+        {[], []} -> query
+        {ids, hashtags} -> where(query, exists(tagged_with(ids, hashtags)))
+      end
+    end)
+  end
+
   def maybe_filter(query, {:tags, tags}, _opts)
       when is_binary(tags) or (is_list(tags) and tags != []) do
     case ids_and_hashtags(tags) do

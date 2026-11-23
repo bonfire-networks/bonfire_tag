@@ -88,6 +88,57 @@ defmodule Bonfire.Tag.FeedFilterTaggedTest do
     refute FeedLoader.feed_contains?(feed, plain, current_user: me)
   end
 
+  describe "groups of tags (eg. a category with its subtopics, and a label)" do
+    setup %{author: author, me: me} do
+      both = fake_post!(author, "public", %{post_content: %{html_body: "about #alpha and #beta"}})
+      only_alpha = fake_post!(author, "public", %{post_content: %{html_body: "about #alpha"}})
+      only_beta = fake_post!(author, "public", %{post_content: %{html_body: "about #beta"}})
+
+      {:ok, both: both, only_alpha: only_alpha, only_beta: only_beta, me: me}
+    end
+
+    test "a list of groups finds what is tagged with one tag from each group, not what matches only one group",
+         %{me: me, both: both, only_alpha: only_alpha, only_beta: only_beta} do
+      # control: one flat list is an OR, so each of the three is found (and the filter is applied at all)
+      flat = FeedLoader.feed(:custom, %{tags: ["alpha", "beta"]}, current_user: me)
+      assert FeedLoader.feed_contains?(flat, only_alpha, current_user: me)
+      assert FeedLoader.feed_contains?(flat, only_beta, current_user: me)
+
+      feed = FeedLoader.feed(:custom, %{tags: [["alpha"], ["beta"]]}, current_user: me)
+
+      assert FeedLoader.feed_contains?(feed, both, current_user: me)
+      refute FeedLoader.feed_contains?(feed, only_alpha, current_user: me)
+      refute FeedLoader.feed_contains?(feed, only_beta, current_user: me)
+    end
+
+    test "a group matches any one of its tags", %{
+      me: me,
+      both: both,
+      only_alpha: only_alpha,
+      only_beta: only_beta
+    } do
+      feed = FeedLoader.feed(:custom, %{tags: [["alpha", "gamma"], ["beta"]]}, current_user: me)
+
+      assert FeedLoader.feed_contains?(feed, both, current_user: me)
+      refute FeedLoader.feed_contains?(feed, only_alpha, current_user: me)
+      refute FeedLoader.feed_contains?(feed, only_beta, current_user: me)
+    end
+
+    test "something with two of the matching tags is listed once, whether the tags are a flat list or a group",
+         %{me: me, both: both} do
+      # with and without the feed's own dedup of objects (`show_objects_only_once`, on by default), which would hide a row per tag from the join
+      for tags <- [["alpha", "beta"], [["alpha", "beta"]]],
+          dedup <- [true, false] do
+        %{edges: edges} =
+          FeedLoader.feed(:custom, %{tags: tags, show_objects_only_once: dedup}, current_user: me)
+
+        # the feed has it (the filter is applied), and once
+        assert Enum.count(edges, &(e(&1, :activity, :object_id, nil) == both.id)) == 1,
+               "listed once for tags: #{inspect(tags)}, dedup: #{dedup}"
+      end
+    end
+  end
+
   test "excluding an id leaves out the post that names that person, and keeps the rest", %{
     me: me,
     mentioning: mentioning,
