@@ -32,8 +32,14 @@ defmodule Bonfire.Tag.TextContent.Process do
         opts
       )
       when is_binary(text) do
-    # Decode HTML entities first
-    text = HtmlEntities.decode(text)
+    # Decode HTML entities first, but not the ones that stand for `<` or `>`: the input was sanitised before this, so decoding `&lt;script&gt;` into a tag would undo that. They stay entities, and so show as the typed text.
+    text =
+      text
+      |> String.replace(~r/&(?:lt|gt|#0*(?:60|62)|#x0*(?:3c|3e));?/i, fn entity ->
+        "&amp;" <> String.slice(entity, 1..-1//1)
+      end)
+      |> HtmlEntities.decode()
+
     # Normalize non-breaking spaces early to avoid linkify parsing issues
     text = String.replace(text, "\u00A0", " ")
 
