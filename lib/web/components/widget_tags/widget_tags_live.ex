@@ -1,7 +1,7 @@
 defmodule Bonfire.Tag.Web.WidgetTagsLive do
   use Bonfire.UI.Common.Web, :stateless_component
 
-  declare_widget(l("Popular topics"), id: :popular_topics, width: :narrow)
+  declare_widget(l("Popular topics"), id: :popular_topics, width: :narrow, skeleton: :chips)
 
   alias Bonfire.Tag
   alias Bonfire.Common.Vocabulary
