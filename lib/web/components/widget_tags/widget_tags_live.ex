@@ -6,7 +6,6 @@ defmodule Bonfire.Tag.Web.WidgetTagsLive do
   alias Bonfire.Tag
   alias Bonfire.Common.Vocabulary
   prop widget_title, :string, default: nil
-  prop wrapper_class, :string, default: nil
   prop always_show_reset_btn, :boolean, default: false
 
   def handle_event(
